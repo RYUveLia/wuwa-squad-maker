@@ -275,6 +275,8 @@ function App() {
           <ConfirmModal
             isOpen={confirmModalOpen}
             message={confirmAction.message}
+            subMessage={confirmAction.subMessage}
+            confirmText={confirmAction.confirmText}
             onConfirm={() => {
               confirmAction.onConfirm()
               setConfirmModalOpen(false)
