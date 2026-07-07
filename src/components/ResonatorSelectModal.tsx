@@ -1,6 +1,4 @@
-import { useState } from 'react'
 import type { Character } from '../types'
-import { MOCK_CHARACTERS, getMaxDeployment } from '../utils/character'
 import { ELEMENT_KR_MAP } from '../constants'
 import { DraggableCharacterCard } from './DraggableCharacterCard'
 
@@ -9,21 +7,24 @@ interface ResonatorSelectModalProps {
   onClose: () => void
   getAssignedSquadIndices: (charId: string) => number[]
   isCharacterMaxedOut: (charId: string) => boolean
+  getMaxDeployment: (charId: string) => number
+  filteredCharacters: Character[]
+  elements: string[]
+  selectedElement: string
+  setSelectedElement: (elem: string) => void
 }
 
 export function ResonatorSelectModal({
   onSelect,
   onClose,
   getAssignedSquadIndices,
-  isCharacterMaxedOut
+  isCharacterMaxedOut,
+  getMaxDeployment,
+  filteredCharacters,
+  elements,
+  selectedElement,
+  setSelectedElement
 }: ResonatorSelectModalProps) {
-  const [selectedElement, setSelectedElement] = useState<string>('All')
-  const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
-
-  const filteredCharacters = selectedElement === 'All' 
-    ? MOCK_CHARACTERS 
-    : MOCK_CHARACTERS.filter(c => c.element === selectedElement)
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
       <div

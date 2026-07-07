@@ -185,6 +185,11 @@ function App() {
             onClose={() => setActiveSlotForMobile(null)}
             getAssignedSquadIndices={getAssignedSquadIndices}
             isCharacterMaxedOut={isCharacterMaxedOut}
+            getMaxDeployment={getMaxDeployment}
+            filteredCharacters={filteredCharacters}
+            elements={elements}
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
           />
         )}
 
