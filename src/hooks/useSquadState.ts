@@ -32,6 +32,18 @@ export function useSquadState() {
   const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
   const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
 
+  // 제거 확인 모달 상태
+  const [confirmModalOpen, setConfirmModalOpen] = useState<boolean>(false)
+  const [confirmAction, setConfirmAction] = useState<{
+    message: string
+    onConfirm: () => void
+  } | null>(null)
+
+  const requestRemoveConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmAction({ message, onConfirm })
+    setConfirmModalOpen(true)
+  }
+
   // 드래그 앤 드롭 마우스 & 터치 센서 구성
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -110,13 +122,22 @@ export function useSquadState() {
 
   // 4) 슬롯에서 캐릭터 제거
   const handleRemoveCharacter = (squadIdx: number, slotIdx: number) => {
-    setSquads((prevSquads) => {
-      const newSquads = prevSquads.map(squad => [...squad])
-      if (newSquads[squadIdx]) {
-        newSquads[squadIdx][slotIdx] = null
+    const char = squads[squadIdx]?.[slotIdx]
+    if (!char) return
+
+    requestRemoveConfirm(
+      `"${char.name}" 공명자를 파티에서 제외하시겠습니까?`,
+      () => {
+        setSquads((prevSquads) => {
+          const newSquads = prevSquads.map(squad => [...squad])
+          if (newSquads[squadIdx]) {
+            newSquads[squadIdx][slotIdx] = null
+          }
+          return newSquads
+        })
+        showToast(`${char.name} 편성을 해제했습니다.`)
       }
-      return newSquads
-    })
+    )
   }
 
   // 파티 데이터 내보내기 (Export) — 하스스톤 스타일 Base64 코드
@@ -369,20 +390,25 @@ export function useSquadState() {
     else {
       const lastAssignedSquadIdx = assigned[assigned.length - 1]
       
-      setSquads((prev) => prev.map((squad, sIdx) => {
-        if (sIdx === lastAssignedSquadIdx) {
-          let removed = false
-          return squad.map(slot => {
-            if (slot && slot.id === char.id && !removed) {
-              removed = true
-              return null
+      requestRemoveConfirm(
+        `"${char.name}" 공명자를 파티에서 제외하시겠습니까?`,
+        () => {
+          setSquads((prev) => prev.map((squad, sIdx) => {
+            if (sIdx === lastAssignedSquadIdx) {
+              let removed = false
+              return squad.map(slot => {
+                if (slot && slot.id === char.id && !removed) {
+                  removed = true
+                  return null
+                }
+                return slot
+              })
             }
-            return slot
-          })
+            return squad
+          }))
+          showToast(`${char.name} 편성을 해제했습니다.`)
         }
-        return squad
-      }))
-      showToast(`${char.name} 편성을 해제했습니다.`)
+      )
     }
   }
 
@@ -420,6 +446,9 @@ export function useSquadState() {
     ownedModalOpen,
     setOwnedModalOpen,
     handleResetSquads,
-    handleSaveOwnedResonators
+    handleSaveOwnedResonators,
+    confirmModalOpen,
+    setConfirmModalOpen,
+    confirmAction
   }
 }

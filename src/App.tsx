@@ -12,6 +12,7 @@ import { ImportModal } from './components/ImportModal'
 import { ResonatorSelectModal } from './components/ResonatorSelectModal'
 import { OwnedResonatorModal } from './components/OwnedResonatorModal'
 import { TurnstileGate } from './components/TurnstileGate'
+import { ConfirmModal } from './components/ConfirmModal'
 
 // 커스텀 훅 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -48,7 +49,10 @@ function App() {
     ownedModalOpen,
     setOwnedModalOpen,
     handleResetSquads,
-    handleSaveOwnedResonators
+    handleSaveOwnedResonators,
+    confirmModalOpen,
+    setConfirmModalOpen,
+    confirmAction
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
@@ -263,6 +267,19 @@ function App() {
             onClose={() => setOwnedModalOpen(false)}
             ownedIds={ownedResonatorIds}
             onSave={handleSaveOwnedResonators}
+          />
+        )}
+        
+        {/* Confirm Action Modal */}
+        {confirmModalOpen && confirmAction && (
+          <ConfirmModal
+            isOpen={confirmModalOpen}
+            message={confirmAction.message}
+            onConfirm={() => {
+              confirmAction.onConfirm()
+              setConfirmModalOpen(false)
+            }}
+            onCancel={() => setConfirmModalOpen(false)}
           />
         )}
       </div>
