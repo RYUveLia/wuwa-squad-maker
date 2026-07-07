@@ -32,6 +32,25 @@ export function useSquadState() {
   const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
   const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
 
+  // 제거 확인 모달 상태
+  const [confirmModalOpen, setConfirmModalOpen] = useState<boolean>(false)
+  const [confirmAction, setConfirmAction] = useState<{
+    message: string
+    subMessage?: string
+    confirmText?: string
+    onConfirm: () => void
+  } | null>(null)
+
+  const requestRemoveConfirm = (
+    message: string,
+    onConfirm: () => void,
+    subMessage?: string,
+    confirmText?: string
+  ) => {
+    setConfirmAction({ message, onConfirm, subMessage, confirmText })
+    setConfirmModalOpen(true)
+  }
+
   // 드래그 앤 드롭 마우스 & 터치 센서 구성
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -62,7 +81,15 @@ export function useSquadState() {
   // 2) 스쿼드 동적 삭제 (최소 1개 스쿼드는 강제 보존)
   const handleDeleteSquad = (squadIdx: number) => {
     if (squads.length <= 1) return
-    setSquads((prev) => prev.filter((_, idx) => idx !== squadIdx))
+    requestRemoveConfirm(
+      `정말 ${squadIdx + 1}번 파티를 삭제하시겠습니까?`,
+      () => {
+        setSquads((prev) => prev.filter((_, idx) => idx !== squadIdx))
+        showToast(`${squadIdx + 1}번 파티가 삭제되었습니다.`)
+      },
+      '해당 파티의 모든 캐릭터 배치 내용이 사라집니다.',
+      '삭제하기'
+    )
   }
 
   // 3) 캐릭터 할당 및 스마트 이동 처리
@@ -110,13 +137,24 @@ export function useSquadState() {
 
   // 4) 슬롯에서 캐릭터 제거
   const handleRemoveCharacter = (squadIdx: number, slotIdx: number) => {
-    setSquads((prevSquads) => {
-      const newSquads = prevSquads.map(squad => [...squad])
-      if (newSquads[squadIdx]) {
-        newSquads[squadIdx][slotIdx] = null
-      }
-      return newSquads
-    })
+    const char = squads[squadIdx]?.[slotIdx]
+    if (!char) return
+
+    requestRemoveConfirm(
+      `"${char.name}" 공명자를 파티에서 제외하시겠습니까?`,
+      () => {
+        setSquads((prevSquads) => {
+          const newSquads = prevSquads.map(squad => [...squad])
+          if (newSquads[squadIdx]) {
+            newSquads[squadIdx][slotIdx] = null
+          }
+          return newSquads
+        })
+        showToast(`${char.name} 편성을 해제했습니다.`)
+      },
+      '제외된 캐릭터는 파티 목록에서 즉시 제거됩니다.',
+      '제외하기'
+    )
   }
 
   // 파티 데이터 내보내기 (Export) — 하스스톤 스타일 Base64 코드
@@ -311,12 +349,19 @@ export function useSquadState() {
   })
 
   const handleResetSquads = () => {
-    setSquads([
-      [null, null, null],
-      [null, null, null],
-      [null, null, null]
-    ])
-    showToast('모든 파티 편성이 초기화되었습니다.')
+    requestRemoveConfirm(
+      '모든 파티 편성을 초기화하시겠습니까?',
+      () => {
+        setSquads([
+          [null, null, null],
+          [null, null, null],
+          [null, null, null]
+        ])
+        showToast('모든 파티 편성이 초기화되었습니다.')
+      },
+      '모든 파티 슬롯이 즉시 비워지며 되돌릴 수 없습니다.',
+      '초기화하기'
+    )
   }
 
   const handleSaveOwnedResonators = (ids: string[]) => {
@@ -369,20 +414,27 @@ export function useSquadState() {
     else {
       const lastAssignedSquadIdx = assigned[assigned.length - 1]
       
-      setSquads((prev) => prev.map((squad, sIdx) => {
-        if (sIdx === lastAssignedSquadIdx) {
-          let removed = false
-          return squad.map(slot => {
-            if (slot && slot.id === char.id && !removed) {
-              removed = true
-              return null
+      requestRemoveConfirm(
+        `"${char.name}" 공명자를 파티에서 제외하시겠습니까?`,
+        () => {
+          setSquads((prev) => prev.map((squad, sIdx) => {
+            if (sIdx === lastAssignedSquadIdx) {
+              let removed = false
+              return squad.map(slot => {
+                if (slot && slot.id === char.id && !removed) {
+                  removed = true
+                  return null
+                }
+                return slot
+              })
             }
-            return slot
-          })
-        }
-        return squad
-      }))
-      showToast(`${char.name} 편성을 해제했습니다.`)
+            return squad
+          }))
+          showToast(`${char.name} 편성을 해제했습니다.`)
+        },
+        '제외된 캐릭터는 파티 목록에서 즉시 제거됩니다.',
+        '제외하기'
+      )
     }
   }
 
@@ -420,6 +472,9 @@ export function useSquadState() {
     ownedModalOpen,
     setOwnedModalOpen,
     handleResetSquads,
-    handleSaveOwnedResonators
+    handleSaveOwnedResonators,
+    confirmModalOpen,
+    setConfirmModalOpen,
+    confirmAction
   }
 }
