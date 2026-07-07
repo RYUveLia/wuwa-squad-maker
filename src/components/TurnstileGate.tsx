@@ -130,7 +130,14 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
 
         {/* Footer */}
         <div className={GATE_STYLES.footer}>
-          <span className={GATE_STYLES.footerText}>Protected by Cloudflare Turnstile</span>
+          <div className="flex flex-col items-center gap-1">
+            <span className={GATE_STYLES.footerText}>Protected by Cloudflare Turnstile</span>
+            <span className="text-[8px] font-mono text-slate-700 select-all">
+              {SITE_KEY === '1x00000000000000000000AA'
+                ? '보안 상태: 더미 데모 키 작동 중 (Vercel 환경변수 미감지)'
+                : `보안 상태: 사용자 정의 키 작동 중 (${SITE_KEY.slice(0, 10)}...)`}
+            </span>
+          </div>
         </div>
       </div>
     </div>
