@@ -245,6 +245,7 @@ function App() {
             onRemoveSlot={(slotIdx) => handleRemoveCharacter(activeSquadIdxForMobile, slotIdx)}
             showOnlyOwned={showOnlyOwned}
             setShowOnlyOwned={setShowOnlyOwned}
+            onOpenOwnedSettings={() => setOwnedModalOpen(true)}
           />
         )}
         {/* Owned Resonators Selector Modal */}

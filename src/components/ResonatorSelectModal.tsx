@@ -21,6 +21,7 @@ interface ResonatorSelectModalProps {
   // Ownership states
   showOnlyOwned: boolean
   setShowOnlyOwned: (val: boolean) => void
+  onOpenOwnedSettings: () => void
 }
 
 export function ResonatorSelectModal({
@@ -37,7 +38,8 @@ export function ResonatorSelectModal({
   currentSquad,
   onRemoveSlot,
   showOnlyOwned,
-  setShowOnlyOwned
+  setShowOnlyOwned,
+  onOpenOwnedSettings
 }: ResonatorSelectModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
@@ -101,7 +103,13 @@ export function ResonatorSelectModal({
         </div>
 
         {/* Owned Toggle inside Modal */}
-        <div className="flex justify-end px-1 mb-2.5 select-none flex-shrink-0">
+        <div className="flex justify-between items-center px-1 mb-2.5 select-none flex-shrink-0">
+          <button
+            onClick={onOpenOwnedSettings}
+            className="text-[10px] sm:text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 sm:py-1 rounded-md cursor-pointer transition-colors active:scale-95 flex items-center gap-0.5"
+          >
+            ⚙️ 보유 설정
+          </button>
           <label className="flex items-center gap-1.5 cursor-pointer text-[10.5px] sm:text-xs text-slate-400 font-bold hover:text-slate-300">
             <input
               type="checkbox"
