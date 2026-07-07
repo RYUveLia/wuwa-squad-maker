@@ -289,6 +289,44 @@ export function useSquadState() {
       : (assignedSquadIndices.length >= maxAllowed)
   }
 
+  const handleToggleCharacter = (char: Character) => {
+    const assigned = getAssignedSquadIndices(char.id)
+    if (assigned.length > 0) {
+      setSquads((prev) => prev.map(squad => squad.map(slot => slot && slot.id === char.id ? null : slot)))
+      showToast(`${char.name} 편성을 해제했습니다.`)
+    } else {
+      let targetSquadIdx = -1
+      let targetSlotIdx = -1
+      for (let s = 0; s < squads.length; s++) {
+        const emptySlot = squads[s].findIndex(slot => slot === null)
+        if (emptySlot !== -1) {
+          targetSquadIdx = s
+          targetSlotIdx = emptySlot
+          break
+        }
+      }
+      if (targetSquadIdx !== -1 && targetSlotIdx !== -1) {
+        handleSelectCharacter(char, targetSquadIdx, targetSlotIdx)
+      } else {
+        handleSelectCharacter(char, 0, 0)
+      }
+    }
+  }
+
+  const handleMoveSquad = (squadIdx: number, direction: 'up' | 'down') => {
+    setSquads((prev) => {
+      const next = [...prev]
+      const targetIdx = direction === 'up' ? squadIdx - 1 : squadIdx + 1
+      if (targetIdx < 0 || targetIdx >= next.length) return prev
+      
+      const temp = next[squadIdx]
+      next[squadIdx] = next[targetIdx]
+      next[targetIdx] = temp
+      return next
+    })
+    showToast('파티 순서가 변경되었습니다.')
+  }
+
   return {
     squads,
     selectedElement,
@@ -298,6 +336,7 @@ export function useSquadState() {
     handleAddSquad,
     handleDeleteSquad,
     handleSelectCharacter,
+    handleToggleCharacter,
     handleRemoveCharacter,
     handleExport,
     handleImport,
@@ -307,6 +346,7 @@ export function useSquadState() {
     elements,
     filteredCharacters,
     isCharacterMaxedOut,
-    getMaxDeployment
+    getMaxDeployment,
+    handleMoveSquad
   }
 }

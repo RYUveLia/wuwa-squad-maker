@@ -52,7 +52,7 @@ export function DraggableCharacterCard({
       {...listeners}
       {...attributes}
       onClick={() => {
-        if (isMaxedOut) return
+        if (isMaxedOut && assignedSquadIndices.length === 0) return
         onClick()
       }}
       className={`${CONTAINER_CLASS(isMaxedOut, isDragging)} ${rarityBorder}`}

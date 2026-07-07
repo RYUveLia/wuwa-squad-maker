@@ -19,7 +19,7 @@ function App() {
     sensors,
     handleAddSquad,
     handleDeleteSquad,
-    handleSelectCharacter,
+    handleToggleCharacter,
     handleRemoveCharacter,
     handleExport,
     handleImport,
@@ -29,7 +29,8 @@ function App() {
     elements,
     filteredCharacters,
     isCharacterMaxedOut,
-    getMaxDeployment
+    getMaxDeployment,
+    handleMoveSquad
   } = useSquadState()
 
   return (
@@ -86,28 +87,7 @@ function App() {
                     assignedSquadIndices={assignedSquadIndices}
                     isMaxedOut={isMaxedOut}
                     maxAllowed={maxAllowed}
-                    onClick={() => {
-                      let targetSquadIdx = -1
-                      let targetSlotIdx = -1
-                      
-                      for (let s = 0; s < squads.length; s++) {
-                        if (squads[s].some(slot => slot && slot.id === char.id)) {
-                          continue
-                        }
-                        const emptySlot = squads[s].findIndex(slot => slot === null)
-                        if (emptySlot !== -1) {
-                          targetSquadIdx = s
-                          targetSlotIdx = emptySlot
-                          break
-                        }
-                      }
-
-                      if (targetSquadIdx !== -1 && targetSlotIdx !== -1) {
-                        handleSelectCharacter(char, targetSquadIdx, targetSlotIdx)
-                      } else {
-                        handleSelectCharacter(char, 0, 0)
-                      }
-                    }}
+                    onClick={() => handleToggleCharacter(char)}
                   />
                 )
               })}
@@ -185,6 +165,35 @@ function App() {
                       <span className={SQUAD_LIST_STYLES.squadLabel}>
                         {squadIdx + 1}번 파티
                       </span>
+                      
+                      {/* 파티 행 정렬 위/아래 이동 버튼 */}
+                      <div className="flex gap-1 mt-0.5 select-none">
+                        <button
+                          onClick={() => handleMoveSquad(squadIdx, 'up')}
+                          disabled={squadIdx === 0}
+                          className={`px-1.5 py-0.5 text-[9px] font-bold rounded border cursor-pointer transition-colors ${
+                            squadIdx === 0 
+                              ? 'text-slate-700 border-slate-900 bg-slate-950/20 cursor-not-allowed' 
+                              : 'text-purple-400 hover:text-purple-300 border-purple-900/40 bg-purple-950/10 hover:bg-purple-950/30'
+                          }`}
+                          title="위로 이동"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          onClick={() => handleMoveSquad(squadIdx, 'down')}
+                          disabled={squadIdx === squads.length - 1}
+                          className={`px-1.5 py-0.5 text-[9px] font-bold rounded border cursor-pointer transition-colors ${
+                            squadIdx === squads.length - 1 
+                              ? 'text-slate-700 border-slate-900 bg-slate-950/20 cursor-not-allowed' 
+                              : 'text-purple-400 hover:text-purple-300 border-purple-900/40 bg-purple-950/10 hover:bg-purple-950/30'
+                          }`}
+                          title="아래로 이동"
+                        >
+                          ▼
+                        </button>
+                      </div>
+
                       {squads.length > 1 && (
                         <button
                           onClick={() => handleDeleteSquad(squadIdx)}
@@ -230,8 +239,8 @@ export default App
 const LAYOUT_STYLES = {
   wrapper: 'min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-6 px-4 font-sans selection:bg-purple-500 selection:text-white animate-fade-in max-w-full',
   splitGrid: 'w-full max-w-7xl flex flex-col lg:flex-row gap-6 items-stretch flex-1',
-  leftColumn: 'w-full lg:w-[45%] bg-slate-900/30 border border-slate-800/40 rounded-2xl p-5 backdrop-blur-sm shadow-xl flex flex-col max-h-[76vh]',
-  rightColumn: 'w-full lg:w-[55%] flex flex-col gap-4 max-h-[76vh]'
+  leftColumn: 'w-full lg:w-[45%] bg-slate-900/30 border border-slate-800/40 rounded-2xl p-5 backdrop-blur-sm shadow-xl flex flex-col max-h-none lg:max-h-[76vh]',
+  rightColumn: 'w-full lg:w-[55%] flex flex-col gap-4 max-h-none lg:max-h-[76vh]'
 }
 
 const HEADER_STYLES = {
@@ -256,14 +265,14 @@ const SQUAD_LIST_STYLES = {
   toolbarTitle: 'text-xs md:text-sm font-bold text-slate-300 px-1',
   toolbarBtnArea: 'flex gap-2',
   toolbarBtn: 'px-2.5 py-1 text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors',
-  scroller: 'flex flex-col gap-4 overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
-  row: 'bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-md shadow-md flex flex-row items-center justify-between gap-4 animate-scale-up select-none',
-  numberBadgeArea: 'flex items-center gap-3 select-none flex-shrink-0',
-  numberText: 'text-2xl md:text-3xl font-black font-mono text-slate-500 tracking-wider',
-  slotsArea: 'flex flex-row gap-3 flex-1 justify-center max-w-md',
-  actionArea: 'flex flex-col items-end gap-1.5 select-none flex-shrink-0 min-w-[85px]',
-  squadLabel: 'text-[11px] md:text-xs font-bold px-2.5 py-0.5 rounded border tracking-wide uppercase text-purple-400 bg-purple-950/20 border-purple-900/50',
-  deleteBtn: 'text-[11px] md:text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-2.5 py-0.5 rounded cursor-pointer transition-colors',
+  scroller: 'flex flex-col gap-4 overflow-y-visible lg:overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
+  row: 'bg-slate-900/50 border border-slate-800/80 rounded-2xl p-3 md:p-4 backdrop-blur-md shadow-md flex flex-row items-center justify-between gap-2 md:gap-4 animate-scale-up select-none',
+  numberBadgeArea: 'flex items-center gap-1.5 md:gap-3 select-none flex-shrink-0',
+  numberText: 'text-xl md:text-3xl font-black font-mono text-slate-500 tracking-wider',
+  slotsArea: 'flex flex-row gap-1.5 sm:gap-3 flex-1 justify-center max-w-md',
+  actionArea: 'flex flex-col items-end gap-1.5 select-none flex-shrink-0 min-w-[70px] sm:min-w-[85px]',
+  squadLabel: 'text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border tracking-wide uppercase text-purple-400 bg-purple-950/20 border-purple-900/50',
+  deleteBtn: 'text-[10px] md:text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-2 py-0.5 rounded cursor-pointer transition-colors mt-1',
   addSquadBar: 'bg-slate-900/10 border-2 border-dashed border-slate-800/60 hover:border-purple-500/50 hover:bg-slate-900/25 rounded-2xl py-4 flex flex-row items-center justify-center cursor-pointer group transition-all duration-300 select-none flex-shrink-0 gap-2',
   addSquadPlus: 'text-xl text-slate-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-300',
   addSquadText: 'text-sm font-bold text-slate-400 group-hover:text-purple-300 transition-colors'
