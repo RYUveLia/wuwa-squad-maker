@@ -1,0 +1,572 @@
+[
+  {
+    "id": "aalto",
+    "name": "알토",
+    "enName": "Aalto",
+    "rarity": 4,
+    "element": "Aero",
+    "weapon": "Pistols",
+    "releaseVersion": 1,
+    "img": "/characters/aalto.png"
+  },
+  {
+    "id": "aemeath",
+    "name": "에이메스",
+    "enName": "Aemeath",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Sword",
+    "releaseVersion": 3.1,
+    "img": "/characters/aemeath.png"
+  },
+  {
+    "id": "augusta",
+    "name": "아우구스타",
+    "enName": "Augusta",
+    "rarity": 5,
+    "element": "Electro",
+    "weapon": "Broadblade",
+    "releaseVersion": 2.6,
+    "img": "/characters/augusta.png"
+  },
+  {
+    "id": "baizhi",
+    "name": "설지",
+    "enName": "Baizhi",
+    "rarity": 4,
+    "element": "Glacio",
+    "weapon": "Rectifier",
+    "releaseVersion": 1,
+    "img": "/characters/baizhi.png"
+  },
+  {
+    "id": "brant",
+    "name": "브렌트",
+    "enName": "Brant",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Sword",
+    "releaseVersion": 2.1,
+    "img": "/characters/brant.png"
+  },
+  {
+    "id": "buling",
+    "name": "복링",
+    "enName": "Buling",
+    "rarity": 4,
+    "element": "Electro",
+    "weapon": "Rectifier",
+    "releaseVersion": 2.8,
+    "img": "/characters/buling.png"
+  },
+  {
+    "id": "calcharo",
+    "name": "카카루",
+    "enName": "Calcharo",
+    "rarity": 5,
+    "element": "Electro",
+    "weapon": "Broadblade",
+    "releaseVersion": 1,
+    "img": "/characters/calcharo.png"
+  },
+  {
+    "id": "camellya",
+    "name": "카멜리아",
+    "enName": "Camellya",
+    "rarity": 5,
+    "element": "Havoc",
+    "weapon": "Sword",
+    "releaseVersion": 1.4,
+    "img": "/characters/camellya.png"
+  },
+  {
+    "id": "cantarella",
+    "name": "칸타렐라",
+    "enName": "Cantarella",
+    "rarity": 5,
+    "element": "Havoc",
+    "weapon": "Rectifier",
+    "releaseVersion": 2.2,
+    "img": "/characters/cantarella.png"
+  },
+  {
+    "id": "carlotta",
+    "name": "카를로타",
+    "enName": "Carlotta",
+    "rarity": 5,
+    "element": "Glacio",
+    "weapon": "Pistols",
+    "releaseVersion": 2,
+    "img": "/characters/carlotta.png"
+  },
+  {
+    "id": "cartethyia",
+    "name": "카르티시아",
+    "enName": "Cartethyia",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Sword",
+    "releaseVersion": 2.4,
+    "img": "/characters/cartethyia.png"
+  },
+  {
+    "id": "changli",
+    "name": "장리",
+    "enName": "Changli",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Sword",
+    "releaseVersion": 1.1,
+    "img": "/characters/changli.png"
+  },
+  {
+    "id": "chisa",
+    "name": "치사",
+    "enName": "Chisa",
+    "rarity": 5,
+    "element": "Havoc",
+    "weapon": "Broadblade",
+    "releaseVersion": 2.8,
+    "img": "/characters/chisa.png"
+  },
+  {
+    "id": "chixia",
+    "name": "치샤",
+    "enName": "Chixia",
+    "rarity": 4,
+    "element": "Fusion",
+    "weapon": "Pistols",
+    "releaseVersion": 1,
+    "img": "/characters/chixia.png"
+  },
+  {
+    "id": "ciaccona",
+    "name": "샤콘",
+    "enName": "Ciaccona",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Pistols",
+    "releaseVersion": 2.3,
+    "img": "/characters/ciaccona.png"
+  },
+  {
+    "id": "danjin",
+    "name": "단근",
+    "enName": "Danjin",
+    "rarity": 4,
+    "element": "Havoc",
+    "weapon": "Sword",
+    "releaseVersion": 1,
+    "img": "/characters/danjin.png"
+  },
+  {
+    "id": "denia",
+    "name": "데니아",
+    "enName": "Denia",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Rectifier",
+    "releaseVersion": 3.3,
+    "img": "/characters/denia.png"
+  },
+  {
+    "id": "encore",
+    "name": "앙코",
+    "enName": "Encore",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Rectifier",
+    "releaseVersion": 1,
+    "img": "/characters/encore.png"
+  },
+  {
+    "id": "galbrena",
+    "name": "갈브레나",
+    "enName": "Galbrena",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Pistols",
+    "releaseVersion": 2.7,
+    "img": "/characters/galbrena.png"
+  },
+  {
+    "id": "hiyuki",
+    "name": "히유키",
+    "enName": "Hiyuki",
+    "rarity": 5,
+    "element": "Glacio",
+    "weapon": "Sword",
+    "releaseVersion": 3.3,
+    "img": "/characters/hiyuki.png"
+  },
+  {
+    "id": "iuno",
+    "name": "유노",
+    "enName": "Iuno",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Gauntlets",
+    "releaseVersion": 2.6,
+    "img": "/characters/iuno.png"
+  },
+  {
+    "id": "jianxin",
+    "name": "감심",
+    "enName": "Jianxin",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Gauntlets",
+    "releaseVersion": 1,
+    "img": "/characters/jianxin.png"
+  },
+  {
+    "id": "jinhsi",
+    "name": "금희",
+    "enName": "Jinhsi",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Broadblade",
+    "releaseVersion": 1.1,
+    "img": "/characters/jinhsi.png"
+  },
+  {
+    "id": "jiyan",
+    "name": "기염",
+    "enName": "Jiyan",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Broadblade",
+    "releaseVersion": 1,
+    "img": "/characters/jiyan.png"
+  },
+  {
+    "id": "lingyang",
+    "name": "능양",
+    "enName": "Lingyang",
+    "rarity": 5,
+    "element": "Glacio",
+    "weapon": "Gauntlets",
+    "releaseVersion": 1,
+    "img": "/characters/lingyang.png"
+  },
+  {
+    "id": "lucilla",
+    "name": "루실라",
+    "enName": "Lucilla",
+    "rarity": 5,
+    "element": "Glacio",
+    "weapon": "Rectifier",
+    "releaseVersion": 3.4,
+    "img": "/characters/lucilla.png"
+  },
+  {
+    "id": "lucy",
+    "name": "루시",
+    "enName": "Lucy",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Pistols",
+    "releaseVersion": 3.4,
+    "img": "/characters/lucy.png"
+  },
+  {
+    "id": "lumi",
+    "name": "루미",
+    "enName": "Lumi",
+    "rarity": 4,
+    "element": "Electro",
+    "weapon": "Broadblade",
+    "releaseVersion": 1.4,
+    "img": "/characters/lumi.png"
+  },
+  {
+    "id": "lupa",
+    "name": "루파",
+    "enName": "Lupa",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Broadblade",
+    "releaseVersion": 2.4,
+    "img": "/characters/lupa.png"
+  },
+  {
+    "id": "luuk-herssen",
+    "name": "루크 헤르센",
+    "enName": "Luuk Herssen",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Gauntlets",
+    "releaseVersion": 3.1,
+    "img": "/characters/luuk-herssen.png"
+  },
+  {
+    "id": "lynae",
+    "name": "린네",
+    "enName": "Lynae",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Pistols",
+    "releaseVersion": 3,
+    "img": "/characters/lynae.png"
+  },
+  {
+    "id": "mornye",
+    "name": "모니에",
+    "enName": "Mornye",
+    "rarity": 5,
+    "element": "Fusion",
+    "weapon": "Broadblade",
+    "releaseVersion": 3,
+    "img": "/characters/mornye.png"
+  },
+  {
+    "id": "mortefi",
+    "name": "모르테피",
+    "enName": "Mortefi",
+    "rarity": 4,
+    "element": "Fusion",
+    "weapon": "Pistols",
+    "releaseVersion": 1,
+    "img": "/characters/mortefi.png"
+  },
+  {
+    "id": "phoebe",
+    "name": "페비",
+    "enName": "Phoebe",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Rectifier",
+    "releaseVersion": 2.1,
+    "img": "/characters/phoebe.png"
+  },
+  {
+    "id": "phrolova",
+    "name": "플로로",
+    "enName": "Phrolova",
+    "rarity": 5,
+    "element": "Havoc",
+    "weapon": "Rectifier",
+    "releaseVersion": 2.5,
+    "img": "/characters/phrolova.png"
+  },
+  {
+    "id": "qiuyuan",
+    "name": "Qiuyuan",
+    "enName": "Qiuyuan",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Sword",
+    "releaseVersion": 2.7,
+    "img": "/characters/qiuyuan.png"
+  },
+  {
+    "id": "rebecca",
+    "name": "레베카",
+    "enName": "Rebecca",
+    "rarity": 5,
+    "element": "Electro",
+    "weapon": "Pistols",
+    "releaseVersion": 3.4,
+    "img": "/characters/rebecca.png"
+  },
+  {
+    "id": "roccia",
+    "name": "로코코",
+    "enName": "Roccia",
+    "rarity": 5,
+    "element": "Havoc",
+    "weapon": "Gauntlets",
+    "releaseVersion": 2,
+    "img": "/characters/roccia.png"
+  },
+  {
+    "id": "rover",
+    "name": "방랑자",
+    "enName": "Rover",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Sword",
+    "releaseVersion": 2.2,
+    "img": "/characters/rover.png"
+  },
+  {
+    "id": "sanhua",
+    "name": "산화",
+    "enName": "Sanhua",
+    "rarity": 4,
+    "element": "Glacio",
+    "weapon": "Sword",
+    "releaseVersion": 1,
+    "img": "/characters/sanhua.png"
+  },
+  {
+    "id": "shorekeeper",
+    "name": "파수인",
+    "enName": "Shorekeeper",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Rectifier",
+    "releaseVersion": 1.3,
+    "img": "/characters/shorekeeper.png"
+  },
+  {
+    "id": "sigrika",
+    "name": "시그리카",
+    "enName": "Sigrika",
+    "rarity": 5,
+    "element": "Aero",
+    "weapon": "Gauntlets",
+    "releaseVersion": 3.2,
+    "img": "/characters/sigrika.png"
+  },
+  {
+    "id": "taoqi",
+    "name": "도기",
+    "enName": "Taoqi",
+    "rarity": 4,
+    "element": "Havoc",
+    "weapon": "Broadblade",
+    "releaseVersion": 1,
+    "img": "/characters/taoqi.png"
+  },
+  {
+    "id": "verina",
+    "name": "벨리나",
+    "enName": "Verina",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Rectifier",
+    "releaseVersion": 1,
+    "img": "/characters/verina.png"
+  },
+  {
+    "id": "xiangli-yao",
+    "name": "상리요",
+    "enName": "Xiangli Yao",
+    "rarity": 5,
+    "element": "Electro",
+    "weapon": "Gauntlets",
+    "releaseVersion": 1.2,
+    "img": "/characters/xiangli-yao.png"
+  },
+  {
+    "id": "yangyang",
+    "name": "양양",
+    "enName": "Yangyang",
+    "rarity": 4,
+    "element": "Aero",
+    "weapon": "Sword",
+    "releaseVersion": 1,
+    "img": "/characters/yangyang.png"
+  },
+  {
+    "id": "yinlin",
+    "name": "음림",
+    "enName": "Yinlin",
+    "rarity": 5,
+    "element": "Electro",
+    "weapon": "Rectifier",
+    "releaseVersion": 1,
+    "img": "/characters/yinlin.png"
+  },
+  {
+    "id": "youhu",
+    "name": "유호",
+    "enName": "Youhu",
+    "rarity": 4,
+    "element": "Glacio",
+    "weapon": "Gauntlets",
+    "releaseVersion": 1.3,
+    "img": "/characters/youhu.png"
+  },
+  {
+    "id": "yuanwu",
+    "name": "연무",
+    "enName": "Yuanwu",
+    "rarity": 4,
+    "element": "Electro",
+    "weapon": "Gauntlets",
+    "releaseVersion": 1,
+    "img": "/characters/yuanwu.png"
+  },
+  {
+    "id": "zani",
+    "name": "젠니",
+    "enName": "Zani",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Gauntlets",
+    "releaseVersion": 2.3,
+    "img": "/characters/zani.png"
+  },
+  {
+    "id": "zhezhi",
+    "name": "절지",
+    "enName": "Zhezhi",
+    "rarity": 5,
+    "element": "Glacio",
+    "weapon": "Rectifier",
+    "releaseVersion": 1.2,
+    "img": "/characters/zhezhi.png"
+  },
+  {
+    "id": "hsin",
+    "name": "여우의 별자리",
+    "enName": "Hsin",
+    "rarity": 5,
+    "element": "Unknown",
+    "weapon": "Unknown",
+    "releaseVersion": 9.9,
+    "img": "/characters/hsin.png"
+  },
+  {
+    "id": "jingran",
+    "name": "경연",
+    "enName": "Jingran",
+    "rarity": 5,
+    "element": "Unknown",
+    "weapon": "Unknown",
+    "releaseVersion": 9.9,
+    "img": "/characters/jingran.png"
+  },
+  {
+    "id": "qingxiao",
+    "name": "청초",
+    "enName": "Qingxiao",
+    "rarity": 5,
+    "element": "Unknown",
+    "weapon": "Unknown",
+    "releaseVersion": 9.9,
+    "img": "/characters/qingxiao.png"
+  },
+  {
+    "id": "suisui",
+    "name": "수수",
+    "enName": "Suisui",
+    "rarity": 5,
+    "element": "Glacio",
+    "weapon": "Rectifier",
+    "releaseVersion": 3.5,
+    "img": "/characters/suisui.png"
+  },
+  {
+    "id": "suoming",
+    "name": "쇄명",
+    "enName": "Suoming",
+    "rarity": 5,
+    "element": "Unknown",
+    "weapon": "Unknown",
+    "releaseVersion": 9.9,
+    "img": "/characters/suoming.png"
+  },
+  {
+    "id": "yangyang-xuanling",
+    "name": "양양 현령",
+    "enName": "Yangyang Xuanling",
+    "rarity": 5,
+    "element": "Havoc",
+    "weapon": "Sword",
+    "releaseVersion": 3.5,
+    "img": "/characters/yangyang-xuanling.png"
+  }
+]

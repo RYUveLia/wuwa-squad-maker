@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* 
+  여기서 프로젝트의 공통 스타일 및 테마 변수를 정의할 수 있습니다.
+  Tailwind v4는 CSS standard custom properties(CSS 변수)를 기반으로 작동합니다.
+*/
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+@theme {
+  --color-primary: #aa3bff;
+  --color-primary-hover: #902be3;
+}
