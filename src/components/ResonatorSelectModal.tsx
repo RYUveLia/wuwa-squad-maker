@@ -27,33 +27,33 @@ export function ResonatorSelectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
-        className="bg-slate-900 border-t border-slate-700 rounded-t-3xl p-5 w-full max-h-[70vh] flex flex-col shadow-2xl animate-slide-up"
+        className="bg-slate-900 border-t border-slate-700 rounded-t-3xl p-3 sm:p-4 w-full max-h-[58vh] flex flex-col shadow-2xl animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle Bar */}
-        <div className="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-4 cursor-pointer" onClick={onClose} />
+        <div className="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-2.5 cursor-pointer" onClick={onClose} />
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <div className="flex items-center justify-between mb-2.5 flex-shrink-0">
           <div>
-            <h3 className="text-base font-bold text-slate-100">공명자 선택</h3>
-            <p className="text-[10px] text-slate-500 mt-0.5">터치하여 파티에 바로 배치합니다.</p>
+            <h3 className="text-sm sm:text-base font-bold text-slate-100">공명자 선택</h3>
+            <p className="text-[9.5px] sm:text-[10px] text-slate-500 mt-0.5">터치하여 파티에 바로 배치합니다.</p>
           </div>
           <button
             onClick={onClose}
-            className="text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg cursor-pointer"
+            className="text-[10px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-800 border border-slate-700 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg cursor-pointer"
           >
             닫기
           </button>
         </div>
 
         {/* Element Filter */}
-        <div className="flex flex-wrap gap-1 bg-slate-950/60 p-1 rounded-lg border border-slate-800/80 mb-4 flex-shrink-0">
+        <div className="flex flex-wrap gap-1 bg-slate-950/60 p-1 rounded-lg border border-slate-800/80 mb-2.5 flex-shrink-0">
           {elements.map((elem) => (
             <button
               key={elem}
               onClick={() => setSelectedElement(elem)}
-              className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all duration-200 cursor-pointer ${
+              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-semibold rounded-md transition-all duration-200 cursor-pointer ${
                 selectedElement === elem
                   ? 'bg-purple-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
@@ -65,7 +65,7 @@ export function ResonatorSelectModal({
         </div>
 
         {/* Characters Scroller */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5 overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
           {filteredCharacters.map((char) => {
             const assignedSquadIndices = getAssignedSquadIndices(char.id)
             const maxAllowed = getMaxDeployment(char.id)
