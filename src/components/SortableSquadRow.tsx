@@ -49,7 +49,7 @@ export function SortableSquadRow({
       {/* Center: Slots Row */}
       <div className={SQUAD_LIST_STYLES.slotsArea}>
         {squad.map((char, slotIdx) => {
-          const slotName = slotIdx === 0 ? '메인 딜러' : slotIdx === 1 ? '서브 딜러' : '서포터'
+          const slotName = String(slotIdx + 1)
           return (
             <DroppableSquadSlot
               key={slotIdx}
