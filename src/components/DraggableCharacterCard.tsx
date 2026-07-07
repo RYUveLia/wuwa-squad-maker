@@ -93,15 +93,15 @@ export function DraggableCharacterCard({
 }
 
 // STYLES
-const CONTAINER_CLASS = (isMaxedOut: boolean, isDragging: boolean) => `bg-slate-950/60 border border-slate-800/80 rounded-xl p-1.5 flex flex-col items-center select-none group transition-all duration-200 ${
+const CONTAINER_CLASS = (isMaxedOut: boolean, isDragging: boolean) => `bg-slate-950/60 border border-slate-800/80 rounded-2xl p-2 md:p-2.5 flex flex-col items-center select-none group transition-all duration-200 ${
   isMaxedOut ? 'opacity-30 border-slate-900 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:bg-slate-950 hover:shadow-md'
 } ${isDragging ? 'opacity-30 scale-95 border-purple-500/80 shadow-2xl' : ''}`
 
-const IMAGE_WRAPPER_CLASS = 'aspect-square w-full bg-slate-900/80 rounded-lg overflow-hidden relative'
+const IMAGE_WRAPPER_CLASS = 'aspect-square w-full bg-slate-900/80 rounded-xl overflow-hidden relative'
 const IMAGE_CLASS = 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
 const DEPLOYED_OVERLAY_CLASS = 'absolute inset-0 flex items-center justify-center bg-slate-950/75 pointer-events-none'
-const DEPLOYED_BADGE_CLASS = 'text-[10px] md:text-xs font-extrabold text-purple-400 tracking-wider bg-slate-950 border border-purple-500/30 px-2 py-0.5 rounded shadow select-none'
-const NAME_CLASS = 'mt-1.5 text-xs md:text-sm font-bold text-slate-300 group-hover:text-slate-100 transition-colors truncate w-full text-center'
-const TAG_AREA_CLASS = 'mt-1 select-none flex items-center justify-center gap-1 w-full font-bold'
-const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-1.5 py-0.5 rounded border text-xs ${elementColor}`
-const LIMIT2_BADGE_CLASS = 'text-xs font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1.5 py-0.5 rounded'
+const DEPLOYED_BADGE_CLASS = 'text-[11px] md:text-[13px] font-extrabold text-purple-400 tracking-wider bg-slate-950 border border-purple-500/30 px-2.5 py-0.5 rounded shadow select-none'
+const NAME_CLASS = 'mt-2 text-[13px] md:text-[15px] font-bold text-slate-300 group-hover:text-slate-100 transition-colors truncate w-full text-center'
+const TAG_AREA_CLASS = 'mt-1.5 select-none flex items-center justify-center gap-1.5 w-full font-bold'
+const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-2 py-0.5 rounded border text-[11px] md:text-[12px] ${elementColor}`
+const LIMIT2_BADGE_CLASS = 'text-[11px] md:text-[12px] font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-2 py-0.5 rounded'
