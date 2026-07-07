@@ -136,11 +136,11 @@ const OWNED_MODAL_STYLES = {
   description: 'text-[10px] sm:text-xs text-slate-500 mt-0.5',
   headerBtnArea: 'flex gap-2',
   shortcutBtn: 'text-[10px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2 py-1 rounded-md cursor-pointer transition-colors',
-  grid: 'grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5 overflow-y-auto flex-1 py-5 px-2 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent justify-items-center',
-  imgFrame: 'w-full aspect-square p-1 overflow-hidden',
-  img: 'w-full h-full object-cover rounded-lg pointer-events-none',
-  nameArea: 'w-full bg-slate-950/80 py-0.5 text-center pointer-events-none mt-auto',
-  nameText: 'text-[9px] sm:text-[10px] font-bold text-slate-300 group-hover:text-white truncate block px-0.5',
+  grid: 'grid grid-cols-4 sm:grid-cols-5 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 overflow-y-auto flex-1 py-5 px-2 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent justify-items-center',
+  imgFrame: 'w-full aspect-square overflow-hidden rounded-lg relative',
+  img: 'w-full h-full object-cover pointer-events-none',
+  nameArea: 'w-full text-center mt-auto pb-0.5 select-none pointer-events-none',
+  nameText: 'text-[9.5px] sm:text-[10.5px] font-bold text-slate-300 group-hover:text-white truncate block px-0.5',
   checkBadge: 'absolute top-1 right-1 bg-emerald-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow border border-emerald-400 select-none pointer-events-none scale-90 sm:scale-100 animate-scale-up',
   checkText: 'text-[10px] font-black leading-none',
   footer: 'flex items-center justify-end gap-3 pt-3 border-t border-slate-900 flex-shrink-0',
@@ -153,7 +153,7 @@ const CARD_CLASS = (isOwned: boolean, rarity: number) => {
     ? isOwned ? 'border-amber-500 shadow-amber-500/10' : 'border-slate-900'
     : isOwned ? 'border-purple-500 shadow-purple-500/10' : 'border-slate-900'
 
-  return `relative w-full max-w-[64px] sm:max-w-[76px] md:max-w-[80px] aspect-[4/5] rounded-xl overflow-hidden border flex flex-col items-center justify-between cursor-pointer transition-all duration-200 select-none group hover:scale-[1.03] ${
+  return `relative w-full max-w-[64px] sm:max-w-[76px] md:max-w-[80px] h-[86px] sm:h-[102px] md:h-[108px] rounded-xl overflow-hidden border flex flex-col items-center justify-between p-1 cursor-pointer transition-all duration-200 select-none group hover:scale-[1.03] flex-shrink-0 ${
     isOwned ? 'opacity-100 bg-slate-900 shadow-md' : 'opacity-40 bg-slate-950/20 grayscale hover:opacity-75 hover:grayscale-0'
   } ${rarityBorder}`
 }
