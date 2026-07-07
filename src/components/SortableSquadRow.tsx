@@ -10,6 +10,7 @@ interface SortableSquadRowProps {
   squadsLength: number
   handleRemoveCharacter: (squadIdx: number, slotIdx: number) => void
   handleDeleteSquad: (squadIdx: number) => void
+  onSlotClick?: (squadIdx: number, slotIdx: number) => void
 }
 
 export function SortableSquadRow({
@@ -18,7 +19,8 @@ export function SortableSquadRow({
   squad,
   squadsLength,
   handleRemoveCharacter,
-  handleDeleteSquad
+  handleDeleteSquad,
+  onSlotClick
 }: SortableSquadRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const style = {
@@ -59,6 +61,7 @@ export function SortableSquadRow({
               onRemove={() => handleRemoveCharacter(squadIdx, slotIdx)}
               squadIdx={squadIdx}
               slotIdx={slotIdx}
+              onSlotClick={onSlotClick}
             />
           )
         })}

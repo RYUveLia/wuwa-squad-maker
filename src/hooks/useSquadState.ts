@@ -16,6 +16,7 @@ export function useSquadState() {
   
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
+  const [activeSlotForMobile, setActiveSlotForMobile] = useState<{ squadIdx: number; slotIdx: number } | null>(null)
 
   // 드래그 앤 드롭 마우스 & 터치 센서 구성
   const mouseSensor = useSensor(MouseSensor, {
@@ -89,6 +90,7 @@ export function useSquadState() {
       if (cleanedSquads[targetSquadIdx]) {
         cleanedSquads[targetSquadIdx][targetSlotIdx] = char
       }
+      setActiveSlotForMobile(null)
       return cleanedSquads
     })
   }
@@ -357,6 +359,8 @@ export function useSquadState() {
     getMaxDeployment,
     squadIds,
     importModalOpen,
-    setImportModalOpen
+    setImportModalOpen,
+    activeSlotForMobile,
+    setActiveSlotForMobile
   }
 }

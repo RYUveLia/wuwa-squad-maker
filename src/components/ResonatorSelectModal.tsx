@@ -1,0 +1,89 @@
+import { useState } from 'react'
+import type { Character } from '../types'
+import { MOCK_CHARACTERS, getMaxDeployment } from '../utils/character'
+import { ELEMENT_KR_MAP } from '../constants'
+import { DraggableCharacterCard } from './DraggableCharacterCard'
+
+interface ResonatorSelectModalProps {
+  onSelect: (char: Character) => void
+  onClose: () => void
+  getAssignedSquadIndices: (charId: string) => number[]
+  isCharacterMaxedOut: (charId: string) => boolean
+}
+
+export function ResonatorSelectModal({
+  onSelect,
+  onClose,
+  getAssignedSquadIndices,
+  isCharacterMaxedOut
+}: ResonatorSelectModalProps) {
+  const [selectedElement, setSelectedElement] = useState<string>('All')
+  const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
+
+  const filteredCharacters = selectedElement === 'All' 
+    ? MOCK_CHARACTERS 
+    : MOCK_CHARACTERS.filter(c => c.element === selectedElement)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+      <div
+        className="bg-slate-900 border-t border-slate-700 rounded-t-3xl p-5 w-full max-h-[70vh] flex flex-col shadow-2xl animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle Bar */}
+        <div className="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-4 cursor-pointer" onClick={onClose} />
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+          <div>
+            <h3 className="text-base font-bold text-slate-100">공명자 선택</h3>
+            <p className="text-[10px] text-slate-500 mt-0.5">터치하여 파티에 바로 배치합니다.</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg cursor-pointer"
+          >
+            닫기
+          </button>
+        </div>
+
+        {/* Element Filter */}
+        <div className="flex flex-wrap gap-1 bg-slate-950/60 p-1 rounded-lg border border-slate-800/80 mb-4 flex-shrink-0">
+          {elements.map((elem) => (
+            <button
+              key={elem}
+              onClick={() => setSelectedElement(elem)}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all duration-200 cursor-pointer ${
+                selectedElement === elem
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {ELEMENT_KR_MAP[elem] || elem}
+            </button>
+          ))}
+        </div>
+
+        {/* Characters Scroller */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+          {filteredCharacters.map((char) => {
+            const assignedSquadIndices = getAssignedSquadIndices(char.id)
+            const maxAllowed = getMaxDeployment(char.id)
+            const isMaxedOut = isCharacterMaxedOut(char.id)
+
+            return (
+              <DraggableCharacterCard
+                key={char.id}
+                char={char}
+                assignedSquadIndices={assignedSquadIndices}
+                isMaxedOut={isMaxedOut}
+                maxAllowed={maxAllowed}
+                onClick={() => onSelect(char)}
+              />
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}

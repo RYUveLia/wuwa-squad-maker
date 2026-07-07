@@ -56,6 +56,7 @@ interface DroppableSquadSlotProps {
   onRemove: () => void
   squadIdx: number
   slotIdx: number
+  onSlotClick?: (squadIdx: number, slotIdx: number) => void
 }
 
 export function DroppableSquadSlot({
@@ -64,7 +65,8 @@ export function DroppableSquadSlot({
   slotName,
   onRemove,
   squadIdx,
-  slotIdx
+  slotIdx,
+  onSlotClick
 }: DroppableSquadSlotProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: id,
@@ -74,6 +76,11 @@ export function DroppableSquadSlot({
     <div
       ref={setNodeRef}
       className={SLOT_BOX_CLASS(isOver)}
+      onClick={() => {
+        if (!char && onSlotClick) {
+          onSlotClick(squadIdx, slotIdx)
+        }
+      }}
     >
       {char ? (
         <DraggableSquadCharacter

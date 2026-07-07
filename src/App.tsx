@@ -8,6 +8,7 @@ import { DraggableCharacterCard } from './components/DraggableCharacterCard'
 import { DroppableCharacterPool } from './components/DroppableCharacterPool'
 import { SortableSquadRow } from './components/SortableSquadRow'
 import { ImportModal } from './components/ImportModal'
+import { ResonatorSelectModal } from './components/ResonatorSelectModal'
 
 // 커스텀 훅 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -34,7 +35,10 @@ function App() {
     getMaxDeployment,
     squadIds,
     importModalOpen,
-    setImportModalOpen
+    setImportModalOpen,
+    activeSlotForMobile,
+    setActiveSlotForMobile,
+    handleSelectCharacter
   } = useSquadState()
 
   return (
@@ -56,7 +60,7 @@ function App() {
         <div className={LAYOUT_STYLES.splitGrid}>
           
           {/* LEFT COLUMN: Character Pool */}
-          <section className={LAYOUT_STYLES.leftColumn}>
+          <section className={`${LAYOUT_STYLES.leftColumn} hidden lg:flex`}>
             <div className={RESONATOR_POOL_STYLES.header}>
               <div className={RESONATOR_POOL_STYLES.titleArea}>
                 <h3 className={RESONATOR_POOL_STYLES.title}>공명자 도감 ({filteredCharacters.length})</h3>
@@ -141,6 +145,7 @@ function App() {
                     squadsLength={squads.length}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}
+                    onSlotClick={(sIdx, slotIdx) => setActiveSlotForMobile({ squadIdx: sIdx, slotIdx })}
                   />
                 ))}
               </SortableContext>
@@ -170,6 +175,16 @@ function App() {
           <ImportModal
             onImport={handleImport}
             onClose={() => setImportModalOpen(false)}
+          />
+        )}
+
+        {/* Mobile Resonator Selector Bottom Sheet */}
+        {activeSlotForMobile && (
+          <ResonatorSelectModal
+            onSelect={(char) => handleSelectCharacter(char, activeSlotForMobile.squadIdx, activeSlotForMobile.slotIdx)}
+            onClose={() => setActiveSlotForMobile(null)}
+            getAssignedSquadIndices={getAssignedSquadIndices}
+            isCharacterMaxedOut={isCharacterMaxedOut}
           />
         )}
 
