@@ -8,6 +8,8 @@ import { DraggableCharacterCard } from './components/DraggableCharacterCard'
 import { DroppableCharacterPool } from './components/DroppableCharacterPool'
 import { SortableSquadRow } from './components/SortableSquadRow'
 import { ImportModal } from './components/ImportModal'
+import { ResonatorSelectModal } from './components/ResonatorSelectModal'
+import { OwnedResonatorModal } from './components/OwnedResonatorModal'
 
 // 커스텀 훅 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -34,7 +36,17 @@ function App() {
     getMaxDeployment,
     squadIds,
     importModalOpen,
-    setImportModalOpen
+    setImportModalOpen,
+    activeSquadIdxForMobile,
+    setActiveSquadIdxForMobile,
+    handleSelectCharacter,
+    ownedResonatorIds,
+    showOnlyOwned,
+    setShowOnlyOwned,
+    ownedModalOpen,
+    setOwnedModalOpen,
+    handleResetSquads,
+    handleSaveOwnedResonators
   } = useSquadState()
 
   return (
@@ -56,7 +68,7 @@ function App() {
         <div className={LAYOUT_STYLES.splitGrid}>
           
           {/* LEFT COLUMN: Character Pool */}
-          <section className={LAYOUT_STYLES.leftColumn}>
+          <section className={`${LAYOUT_STYLES.leftColumn} hidden lg:flex`}>
             <div className={RESONATOR_POOL_STYLES.header}>
               <div className={RESONATOR_POOL_STYLES.titleArea}>
                 <h3 className={RESONATOR_POOL_STYLES.title}>공명자 도감 ({filteredCharacters.length})</h3>
@@ -74,6 +86,25 @@ function App() {
                     {ELEMENT_KR_MAP[elem] || elem}
                   </button>
                 ))}
+              </div>
+
+              {/* Owned Resonators Filtering bar */}
+              <div className="flex items-center justify-between px-1.5 py-1 mb-3.5 select-none bg-slate-950/20 border border-slate-900 rounded-xl">
+                <button
+                  onClick={() => setOwnedModalOpen(true)}
+                  className="text-[10.5px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg cursor-pointer transition-all flex items-center gap-1 active:scale-95"
+                >
+                  ⚙️ 보유 공명자 설정
+                </button>
+                <label className="flex items-center gap-1.5 cursor-pointer text-[10.5px] sm:text-xs text-slate-400 font-bold hover:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={showOnlyOwned}
+                    onChange={(e) => setShowOnlyOwned(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-slate-800 bg-slate-900 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                  />
+                  보유한 공명자만 보기
+                </label>
               </div>
             </div>
 
@@ -105,6 +136,12 @@ function App() {
             <div className={SQUAD_LIST_STYLES.toolbar}>
               <span className={SQUAD_LIST_STYLES.toolbarTitle}>파티 편성 현황</span>
               <div className={SQUAD_LIST_STYLES.toolbarBtnArea}>
+                <button
+                  onClick={handleResetSquads}
+                  className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9.5px] sm:text-[11px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 rounded-lg cursor-pointer transition-colors whitespace-nowrap"
+                >
+                  초기화
+                </button>
                 <button
                   onClick={handleCapture}
                   className={SQUAD_LIST_STYLES.toolbarBtn}
@@ -141,6 +178,11 @@ function App() {
                     squadsLength={squads.length}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}
+                    onSlotClick={(sIdx, _slotIdx) => {
+                      if (window.innerWidth < 1024) {
+                        setActiveSquadIdxForMobile(sIdx)
+                      }
+                    }}
                   />
                 ))}
               </SortableContext>
@@ -173,6 +215,48 @@ function App() {
           />
         )}
 
+        {/* Mobile Resonator Selector Bottom Sheet */}
+        {activeSquadIdxForMobile !== null && (
+          <ResonatorSelectModal
+            onSelect={(char) => {
+              const currentSquad = squads[activeSquadIdxForMobile]
+              if (currentSquad.some(slot => slot && slot.id === char.id)) {
+                return
+              }
+              const emptySlotIdx = currentSquad.findIndex(slot => slot === null)
+              if (emptySlotIdx !== -1) {
+                const alreadyDeployedCount = currentSquad.filter(Boolean).length
+                handleSelectCharacter(char, activeSquadIdxForMobile, emptySlotIdx)
+                if (alreadyDeployedCount === 2) {
+                  setActiveSquadIdxForMobile(null)
+                }
+              }
+            }}
+            onClose={() => setActiveSquadIdxForMobile(null)}
+            getAssignedSquadIndices={getAssignedSquadIndices}
+            isCharacterMaxedOut={isCharacterMaxedOut}
+            getMaxDeployment={getMaxDeployment}
+            filteredCharacters={filteredCharacters}
+            elements={elements}
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+            activeSquadIdx={activeSquadIdxForMobile}
+            currentSquad={squads[activeSquadIdxForMobile]}
+            onRemoveSlot={(slotIdx) => handleRemoveCharacter(activeSquadIdxForMobile, slotIdx)}
+            showOnlyOwned={showOnlyOwned}
+            setShowOnlyOwned={setShowOnlyOwned}
+            onOpenOwnedSettings={() => setOwnedModalOpen(true)}
+          />
+        )}
+        {/* Owned Resonators Selector Modal */}
+        {ownedModalOpen && (
+          <OwnedResonatorModal
+            isOpen={ownedModalOpen}
+            onClose={() => setOwnedModalOpen(false)}
+            ownedIds={ownedResonatorIds}
+            onSave={handleSaveOwnedResonators}
+          />
+        )}
       </div>
     </DndContext>
   )
@@ -182,10 +266,10 @@ export default App
 
 // STYLES (ads-admin Colocation Style Pattern)
 const LAYOUT_STYLES = {
-  wrapper: 'min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-6 px-4 font-sans selection:bg-purple-500 selection:text-white animate-fade-in max-w-full',
-  splitGrid: 'w-full max-w-7xl flex flex-col lg:flex-row gap-6 items-stretch flex-1',
-  leftColumn: 'w-full lg:w-[45%] bg-slate-900/30 border border-slate-800/40 rounded-2xl p-5 backdrop-blur-sm shadow-xl flex flex-col max-h-none lg:max-h-[76vh]',
-  rightColumn: 'w-full lg:w-[55%] flex flex-col gap-4 max-h-none lg:max-h-[76vh]'
+  wrapper: 'min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-3 px-2 sm:py-6 sm:px-4 font-sans selection:bg-purple-500 selection:text-white animate-fade-in max-w-full',
+  splitGrid: 'w-full max-w-7xl flex flex-col lg:flex-row gap-3 lg:gap-6 items-stretch flex-1',
+  leftColumn: 'w-full lg:w-[43%] bg-slate-900/30 border border-slate-800/40 rounded-2xl p-4 md:p-5 backdrop-blur-sm shadow-xl flex flex-col max-h-none lg:max-h-[76vh] lg:overflow-hidden',
+  rightColumn: 'w-full lg:w-[57%] flex flex-col gap-3 lg:gap-4 max-h-none lg:max-h-[76vh] lg:overflow-hidden'
 }
 
 const HEADER_STYLES = {
@@ -206,10 +290,10 @@ const RESONATOR_POOL_STYLES = {
 }
 
 const SQUAD_LIST_STYLES = {
-  toolbar: 'flex items-center justify-between bg-slate-900/30 border border-slate-800/40 p-3 rounded-2xl select-none flex-shrink-0',
-  toolbarTitle: 'text-xs md:text-sm font-bold text-slate-300 px-1',
-  toolbarBtnArea: 'flex gap-2',
-  toolbarBtn: 'px-2.5 py-1 text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors',
+  toolbar: 'flex items-center justify-between bg-slate-900/30 border border-slate-800/40 p-2 sm:p-3 rounded-2xl select-none flex-shrink-0 gap-1.5 sm:gap-2',
+  toolbarTitle: 'text-[11px] sm:text-xs md:text-sm font-bold text-slate-300 px-1 whitespace-nowrap flex-shrink-0',
+  toolbarBtnArea: 'flex gap-1 sm:gap-2',
+  toolbarBtn: 'px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9.5px] sm:text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors whitespace-nowrap',
   scroller: 'flex flex-col gap-4 overflow-y-visible lg:overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
   addSquadBar: 'bg-slate-900/10 border-2 border-dashed border-slate-800/60 hover:border-purple-500/50 hover:bg-slate-900/25 rounded-2xl py-4 flex flex-row items-center justify-center cursor-pointer group transition-all duration-300 select-none flex-shrink-0 gap-2',
   addSquadPlus: 'text-xl text-slate-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-300',
