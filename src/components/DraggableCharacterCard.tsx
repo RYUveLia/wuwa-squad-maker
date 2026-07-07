@@ -103,5 +103,5 @@ const DEPLOYED_OVERLAY_CLASS = 'absolute inset-0 flex items-center justify-cente
 const DEPLOYED_BADGE_CLASS = 'text-[10px] md:text-xs font-extrabold text-purple-400 tracking-wider bg-slate-950 border border-purple-500/30 px-2 py-0.5 rounded shadow select-none'
 const NAME_CLASS = 'mt-1.5 text-xs md:text-sm font-bold text-slate-300 group-hover:text-slate-100 transition-colors truncate w-full text-center'
 const TAG_AREA_CLASS = 'mt-1 select-none flex items-center justify-center gap-1 w-full font-bold'
-const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-1.5 py-0.5 rounded border text-[10px] md:text-[11px] ${elementColor}`
-const LIMIT2_BADGE_CLASS = 'text-[10px] md:text-[11px] font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1.5 py-0.5 rounded'
+const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-1.5 py-0.5 rounded border text-xs ${elementColor}`
+const LIMIT2_BADGE_CLASS = 'text-xs font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1.5 py-0.5 rounded'
