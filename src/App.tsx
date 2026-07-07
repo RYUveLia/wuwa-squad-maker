@@ -202,10 +202,10 @@ export default App
 
 // STYLES (ads-admin Colocation Style Pattern)
 const LAYOUT_STYLES = {
-  wrapper: 'min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-6 px-4 font-sans selection:bg-purple-500 selection:text-white animate-fade-in max-w-full',
-  splitGrid: 'w-full max-w-7xl flex flex-col lg:flex-row gap-6 items-stretch flex-1',
+  wrapper: 'min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-3 px-2 sm:py-6 sm:px-4 font-sans selection:bg-purple-500 selection:text-white animate-fade-in max-w-full',
+  splitGrid: 'w-full max-w-7xl flex flex-col lg:flex-row gap-3 lg:gap-6 items-stretch flex-1',
   leftColumn: 'w-full lg:w-[43%] bg-slate-900/30 border border-slate-800/40 rounded-2xl p-4 md:p-5 backdrop-blur-sm shadow-xl flex flex-col max-h-none lg:max-h-[76vh] lg:overflow-hidden',
-  rightColumn: 'w-full lg:w-[57%] flex flex-col gap-4 max-h-none lg:max-h-[76vh] lg:overflow-hidden'
+  rightColumn: 'w-full lg:w-[57%] flex flex-col gap-3 lg:gap-4 max-h-none lg:max-h-[76vh] lg:overflow-hidden'
 }
 
 const HEADER_STYLES = {
