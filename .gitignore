@@ -17,8 +17,14 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
 *.sln
 *.sw?
+
+# Agent rules and IDE specific configs
+.agents
+.claude
+.antigravity-ide
+final_project_review.md
+walkthrough.md
+code_review_notes.md
+implementation_plan.md
