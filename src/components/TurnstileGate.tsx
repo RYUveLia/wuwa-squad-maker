@@ -4,8 +4,15 @@ interface TurnstileGateProps {
   onVerify: (token: string) => void
 }
 
-// Cloudflare Turnstile Site Key (Vercel 환경변수가 없을 경우 기본 자동 패스용 더미 키 사용)
-const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
+// =================================================================
+// 🛡️ [정식 서비스용] Cloudflare Turnstile 실제 발급 키 입력칸
+// =================================================================
+// 1) Vercel 환경변수(VITE_TURNSTILE_SITE_KEY)가 주입되었거나,
+// 2) 혹은 아래 따옴표 안에 발급받으신 실서버용 키(예: 0x4AAAAAA...)를 직접 기입하면 테스트 딱지가 즉시 사라집니다.
+const PRODUCTION_SITE_KEY: string = '0x4AAAAAADxQTlBbsTH0kDFm'
+
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || 
+  (PRODUCTION_SITE_KEY && PRODUCTION_SITE_KEY !== 'placeholder' ? PRODUCTION_SITE_KEY : '1x00000000000000000000AA')
 
 export function TurnstileGate({ onVerify }: TurnstileGateProps) {
   const containerRef = useRef<HTMLDivElement>(null)
