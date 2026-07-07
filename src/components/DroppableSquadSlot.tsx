@@ -101,7 +101,7 @@ const SLOT_BOX_CLASS = (isOver: boolean) => {
   const borderClass = isOver 
     ? 'border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-500/5' 
     : 'border-dashed border-slate-800 bg-slate-950/80 hover:border-slate-700/80'
-  return `w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[110px] md:h-[110px] aspect-square rounded-2xl flex flex-col items-center justify-center p-1.5 md:p-2 relative group transition-all duration-300 border-2 ${borderClass}`
+  return `w-[30%] max-w-[72px] sm:max-w-[88px] md:max-w-[110px] aspect-square rounded-xl sm:rounded-2xl flex flex-col items-center justify-center p-1 sm:p-1.5 md:p-2 relative group transition-all duration-300 border-2 ${borderClass}`
 }
 
 const CHAR_WRAPPER_CLASS = (isDragging: boolean) => `w-full h-full flex flex-col items-center justify-center relative cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform duration-200 select-none ${
