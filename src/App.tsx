@@ -210,7 +210,7 @@ const SQUAD_LIST_STYLES = {
   toolbarTitle: 'text-xs md:text-sm font-bold text-slate-300 px-1',
   toolbarBtnArea: 'flex gap-2',
   toolbarBtn: 'px-2.5 py-1 text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors',
-  scroller: 'flex flex-col gap-4 overflow-y-visible lg:overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
+  scroller: 'flex flex-col gap-4 overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
   addSquadBar: 'bg-slate-900/10 border-2 border-dashed border-slate-800/60 hover:border-purple-500/50 hover:bg-slate-900/25 rounded-2xl py-4 flex flex-row items-center justify-center cursor-pointer group transition-all duration-300 select-none flex-shrink-0 gap-2',
   addSquadPlus: 'text-xl text-slate-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-300',
   addSquadText: 'text-sm font-bold text-slate-400 group-hover:text-purple-300 transition-colors'
