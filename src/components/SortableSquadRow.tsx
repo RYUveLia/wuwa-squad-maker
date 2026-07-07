@@ -87,7 +87,7 @@ const SQUAD_LIST_STYLES = {
   row: 'bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 md:p-5 backdrop-blur-md shadow-md flex flex-row items-center justify-between gap-3 md:gap-5 animate-scale-up select-none',
   numberBadgeArea: 'flex items-center gap-2 md:gap-4 select-none flex-shrink-0',
   numberText: 'text-2xl md:text-4xl font-black font-mono text-slate-500 tracking-wider',
-  slotsArea: 'flex flex-row gap-1 sm:gap-4 flex-1 justify-center max-w-xl',
+  slotsArea: 'flex flex-row gap-2 sm:gap-4 flex-1 justify-center max-w-xl',
   actionArea: 'flex flex-col items-end gap-2 select-none flex-shrink-0 min-w-[80px] sm:min-w-[95px]',
   squadLabel: 'text-[11px] md:text-[13px] font-bold px-2.5 py-0.5 rounded border tracking-wide uppercase text-purple-400 bg-purple-950/20 border-purple-900/50',
   deleteBtn: 'text-[11px] md:text-[13px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-2.5 py-0.5 rounded cursor-pointer transition-colors mt-1',
