@@ -226,10 +226,10 @@ const RESONATOR_POOL_STYLES = {
 }
 
 const SQUAD_LIST_STYLES = {
-  toolbar: 'flex items-center justify-between bg-slate-900/30 border border-slate-800/40 p-3 rounded-2xl select-none flex-shrink-0',
-  toolbarTitle: 'text-xs md:text-sm font-bold text-slate-300 px-1',
-  toolbarBtnArea: 'flex gap-2',
-  toolbarBtn: 'px-2.5 py-1 text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors',
+  toolbar: 'flex items-center justify-between bg-slate-900/30 border border-slate-800/40 p-2 sm:p-3 rounded-2xl select-none flex-shrink-0 gap-1.5 sm:gap-2',
+  toolbarTitle: 'text-[11px] sm:text-xs md:text-sm font-bold text-slate-300 px-1 whitespace-nowrap flex-shrink-0',
+  toolbarBtnArea: 'flex gap-1 sm:gap-2',
+  toolbarBtn: 'px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9.5px] sm:text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors whitespace-nowrap',
   scroller: 'flex flex-col gap-4 overflow-y-visible lg:overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
   addSquadBar: 'bg-slate-900/10 border-2 border-dashed border-slate-800/60 hover:border-purple-500/50 hover:bg-slate-900/25 rounded-2xl py-4 flex flex-row items-center justify-center cursor-pointer group transition-all duration-300 select-none flex-shrink-0 gap-2',
   addSquadPlus: 'text-xl text-slate-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-300',

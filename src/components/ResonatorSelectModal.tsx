@@ -26,9 +26,9 @@ export function ResonatorSelectModal({
   setSelectedElement
 }: ResonatorSelectModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-4 w-full max-w-md max-h-[75vh] flex flex-col shadow-2xl animate-scale-up"
+        className="bg-slate-950/95 border border-slate-800/80 rounded-2xl p-4 w-full max-w-md max-h-[75vh] flex flex-col shadow-2xl animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -46,7 +46,7 @@ export function ResonatorSelectModal({
         </div>
 
         {/* Element Filter */}
-        <div className="flex flex-wrap gap-1 bg-slate-950/60 p-1 rounded-lg border border-slate-800/80 mb-2.5 flex-shrink-0">
+        <div className="flex flex-wrap justify-center gap-1 bg-slate-900/40 p-1 rounded-lg border border-slate-800/40 mb-2.5 flex-shrink-0">
           {elements.map((elem) => (
             <button
               key={elem}
@@ -63,7 +63,7 @@ export function ResonatorSelectModal({
         </div>
 
         {/* Characters Scroller */}
-        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5 overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5 justify-items-center overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
           {filteredCharacters.map((char) => {
             const assignedSquadIndices = getAssignedSquadIndices(char.id)
             const maxAllowed = getMaxDeployment(char.id)
