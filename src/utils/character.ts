@@ -12,7 +12,7 @@ const roverSpectro: Character = {
   rarity: 5,
   element: 'Spectro',
   weapon: 'Sword',
-  releaseVersion: 1.0,
+  releaseVersion: 1.011,
   img: '/characters/rover.png'
 }
 
@@ -23,7 +23,7 @@ const roverHavoc: Character = {
   rarity: 5,
   element: 'Havoc',
   weapon: 'Sword',
-  releaseVersion: 1.0,
+  releaseVersion: 1.011,
   img: '/characters/rover.png'
 }
 
@@ -34,7 +34,7 @@ const roverAero: Character = {
   rarity: 5,
   element: 'Aero',
   weapon: 'Sword',
-  releaseVersion: 1.0,
+  releaseVersion: 1.011,
   img: '/characters/rover.png'
 }
 
@@ -45,7 +45,7 @@ const roverElectro: Character = {
   rarity: 5,
   element: 'Electro',
   weapon: 'Sword',
-  releaseVersion: 1.0,
+  releaseVersion: 1.011,
   img: '/characters/rover.png'
 }
 
