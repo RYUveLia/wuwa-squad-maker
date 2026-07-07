@@ -16,7 +16,21 @@ export function useSquadState() {
   
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
-  const [activeSlotForMobile, setActiveSlotForMobile] = useState<{ squadIdx: number; slotIdx: number } | null>(null)
+  const [activeSquadIdxForMobile, setActiveSquadIdxForMobile] = useState<number | null>(null)
+
+  const [ownedResonatorIds, setOwnedResonatorIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('owned-resonators')
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch (e) {
+        // empty
+      }
+    }
+    return MOCK_CHARACTERS.map(c => c.id)
+  })
+  const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
+  const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
 
   // 드래그 앤 드롭 마우스 & 터치 센서 구성
   const mouseSensor = useSensor(MouseSensor, {
@@ -90,7 +104,6 @@ export function useSquadState() {
       if (cleanedSquads[targetSquadIdx]) {
         cleanedSquads[targetSquadIdx][targetSlotIdx] = char
       }
-      setActiveSlotForMobile(null)
       return cleanedSquads
     })
   }
@@ -291,9 +304,26 @@ export function useSquadState() {
 
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
 
-  const filteredCharacters = selectedElement === 'All' 
-    ? MOCK_CHARACTERS 
-    : MOCK_CHARACTERS.filter(c => c.element === selectedElement)
+  const filteredCharacters = MOCK_CHARACTERS.filter(c => {
+    if (selectedElement !== 'All' && c.element !== selectedElement) return false
+    if (showOnlyOwned && !ownedResonatorIds.includes(c.id)) return false
+    return true
+  })
+
+  const handleResetSquads = () => {
+    setSquads([
+      [null, null, null],
+      [null, null, null],
+      [null, null, null]
+    ])
+    showToast('모든 파티 편성이 초기화되었습니다.')
+  }
+
+  const handleSaveOwnedResonators = (ids: string[]) => {
+    setOwnedResonatorIds(ids)
+    localStorage.setItem('owned-resonators', JSON.stringify(ids))
+    showToast('보유 공명자 현황이 저장되었습니다.')
+  }
 
   const isCharacterMaxedOut = (charId: string): boolean => {
     const assignedSquadIndices = getAssignedSquadIndices(charId)
@@ -312,15 +342,18 @@ export function useSquadState() {
 
   const handleToggleCharacter = (char: Character) => {
     const assigned = getAssignedSquadIndices(char.id)
-    if (assigned.length > 0) {
-      setSquads((prev) => prev.map(squad => squad.map(slot => slot && slot.id === char.id ? null : slot)))
-      showToast(`${char.name} 편성을 해제했습니다.`)
-    } else {
+    const maxAllowed = getMaxDeployment(char.id)
+
+    // 만약 배치된 횟수가 최대 허용 개수보다 미만일 경우 ➔ 새로운 슬롯에 추가로 배치함
+    if (assigned.length < maxAllowed) {
       let targetSquadIdx = -1
       let targetSlotIdx = -1
+      // 첫 번째 파티부터 시작하여 빈 슬롯을 찾아 배치함
       for (let s = 0; s < squads.length; s++) {
         const emptySlot = squads[s].findIndex(slot => slot === null)
-        if (emptySlot !== -1) {
+        // 2회 배치 캐릭터는 이미 같은 파티에 있는 상태에서는 중복 추가 방지 (한 파티에는 1개만 가능)
+        const isAlreadyInThisSquad = squads[s].some(slot => slot && slot.id === char.id)
+        if (emptySlot !== -1 && !isAlreadyInThisSquad) {
           targetSquadIdx = s
           targetSlotIdx = emptySlot
           break
@@ -329,8 +362,27 @@ export function useSquadState() {
       if (targetSquadIdx !== -1 && targetSlotIdx !== -1) {
         handleSelectCharacter(char, targetSquadIdx, targetSlotIdx)
       } else {
-        handleSelectCharacter(char, 0, 0)
+        showToast('배치할 수 있는 빈 파티 슬롯이 없습니다.')
       }
+    } 
+    // 이미 최대 배치 허용 개수만큼 가득 차 있는 상태에서 다시 누를 경우 ➔ 토글 오프 (가장 아래 파티에서 제거)
+    else {
+      const lastAssignedSquadIdx = assigned[assigned.length - 1]
+      
+      setSquads((prev) => prev.map((squad, sIdx) => {
+        if (sIdx === lastAssignedSquadIdx) {
+          let removed = false
+          return squad.map(slot => {
+            if (slot && slot.id === char.id && !removed) {
+              removed = true
+              return null
+            }
+            return slot
+          })
+        }
+        return squad
+      }))
+      showToast(`${char.name} 편성을 해제했습니다.`)
     }
   }
 
@@ -360,7 +412,14 @@ export function useSquadState() {
     squadIds,
     importModalOpen,
     setImportModalOpen,
-    activeSlotForMobile,
-    setActiveSlotForMobile
+    activeSquadIdxForMobile,
+    setActiveSquadIdxForMobile,
+    ownedResonatorIds,
+    showOnlyOwned,
+    setShowOnlyOwned,
+    ownedModalOpen,
+    setOwnedModalOpen,
+    handleResetSquads,
+    handleSaveOwnedResonators
   }
 }

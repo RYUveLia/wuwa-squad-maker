@@ -8,6 +8,7 @@ interface DraggableCharacterCardProps {
   onClick: () => void
   isMaxedOut: boolean
   maxAllowed: number
+  isDraggable?: boolean
 }
 
 export function DraggableCharacterCard({
@@ -15,12 +16,13 @@ export function DraggableCharacterCard({
   assignedSquadIndices,
   onClick,
   isMaxedOut,
-  maxAllowed
+  maxAllowed,
+  isDraggable = true
 }: DraggableCharacterCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: char.id,
     data: char,
-    disabled: isMaxedOut,
+    disabled: isMaxedOut || !isDraggable,
   })
 
   const style = transform
@@ -49,13 +51,13 @@ export function DraggableCharacterCard({
     <div
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
+      {...(isDraggable ? listeners : {})}
+      {...(isDraggable ? attributes : {})}
       onClick={() => {
         if (isMaxedOut && assignedSquadIndices.length === 0) return
         onClick()
       }}
-      className={`${CONTAINER_CLASS(isMaxedOut, isDragging)} ${rarityBorder}`}
+      className={`${CONTAINER_CLASS(isMaxedOut, maxAllowed, isDragging)} ${rarityBorder}`}
     >
       <div className={IMAGE_WRAPPER_CLASS}>
         <img
@@ -66,7 +68,7 @@ export function DraggableCharacterCard({
         />
         
         {isAssigned && (
-          <div className={DEPLOYED_OVERLAY_CLASS}>
+          <div className={DEPLOYED_OVERLAY_CLASS(isMaxedOut)}>
             <span className={DEPLOYED_BADGE_CLASS}>
               P{assignedSquadIndices.map(i => i + 1).join(',')}
             </span>
@@ -93,13 +95,18 @@ export function DraggableCharacterCard({
 }
 
 // STYLES
-const CONTAINER_CLASS = (isMaxedOut: boolean, isDragging: boolean) => `bg-slate-950/60 border border-slate-800/80 rounded-xl sm:rounded-2xl p-1 sm:p-2 md:p-2.5 flex flex-col items-center select-none group transition-all duration-200 ${
-  isMaxedOut ? 'opacity-30 border-slate-900 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:bg-slate-950 hover:shadow-md'
-} ${isDragging ? 'opacity-30 scale-95 border-purple-500/80 shadow-2xl' : ''}`
+const CONTAINER_CLASS = (isMaxedOut: boolean, maxAllowed: number, isDragging: boolean) => {
+  const isDimmed = isMaxedOut && maxAllowed !== 2
+  return `bg-slate-950/60 border border-slate-800/80 rounded-xl sm:rounded-2xl p-1 sm:p-2 md:p-2.5 flex flex-col items-center select-none group transition-all duration-200 ${
+    isDimmed ? 'opacity-30 border-slate-900 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:bg-slate-950 hover:shadow-md'
+  } ${isDragging ? 'opacity-30 scale-95 border-purple-500/80 shadow-2xl' : ''}`
+}
 
 const IMAGE_WRAPPER_CLASS = 'aspect-square w-full bg-slate-900/80 rounded-lg sm:rounded-xl overflow-hidden relative'
 const IMAGE_CLASS = 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
-const DEPLOYED_OVERLAY_CLASS = 'absolute inset-0 flex items-center justify-center bg-slate-950/75 pointer-events-none'
+const DEPLOYED_OVERLAY_CLASS = (isMaxedOut: boolean) => `absolute inset-0 flex items-center justify-center pointer-events-none transition-all ${
+  isMaxedOut ? 'bg-slate-950/75' : 'bg-transparent'
+}`
 const DEPLOYED_BADGE_CLASS = 'text-[9.5px] sm:text-xs md:text-sm font-extrabold text-purple-400 tracking-wider bg-slate-950 border border-purple-500/30 px-1.5 sm:px-2.5 py-0.5 rounded shadow select-none'
 const NAME_CLASS = 'mt-1 sm:mt-2 text-[11px] sm:text-sm md:text-base font-bold text-slate-300 group-hover:text-slate-100 transition-colors truncate w-full text-center whitespace-nowrap overflow-hidden'
 const TAG_AREA_CLASS = 'mt-1 sm:mt-1.5 select-none flex flex-wrap items-center justify-center gap-0.5 sm:gap-1 md:gap-1.5 w-full font-bold'

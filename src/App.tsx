@@ -9,6 +9,7 @@ import { DroppableCharacterPool } from './components/DroppableCharacterPool'
 import { SortableSquadRow } from './components/SortableSquadRow'
 import { ImportModal } from './components/ImportModal'
 import { ResonatorSelectModal } from './components/ResonatorSelectModal'
+import { OwnedResonatorModal } from './components/OwnedResonatorModal'
 
 // 커스텀 훅 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -36,9 +37,16 @@ function App() {
     squadIds,
     importModalOpen,
     setImportModalOpen,
-    activeSlotForMobile,
-    setActiveSlotForMobile,
-    handleSelectCharacter
+    activeSquadIdxForMobile,
+    setActiveSquadIdxForMobile,
+    handleSelectCharacter,
+    ownedResonatorIds,
+    showOnlyOwned,
+    setShowOnlyOwned,
+    ownedModalOpen,
+    setOwnedModalOpen,
+    handleResetSquads,
+    handleSaveOwnedResonators
   } = useSquadState()
 
   return (
@@ -79,6 +87,25 @@ function App() {
                   </button>
                 ))}
               </div>
+
+              {/* Owned Resonators Filtering bar */}
+              <div className="flex items-center justify-between px-1.5 py-1 mb-3.5 select-none bg-slate-950/20 border border-slate-900 rounded-xl">
+                <button
+                  onClick={() => setOwnedModalOpen(true)}
+                  className="text-[10.5px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg cursor-pointer transition-all flex items-center gap-1 active:scale-95"
+                >
+                  ⚙️ 보유 공명자 설정
+                </button>
+                <label className="flex items-center gap-1.5 cursor-pointer text-[10.5px] sm:text-xs text-slate-400 font-bold hover:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={showOnlyOwned}
+                    onChange={(e) => setShowOnlyOwned(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-slate-800 bg-slate-900 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                  />
+                  보유한 공명자만 보기
+                </label>
+              </div>
             </div>
 
             {/* Droppable Scroller Container */}
@@ -109,6 +136,12 @@ function App() {
             <div className={SQUAD_LIST_STYLES.toolbar}>
               <span className={SQUAD_LIST_STYLES.toolbarTitle}>파티 편성 현황</span>
               <div className={SQUAD_LIST_STYLES.toolbarBtnArea}>
+                <button
+                  onClick={handleResetSquads}
+                  className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9.5px] sm:text-[11px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 rounded-lg cursor-pointer transition-colors whitespace-nowrap"
+                >
+                  초기화
+                </button>
                 <button
                   onClick={handleCapture}
                   className={SQUAD_LIST_STYLES.toolbarBtn}
@@ -145,7 +178,11 @@ function App() {
                     squadsLength={squads.length}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}
-                    onSlotClick={(sIdx, slotIdx) => setActiveSlotForMobile({ squadIdx: sIdx, slotIdx })}
+                    onSlotClick={(sIdx, _slotIdx) => {
+                      if (window.innerWidth < 1024) {
+                        setActiveSquadIdxForMobile(sIdx)
+                      }
+                    }}
                   />
                 ))}
               </SortableContext>
@@ -179,10 +216,23 @@ function App() {
         )}
 
         {/* Mobile Resonator Selector Bottom Sheet */}
-        {activeSlotForMobile && (
+        {activeSquadIdxForMobile !== null && (
           <ResonatorSelectModal
-            onSelect={(char) => handleSelectCharacter(char, activeSlotForMobile.squadIdx, activeSlotForMobile.slotIdx)}
-            onClose={() => setActiveSlotForMobile(null)}
+            onSelect={(char) => {
+              const currentSquad = squads[activeSquadIdxForMobile]
+              if (currentSquad.some(slot => slot && slot.id === char.id)) {
+                return
+              }
+              const emptySlotIdx = currentSquad.findIndex(slot => slot === null)
+              if (emptySlotIdx !== -1) {
+                const alreadyDeployedCount = currentSquad.filter(Boolean).length
+                handleSelectCharacter(char, activeSquadIdxForMobile, emptySlotIdx)
+                if (alreadyDeployedCount === 2) {
+                  setActiveSquadIdxForMobile(null)
+                }
+              }
+            }}
+            onClose={() => setActiveSquadIdxForMobile(null)}
             getAssignedSquadIndices={getAssignedSquadIndices}
             isCharacterMaxedOut={isCharacterMaxedOut}
             getMaxDeployment={getMaxDeployment}
@@ -190,9 +240,22 @@ function App() {
             elements={elements}
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
+            activeSquadIdx={activeSquadIdxForMobile}
+            currentSquad={squads[activeSquadIdxForMobile]}
+            onRemoveSlot={(slotIdx) => handleRemoveCharacter(activeSquadIdxForMobile, slotIdx)}
+            showOnlyOwned={showOnlyOwned}
+            setShowOnlyOwned={setShowOnlyOwned}
           />
         )}
-
+        {/* Owned Resonators Selector Modal */}
+        {ownedModalOpen && (
+          <OwnedResonatorModal
+            isOpen={ownedModalOpen}
+            onClose={() => setOwnedModalOpen(false)}
+            ownedIds={ownedResonatorIds}
+            onSave={handleSaveOwnedResonators}
+          />
+        )}
       </div>
     </DndContext>
   )
