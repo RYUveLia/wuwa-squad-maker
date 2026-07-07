@@ -4,8 +4,8 @@ interface TurnstileGateProps {
   onVerify: (token: string) => void
 }
 
-// Cloudflare Turnstile 공식 Dummy Site Key (항상 100% 즉시 자동 패스되어 성공 토큰 반환)
-const DUMMY_SITE_KEY = '1x00000000000000000000AA'
+// Cloudflare Turnstile Site Key (Vercel 환경변수가 없을 경우 기본 자동 패스용 더미 키 사용)
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'
 
 export function TurnstileGate({ onVerify }: TurnstileGateProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -55,7 +55,7 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
 
       try {
         widgetIdRef.current = (window as any).turnstile.render(containerRef.current, {
-          sitekey: DUMMY_SITE_KEY,
+          sitekey: SITE_KEY,
           callback: (token: string) => {
             // 인증 성공 시 성공 토큰을 부모로 전파
             onVerify(token)
