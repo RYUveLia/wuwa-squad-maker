@@ -2,43 +2,29 @@ import { MOCK_CHARACTERS } from './character'
 import type { Character } from '../types'
 
 /**
- * 하스스톤 덱 코드 스타일 인코딩/디코딩
- * 
- * 바이너리 구조: [version=1, numSquads, ...각 스쿼드별 3개 캐릭터 인덱스]
- * - 캐릭터 인덱스 = MOCK_CHARACTERS 배열 내 위치 (0~254)
- * - 빈 슬롯 = 0xFF (255)
- * - Base64 인코딩하여 한 줄 코드로 압축
+ * 영문 ID 기반 JSON의 Base64 인코딩/디코딩 (레거시 바이너리 포맷 하위 호환 지원)
  */
 
 const EMPTY_SLOT = 0xFF
 const CODE_VERSION = 1
 
-// id → MOCK_CHARACTERS 인덱스 매핑 (런타임 캐시)
+// 레거시 id → MOCK_CHARACTERS 인덱스 매핑
 const idToIndex = new Map<string, number>()
 MOCK_CHARACTERS.forEach((c, idx) => {
   idToIndex.set(c.id, idx)
 })
 
-/** 파티 배열 → Base64 코드 문자열 */
+/** 파티 배열 → Base64 코드 문자열 (영문 ID 기반) */
 export function encodeSquads(squads: (Character | null)[][]): string {
-  const bytes: number[] = [CODE_VERSION, squads.length]
-  for (const squad of squads) {
-    for (let i = 0; i < 3; i++) {
-      const char = squad[i]
-      if (!char) {
-        bytes.push(EMPTY_SLOT)
-      } else {
-        const idx = idToIndex.get(char.id)
-        bytes.push(idx !== undefined ? idx : EMPTY_SLOT)
-      }
-    }
-  }
-  // Uint8Array → Base64
-  return btoa(String.fromCharCode(...bytes))
+  const idSquads = squads.map(squad =>
+    squad.map(char => char ? char.id : null)
+  )
+  const jsonStr = JSON.stringify(idSquads)
+  return btoa(jsonStr)
 }
 
-/** Base64 코드 문자열 → 파티 배열 */
-export function decodeSquads(code: string): (Character | null)[][] | null {
+/** 레거시 Base64 코드 문자열 디코딩 */
+function decodeSquadsLegacy(code: string): (Character | null)[][] | null {
   try {
     const binary = atob(code)
     const bytes = new Uint8Array(binary.length)
@@ -72,20 +58,41 @@ export function decodeSquads(code: string): (Character | null)[][] | null {
   }
 }
 
-/** 파티 배열 → 사람이 읽을 수 있는 주석 라인 목록 */
-export function generateReadableLines(squads: (Character | null)[][]): string[] {
-  return squads.map((squad, idx) => {
-    const names = squad.map(c => c ? c.name : '(빈 슬롯)').join(', ')
-    return `# ${idx + 1}번 파티: ${names}`
-  })
+/** Base64 코드 문자열 → 파티 배열 (영문 ID 기반 우선, 실패 시 레거시 폴백) */
+export function decodeSquads(code: string): (Character | null)[][] | null {
+  try {
+    const jsonStr = atob(code)
+    // 간단한 검증: JSON 포맷인지 확인
+    if (!jsonStr.startsWith('[')) {
+      return decodeSquadsLegacy(code)
+    }
+    const idSquads = JSON.parse(jsonStr) as (string | null)[][]
+    
+    if (!Array.isArray(idSquads)) return decodeSquadsLegacy(code)
+    
+    const idToChar = new Map<string, Character>()
+    MOCK_CHARACTERS.forEach(c => {
+      idToChar.set(c.id, c)
+    })
+    
+    const squads: (Character | null)[][] = []
+    for (const squad of idSquads) {
+      if (!Array.isArray(squad)) return null
+      const restoredSquad = squad.map(id => {
+        if (!id) return null
+        return idToChar.get(id) || null
+      })
+      squads.push(restoredSquad)
+    }
+    return squads
+  } catch {
+    return decodeSquadsLegacy(code)
+  }
 }
 
-/** 전체 내보내기 텍스트 생성 (하스스톤 스타일) */
+/** 전체 내보내기 텍스트 생성 (순수 Base64 코드만 반환) */
 export function generateExportText(squads: (Character | null)[][]): string {
-  const header = '### WuWa 매트릭스 편성 코드 ###'
-  const code = encodeSquads(squads)
-  const readable = generateReadableLines(squads)
-  return [header, code, ...readable].join('\n')
+  return encodeSquads(squads)
 }
 
 /** 불러오기 텍스트에서 Base64 코드만 추출하여 디코딩 */
@@ -99,3 +106,4 @@ export function parseImportText(text: string): (Character | null)[][] | null {
   if (!codeLine) return null
   return decodeSquads(codeLine.trim())
 }
+

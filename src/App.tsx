@@ -1,132 +1,16 @@
-import { useState } from 'react'
 import { DndContext } from '@dnd-kit/core'
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
 // 타입, 상수, 데이터 및 하위 컴포넌트 가져오기
 import { ELEMENT_KR_MAP } from './constants'
 import { Toast } from './components/Toast'
 import { DraggableCharacterCard } from './components/DraggableCharacterCard'
-import { DroppableSquadSlot } from './components/DroppableSquadSlot'
 import { DroppableCharacterPool } from './components/DroppableCharacterPool'
-import type { Character } from './types'
+import { SortableSquadRow } from './components/SortableSquadRow'
+import { ImportModal } from './components/ImportModal'
 
 // 커스텀 훅 가져오기
 import { useSquadState } from './hooks/useSquadState'
-
-// 드래그 정렬 가능한 파티 행 컴포넌트
-function SortableSquadRow({ id, squadIdx, squad, squadsLength, handleRemoveCharacter, handleDeleteSquad }: {
-  id: string
-  squadIdx: number
-  squad: (Character | null)[]
-  squadsLength: number
-  handleRemoveCharacter: (squadIdx: number, slotIdx: number) => void
-  handleDeleteSquad: (squadIdx: number) => void
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : 'auto' as const,
-  }
-  const numStr = String(squadIdx + 1).padStart(2, '0')
-
-  return (
-    <div ref={setNodeRef} style={style} className={SQUAD_LIST_STYLES.row}>
-      {/* Left: Drag Handle + Number */}
-      <div className={SQUAD_LIST_STYLES.numberBadgeArea}>
-        <span
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-purple-400 transition-colors text-lg md:text-xl select-none touch-none"
-          title="드래그하여 순서 변경"
-        >
-          ☰
-        </span>
-        <span className={SQUAD_LIST_STYLES.numberText}>
-          {numStr}
-        </span>
-      </div>
-
-      {/* Center: Slots Row */}
-      <div className={SQUAD_LIST_STYLES.slotsArea}>
-        {squad.map((char, slotIdx) => {
-          const slotName = slotIdx === 0 ? '메인 딜러' : slotIdx === 1 ? '서브 딜러' : '서포터'
-          return (
-            <DroppableSquadSlot
-              key={slotIdx}
-              id={`party-${squadIdx}-slot-${slotIdx}`}
-              char={char}
-              slotName={slotName}
-              onRemove={() => handleRemoveCharacter(squadIdx, slotIdx)}
-              squadIdx={squadIdx}
-              slotIdx={slotIdx}
-            />
-          )
-        })}
-      </div>
-
-      {/* Right: Actions */}
-      <div className={SQUAD_LIST_STYLES.actionArea}>
-        <span className={SQUAD_LIST_STYLES.squadLabel}>
-          {squadIdx + 1}번 파티
-        </span>
-        {squadsLength > 1 && (
-          <button
-            onClick={() => handleDeleteSquad(squadIdx)}
-            className={SQUAD_LIST_STYLES.deleteBtn}
-            title="파티 제거"
-          >
-            제거
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// 불러오기 모달 컴포넌트
-function ImportModal({ onImport, onClose }: { onImport: (code: string) => void; onClose: () => void }) {
-  const [code, setCode] = useState('')
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-      <div
-        className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-[90%] max-w-md shadow-2xl animate-scale-up"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-bold text-slate-100 mb-2">편성 코드 불러오기</h3>
-        <p className="text-xs text-slate-400 mb-4">
-          내보내기로 복사한 편성 코드를 그대로 붙여넣어 주세요.<br />
-          <span className="text-purple-400">### WuWa 매트릭스 편성 코드 ###</span> 헤더를 포함해도 됩니다.
-        </p>
-        <textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder={"### WuWa 매트릭스 편성 코드 ###\nAQMFAgj/CQUF/w==\n# 1번 파티: 기염, 설지, 복링"}
-          className="w-full h-28 bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500 resize-none font-mono"
-          autoFocus
-        />
-        <div className="flex gap-2 mt-4 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 text-sm font-bold text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg border border-slate-700 cursor-pointer transition-colors"
-          >
-            취소
-          </button>
-          <button
-            onClick={() => onImport(code)}
-            disabled={!code.trim()}
-            className="px-4 py-1.5 text-sm font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-lg cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            불러오기
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function App() {
   const {
@@ -327,13 +211,6 @@ const SQUAD_LIST_STYLES = {
   toolbarBtnArea: 'flex gap-2',
   toolbarBtn: 'px-2.5 py-1 text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors',
   scroller: 'flex flex-col gap-4 overflow-y-visible lg:overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
-  row: 'bg-slate-900/50 border border-slate-800/80 rounded-2xl p-3 md:p-4 backdrop-blur-md shadow-md flex flex-row items-center justify-between gap-2 md:gap-4 animate-scale-up select-none',
-  numberBadgeArea: 'flex items-center gap-1.5 md:gap-3 select-none flex-shrink-0',
-  numberText: 'text-xl md:text-3xl font-black font-mono text-slate-500 tracking-wider',
-  slotsArea: 'flex flex-row gap-1.5 sm:gap-3 flex-1 justify-center max-w-md',
-  actionArea: 'flex flex-col items-end gap-1.5 select-none flex-shrink-0 min-w-[70px] sm:min-w-[85px]',
-  squadLabel: 'text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border tracking-wide uppercase text-purple-400 bg-purple-950/20 border-purple-900/50',
-  deleteBtn: 'text-[10px] md:text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-2 py-0.5 rounded cursor-pointer transition-colors mt-1',
   addSquadBar: 'bg-slate-900/10 border-2 border-dashed border-slate-800/60 hover:border-purple-500/50 hover:bg-slate-900/25 rounded-2xl py-4 flex flex-row items-center justify-center cursor-pointer group transition-all duration-300 select-none flex-shrink-0 gap-2',
   addSquadPlus: 'text-xl text-slate-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-300',
   addSquadText: 'text-sm font-bold text-slate-400 group-hover:text-purple-300 transition-colors'

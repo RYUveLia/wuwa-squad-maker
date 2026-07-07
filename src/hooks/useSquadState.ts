@@ -121,11 +121,13 @@ export function useSquadState() {
   // 파티 데이터 불러오기 (Import) — Base64 코드 디코딩
   const handleImport = (text: string) => {
     if (!text.trim()) {
+      setImportModalOpen(false)
       showToast('코드가 비어있습니다.')
       return
     }
     const decoded = parseImportText(text)
     if (!decoded) {
+      setImportModalOpen(false)
       showToast('유효하지 않은 편성 코드입니다. 코드를 다시 확인해 주세요.')
       return
     }
@@ -160,6 +162,80 @@ export function useSquadState() {
     }
   }
 
+  // 0) 파티 행 드래그 정렬 처리
+  const handleSortSquadRows = (activeId: string, overId: string) => {
+    const oldIndex = parseInt(activeId.replace('squad-row-', ''), 10)
+    const newIndex = parseInt(overId.replace('squad-row-', ''), 10)
+    if (oldIndex !== newIndex) {
+      setSquads((prev) => arrayMove(prev, oldIndex, newIndex))
+      showToast('파티 순서가 변경되었습니다.')
+    }
+  }
+
+  // 1) 도감에서 끌어오는 경우 (도감 카드 드래그)
+  const handleDropFromPool = (char: Character, overId: string) => {
+    const assignedSquadIndices = getAssignedSquadIndices(char.id)
+    const isRover = ROVER_IDS.includes(char.id)
+    const isThisRoverDeployed = assignedSquadIndices.length > 0
+    const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
+      ROVER_IDS.includes(c.id) && 
+      c.id !== char.id && 
+      getAssignedSquadIndices(c.id).length > 0
+    )
+    const maxAllowed = getMaxDeployment(char.id)
+    const isMaxedOut = isRover 
+      ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
+      : (assignedSquadIndices.length >= maxAllowed)
+
+    if (isMaxedOut) return
+
+    const match = overId.match(/^party-(\d+)-slot-(\d+)$/)
+    if (match) {
+      const squadIdx = parseInt(match[1], 10)
+      const slotIdx = parseInt(match[2], 10)
+      handleSelectCharacter(char, squadIdx, slotIdx)
+    }
+  }
+
+  // 2) 이미 스쿼드 슬롯에 들어있는 캐릭터를 드래그하는 경우
+  const handleSwapOrMoveSlot = (sourceSquadIdx: number, sourceSlotIdx: number, overId: string) => {
+    const targetMatch = overId.match(/^party-(\d+)-slot-(\d+)$/)
+    if (!targetMatch) return
+    const targetSquadIdx = parseInt(targetMatch[1], 10)
+    const targetSlotIdx = parseInt(targetMatch[2], 10)
+
+    if (sourceSquadIdx === targetSquadIdx && sourceSlotIdx === targetSlotIdx) return
+
+    setSquads((prevSquads) => {
+      const nextSquads = prevSquads.map(s => [...s])
+      const sourceChar = nextSquads[sourceSquadIdx][sourceSlotIdx]
+      const targetChar = nextSquads[targetSquadIdx][targetSlotIdx]
+
+      // 목적지 스쿼드 내 중복 편성 체크
+      if (sourceChar) {
+        const dupIdx = nextSquads[targetSquadIdx].findIndex(slot => slot && slot.id === sourceChar.id)
+        if (dupIdx !== -1 && dupIdx !== targetSlotIdx) {
+          nextSquads[targetSquadIdx][dupIdx] = null
+        }
+      }
+
+      // 출발지 스쿼드 내 중복 편성 체크
+      if (targetChar) {
+        const dupIdx = nextSquads[sourceSquadIdx].findIndex(slot => slot && slot.id === targetChar.id)
+        if (dupIdx !== -1 && dupIdx !== sourceSlotIdx) {
+          nextSquads[sourceSquadIdx][dupIdx] = null
+        }
+      }
+
+      // Swap 실행
+      nextSquads[sourceSquadIdx][sourceSlotIdx] = targetChar
+      nextSquads[targetSquadIdx][targetSlotIdx] = sourceChar
+
+      return nextSquads
+    })
+    showToast('파티원 배치가 이동되었습니다.')
+  }
+
   // 드래그 종료 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -170,12 +246,7 @@ export function useSquadState() {
       if (!over) return
       const overId = over.id as string
       if (!overId.startsWith('squad-row-')) return
-      const oldIndex = parseInt(activeId.replace('squad-row-', ''), 10)
-      const newIndex = parseInt(overId.replace('squad-row-', ''), 10)
-      if (oldIndex !== newIndex) {
-        setSquads((prev) => arrayMove(prev, oldIndex, newIndex))
-        showToast('파티 순서가 변경되었습니다.')
-      }
+      handleSortSquadRows(activeId, overId)
       return
     }
 
@@ -184,29 +255,7 @@ export function useSquadState() {
       if (!over) return
       const overId = over.id as string
       const char = active.data.current as Character
-
-      // 드래그 대상 카드가 비활성화되어 배치될 수 없는 상태라면 차단
-      const assignedSquadIndices = getAssignedSquadIndices(char.id)
-      const isRover = ROVER_IDS.includes(char.id)
-      const isThisRoverDeployed = assignedSquadIndices.length > 0
-      const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
-        ROVER_IDS.includes(c.id) && 
-        c.id !== char.id && 
-        getAssignedSquadIndices(c.id).length > 0
-      )
-      const maxAllowed = getMaxDeployment(char.id)
-      const isMaxedOut = isRover 
-        ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
-        : (assignedSquadIndices.length >= maxAllowed)
-
-      if (isMaxedOut) return
-
-      const match = overId.match(/^party-(\d+)-slot-(\d+)$/)
-      if (match) {
-        const squadIdx = parseInt(match[1], 10)
-        const slotIdx = parseInt(match[2], 10)
-        handleSelectCharacter(char, squadIdx, slotIdx)
-      }
+      handleDropFromPool(char, overId)
     } 
     // 2) 이미 스쿼드 슬롯에 들어있는 캐릭터를 드래그하는 경우
     else {
@@ -222,44 +271,8 @@ export function useSquadState() {
         return
       }
 
-      // 다른 스쿼드 슬롯으로 드롭 ➔ 스와프(Swap) 또는 이동
       const overId = over.id as string
-      const targetMatch = overId.match(/^party-(\d+)-slot-(\d+)$/)
-      if (targetMatch) {
-        const targetSquadIdx = parseInt(targetMatch[1], 10)
-        const targetSlotIdx = parseInt(targetMatch[2], 10)
-
-        if (sourceSquadIdx === targetSquadIdx && sourceSlotIdx === targetSlotIdx) return
-
-        setSquads((prevSquads) => {
-          const nextSquads = prevSquads.map(s => [...s])
-          const sourceChar = nextSquads[sourceSquadIdx][sourceSlotIdx]
-          const targetChar = nextSquads[targetSquadIdx][targetSlotIdx]
-
-          // 목적지 스쿼드 내 중복 편성 체크
-          if (sourceChar) {
-            const dupIdx = nextSquads[targetSquadIdx].findIndex(slot => slot && slot.id === sourceChar.id)
-            if (dupIdx !== -1 && dupIdx !== targetSlotIdx) {
-              nextSquads[targetSquadIdx][dupIdx] = null
-            }
-          }
-
-          // 출발지 스쿼드 내 중복 편성 체크
-          if (targetChar) {
-            const dupIdx = nextSquads[sourceSquadIdx].findIndex(slot => slot && slot.id === targetChar.id)
-            if (dupIdx !== -1 && dupIdx !== sourceSlotIdx) {
-              nextSquads[sourceSquadIdx][dupIdx] = null
-            }
-          }
-
-          // Swap 실행
-          nextSquads[sourceSquadIdx][sourceSlotIdx] = targetChar
-          nextSquads[targetSquadIdx][targetSlotIdx] = sourceChar
-
-          return nextSquads
-        })
-        showToast('파티원 배치가 이동되었습니다.')
-      }
+      handleSwapOrMoveSlot(sourceSquadIdx, sourceSlotIdx, overId)
     }
   }
 
