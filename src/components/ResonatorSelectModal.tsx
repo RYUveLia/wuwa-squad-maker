@@ -25,14 +25,11 @@ export function ResonatorSelectModal({
     : MOCK_CHARACTERS.filter(c => c.element === selectedElement)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
       <div
-        className="bg-slate-900 border-t border-slate-700 rounded-t-3xl p-3 sm:p-4 w-full max-h-[58vh] flex flex-col shadow-2xl animate-slide-up"
+        className="bg-slate-900 border border-slate-800 rounded-2xl p-4 w-full max-w-md max-h-[75vh] flex flex-col shadow-2xl animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Handle Bar */}
-        <div className="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-2.5 cursor-pointer" onClick={onClose} />
-
         {/* Header */}
         <div className="flex items-center justify-between mb-2.5 flex-shrink-0">
           <div>
