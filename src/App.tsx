@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
@@ -10,6 +11,7 @@ import { SortableSquadRow } from './components/SortableSquadRow'
 import { ImportModal } from './components/ImportModal'
 import { ResonatorSelectModal } from './components/ResonatorSelectModal'
 import { OwnedResonatorModal } from './components/OwnedResonatorModal'
+import { TurnstileGate } from './components/TurnstileGate'
 
 // 커스텀 훅 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -48,6 +50,12 @@ function App() {
     handleResetSquads,
     handleSaveOwnedResonators
   } = useSquadState()
+
+  const [isVerified, setIsVerified] = useState<boolean>(false)
+
+  if (!isVerified) {
+    return <TurnstileGate onVerify={() => setIsVerified(true)} />
+  }
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
