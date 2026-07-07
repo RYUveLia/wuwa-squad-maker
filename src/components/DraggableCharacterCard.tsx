@@ -102,6 +102,6 @@ const IMAGE_CLASS = 'w-full h-full object-cover transition-transform duration-30
 const DEPLOYED_OVERLAY_CLASS = 'absolute inset-0 flex items-center justify-center bg-slate-950/75 pointer-events-none'
 const DEPLOYED_BADGE_CLASS = 'text-[10px] md:text-xs font-extrabold text-purple-400 tracking-wider bg-slate-950 border border-purple-500/30 px-2 py-0.5 rounded shadow select-none'
 const NAME_CLASS = 'mt-1.5 text-xs md:text-sm font-bold text-slate-300 group-hover:text-slate-100 transition-colors truncate w-full text-center'
-const TAG_AREA_CLASS = 'text-[10px] md:text-xs text-slate-500 font-bold mt-1 select-none flex items-center justify-center gap-1 w-full'
-const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-2 py-0.5 rounded border text-[8.5px] md:text-[9.5px] ${elementColor}`
-const LIMIT2_BADGE_CLASS = 'text-[8.5px] md:text-[9.5px] font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1.5 py-0.2 rounded'
+const TAG_AREA_CLASS = 'mt-1 select-none flex items-center justify-center gap-1 w-full font-bold'
+const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-1.5 py-0.5 rounded border text-[10px] md:text-[11px] ${elementColor}`
+const LIMIT2_BADGE_CLASS = 'text-[10px] md:text-[11px] font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1.5 py-0.5 rounded'
