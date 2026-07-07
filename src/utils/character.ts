@@ -49,7 +49,7 @@ const roverElectro: Character = {
   img: '/characters/rover.png'
 }
 
-// 최종 60명 공명자 리스트 다차원 정렬 (Unknown은 끝으로, 나머지는 출시 버전 내림차순 -> 등급 내림차순 -> 이름 오름차순)
+// 최종 60명 공명자 리스트 다차원 정렬 (등급 내림차순 → 출시 버전 내림차순 → 이름 오름차순, Unknown은 끝으로)
 export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro].sort((a, b) => {
   const aIsUnknown = a.releaseVersion === 9.9
   const bIsUnknown = b.releaseVersion === 9.9
@@ -61,11 +61,13 @@ export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, rove
   if (aIsUnknown) return 1
   if (bIsUnknown) return -1
 
-  if (a.releaseVersion !== b.releaseVersion) {
-    return b.releaseVersion - a.releaseVersion
-  }
+  // 1차: 등급 내림차순 (5성 → 4성)
   if (a.rarity !== b.rarity) {
     return b.rarity - a.rarity
+  }
+  // 2차: 출시 버전 내림차순 (최신 먼저)
+  if (a.releaseVersion !== b.releaseVersion) {
+    return b.releaseVersion - a.releaseVersion
   }
   return a.enName.localeCompare(b.enName)
 })
