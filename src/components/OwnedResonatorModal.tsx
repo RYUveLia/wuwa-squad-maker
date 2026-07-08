@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Character } from '../types'
 import { MOCK_CHARACTERS } from '../utils/character'
+import { COMMON_STYLES } from '../styles/theme'
 
 interface OwnedResonatorModalProps {
   isOpen: boolean
@@ -135,7 +136,7 @@ const OWNED_MODAL_STYLES = {
   title: 'text-base font-bold text-slate-100',
   description: 'text-[10px] sm:text-xs text-slate-500 mt-0.5',
   headerBtnArea: 'flex gap-2',
-  shortcutBtn: 'text-[10px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2 py-1 rounded-md cursor-pointer transition-colors',
+  shortcutBtn: COMMON_STYLES.subBtn,
   grid: 'grid grid-cols-4 sm:grid-cols-5 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 overflow-y-auto flex-1 py-5 px-2 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent justify-items-center',
   imgFrame: 'w-full aspect-square overflow-hidden rounded-lg relative',
   img: 'w-full h-full object-cover pointer-events-none',
@@ -144,8 +145,8 @@ const OWNED_MODAL_STYLES = {
   checkBadge: 'absolute top-1 right-1 bg-emerald-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow border border-emerald-400 select-none pointer-events-none scale-90 sm:scale-100 animate-scale-up',
   checkText: 'text-[10px] font-black leading-none',
   footer: 'flex items-center justify-end gap-3 pt-3 border-t border-slate-900 flex-shrink-0',
-  cancelBtn: 'text-[11px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-4 py-2 rounded-lg cursor-pointer transition-colors',
-  saveBtn: 'text-[11px] sm:text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 px-5 py-2 rounded-lg cursor-pointer shadow-md active:scale-95 transition-all'
+  cancelBtn: COMMON_STYLES.cancelBtn,
+  saveBtn: COMMON_STYLES.confirmBtn
 }
 
 const CARD_CLASS = (isOwned: boolean, rarity: number) => {

@@ -1,6 +1,7 @@
 import type { Character } from '../types'
 import { ELEMENT_KR_MAP } from '../constants'
 import { DraggableCharacterCard } from './DraggableCharacterCard'
+import { COMMON_STYLES } from '../styles/theme'
 
 interface ResonatorSelectModalProps {
   onSelect: (char: Character) => void
@@ -165,8 +166,8 @@ const SELECT_MODAL_STYLES = {
     isActive ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
   }`,
   ownedFilterArea: 'flex justify-between items-center px-1 mb-2.5 select-none flex-shrink-0',
-  ownedModalTrigger: 'text-[10px] sm:text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 sm:py-1 rounded-md cursor-pointer transition-colors active:scale-95 flex items-center gap-0.5',
-  ownedLabel: 'flex items-center gap-1.5 cursor-pointer text-[10.5px] sm:text-xs text-slate-400 font-bold hover:text-slate-300',
-  ownedCheckbox: 'w-3.5 h-3.5 rounded border-slate-800 bg-slate-900 text-purple-600 focus:ring-purple-500 cursor-pointer',
+  ownedModalTrigger: COMMON_STYLES.subBtn,
+  ownedLabel: COMMON_STYLES.checkboxLabel,
+  ownedCheckbox: COMMON_STYLES.checkboxInput,
   scroller: 'grid grid-cols-4 gap-1.5 justify-items-center overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent'
 }

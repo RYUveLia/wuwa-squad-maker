@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
+// 공용 스타일 시스템 가져오기
+import { COMMON_STYLES } from './styles/theme'
+
 // 타입, 상수, 데이터 및 하위 컴포넌트 가져오기
 import { ELEMENT_KR_MAP } from './constants'
 import { Toast } from './components/Toast'
@@ -330,9 +333,9 @@ const RESONATOR_POOL_STYLES = {
     isActive ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
   }`,
   ownedFilterBar: 'flex items-center justify-between px-1.5 py-1 mb-3.5 select-none bg-slate-950/20 border border-slate-900 rounded-xl',
-  ownedSettingsBtn: 'text-[10.5px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg cursor-pointer transition-all flex items-center gap-1 active:scale-95',
-  ownedFilterLabel: 'flex items-center gap-1.5 cursor-pointer text-[10.5px] sm:text-xs text-slate-400 font-bold hover:text-slate-300',
-  ownedCheckbox: 'w-3.5 h-3.5 rounded border-slate-800 bg-slate-900 text-purple-600 focus:ring-purple-500 cursor-pointer'
+  ownedSettingsBtn: COMMON_STYLES.subBtn,
+  ownedFilterLabel: COMMON_STYLES.checkboxLabel,
+  ownedCheckbox: COMMON_STYLES.checkboxInput
 }
 
 const SQUAD_LIST_STYLES = {

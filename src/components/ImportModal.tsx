@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { COMMON_STYLES } from '../styles/theme'
 
 interface ImportModalProps {
   onImport: (code: string) => void
@@ -54,6 +55,6 @@ const IMPORT_STYLES = {
   subMessage: 'text-xs text-slate-400 mb-4',
   textarea: 'w-full h-28 bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500 resize-none font-mono',
   footer: 'flex gap-2 mt-4 justify-end',
-  cancelBtn: 'px-4 py-1.5 text-sm font-bold text-slate-400 hover:text-slate-200 bg-slate-800 rounded-lg border border-slate-700 cursor-pointer transition-colors',
-  confirmBtn: 'px-4 py-1.5 text-sm font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-lg cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed'
+  cancelBtn: COMMON_STYLES.cancelBtn,
+  confirmBtn: COMMON_STYLES.confirmBtn
 }
