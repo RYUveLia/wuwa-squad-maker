@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { DndContext } from '@dnd-kit/core'
+import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import type { Character } from './types'
 
 // 타입, 상수, 데이터 및 하위 컴포넌트 가져오기
 import { ELEMENT_KR_MAP } from './constants'
@@ -56,13 +57,28 @@ function App() {
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
+  const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event
+    const activeId = active.id as string
+    // 도감 카드 드래그 시작 시에만 오버레이 활성화 (squad-row, squad-char 제외)
+    if (!activeId.startsWith('squad-row-') && !activeId.startsWith('squad-char-')) {
+      setActiveDragChar(active.data.current as Character)
+    }
+  }
+
+  const wrappedHandleDragEnd = (event: Parameters<typeof handleDragEnd>[0]) => {
+    setActiveDragChar(null)
+    handleDragEnd(event)
+  }
 
   if (!isVerified) {
     return <TurnstileGate onVerify={() => setIsVerified(true)} />
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={wrappedHandleDragEnd}>
       <div className={LAYOUT_STYLES.wrapper}>
         
         {/* Header */}
@@ -285,6 +301,18 @@ function App() {
           />
         )}
       </div>
+
+      {/* Drag Overlay — 마우스 커서를 정확히 따라다니는 프리뷰 카드 */}
+      <DragOverlay dropAnimation={null}>
+        {activeDragChar ? (
+          <div className="w-20 h-24 bg-slate-900 border-2 border-purple-500 rounded-xl p-1.5 flex flex-col items-center shadow-2xl shadow-purple-500/30 pointer-events-none">
+            <div className="w-full aspect-square rounded-lg overflow-hidden bg-slate-800">
+              <img src={activeDragChar.img} alt={activeDragChar.name} className="w-full h-full object-cover" />
+            </div>
+            <span className="mt-1 text-[9px] font-bold text-slate-200 truncate w-full text-center">{activeDragChar.name}</span>
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   )
 }
