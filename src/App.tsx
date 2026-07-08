@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
+import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import type { Character } from './types'
 
 // 타입, 상수, 데이터 및 하위 컴포넌트 가져오기
 import { ELEMENT_KR_MAP } from './constants'
@@ -32,6 +31,7 @@ function App() {
     handleExport,
     handleImport,
     handleCapture,
+    handleDragStart,
     handleDragEnd,
     getAssignedSquadIndices,
     elements,
@@ -53,32 +53,18 @@ function App() {
     handleSaveOwnedResonators,
     confirmModalOpen,
     setConfirmModalOpen,
-    confirmAction
+    confirmAction,
+    activeDragChar
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
-  const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event
-    const activeId = active.id as string
-    // 도감 카드 드래그 시작 시에만 오버레이 활성화 (squad-row, squad-char 제외)
-    if (!activeId.startsWith('squad-row-') && !activeId.startsWith('squad-char-')) {
-      setActiveDragChar(active.data.current as Character)
-    }
-  }
-
-  const wrappedHandleDragEnd = (event: Parameters<typeof handleDragEnd>[0]) => {
-    setActiveDragChar(null)
-    handleDragEnd(event)
-  }
 
   if (!isVerified) {
     return <TurnstileGate onVerify={() => setIsVerified(true)} />
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={wrappedHandleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className={LAYOUT_STYLES.wrapper}>
         
         {/* Header */}

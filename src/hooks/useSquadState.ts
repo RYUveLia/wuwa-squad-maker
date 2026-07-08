@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 
 import type { Character } from '../types'
@@ -17,6 +17,7 @@ export function useSquadState() {
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
   const [activeSquadIdxForMobile, setActiveSquadIdxForMobile] = useState<number | null>(null)
+  const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
 
   const [ownedResonatorIds, setOwnedResonatorIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('owned-resonators')
@@ -312,8 +313,19 @@ export function useSquadState() {
     showToast('파티원 배치가 이동되었습니다.')
   }
 
+  // 드래그 시작 핸들러
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event
+    const activeId = active.id as string
+    // 도감 카드 드래그 시작 시에만 오버레이 활성화 (squad-row, squad-char 제외)
+    if (!activeId.startsWith('squad-row-') && !activeId.startsWith('squad-char-')) {
+      setActiveDragChar(active.data.current as Character)
+    }
+  }
+
   // 드래그 종료 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragChar(null)
     const { active, over } = event
     const activeId = active.id as string
 
@@ -487,6 +499,7 @@ export function useSquadState() {
     handleExport,
     handleImport,
     handleCapture,
+    handleDragStart,
     handleDragEnd,
     getAssignedSquadIndices,
     elements,
@@ -507,6 +520,7 @@ export function useSquadState() {
     handleSaveOwnedResonators,
     confirmModalOpen,
     setConfirmModalOpen,
-    confirmAction
+    confirmAction,
+    activeDragChar
   }
 }
