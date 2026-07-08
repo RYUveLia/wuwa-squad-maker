@@ -430,7 +430,16 @@ export function useSquadState() {
       if (targetSquadIdx !== -1 && targetSlotIdx !== -1) {
         handleSelectCharacter(char, targetSquadIdx, targetSlotIdx)
       } else {
-        showToast('배치할 수 있는 빈 파티 슬롯이 없습니다.')
+        setConfirmAction({
+          message: '편성할 빈 슬롯이 없습니다.',
+          subMessage: `새로운 파티를 추가하고 [${char.name}] 공명자를 배치하시겠습니까?`,
+          confirmText: '파티 추가 및 배치',
+          onConfirm: () => {
+            setSquads((prev) => [...prev, [char, null, null]])
+            showToast(`새 파티가 추가되고 ${char.name}이 배치되었습니다.`)
+          }
+        })
+        setConfirmModalOpen(true)
       }
     } 
     // 이미 최대 배치 허용 개수만큼 가득 차 있는 상태에서 다시 누를 경우 ➔ 토글 오프 (가장 아래 파티에서 제거)
