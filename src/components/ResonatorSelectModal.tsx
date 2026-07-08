@@ -43,9 +43,9 @@ export function ResonatorSelectModal({
   onOpenOwnedSettings
 }: ResonatorSelectModalProps) {
   return (
-    <div className={SELECT_MODAL_STYLES.overlay} onClick={onClose}>
+    <div className={COMMON_STYLES.modalOverlay} onClick={onClose}>
       <div
-        className={SELECT_MODAL_STYLES.container}
+        className={`${COMMON_STYLES.modalContainer} max-w-md max-h-[75vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Mini slots preview */}
@@ -147,8 +147,6 @@ export function ResonatorSelectModal({
 
 // STYLES (App.tsx Colocation Style Pattern 기조 통일)
 const SELECT_MODAL_STYLES = {
-  overlay: 'fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in',
-  container: 'bg-slate-950/95 border border-slate-800/80 rounded-2xl p-4 w-full max-w-md max-h-[75vh] flex flex-col shadow-2xl animate-scale-up',
   header: 'flex items-center justify-between mb-2.5 flex-shrink-0 bg-slate-900/30 p-2 rounded-xl border border-slate-800/40',
   headerLeft: 'flex items-center gap-2',
   partyBadge: 'text-[10px] font-black font-mono text-purple-400 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/40 select-none',

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { COMMON_STYLES } from '../styles/theme'
 
 interface ConfirmModalProps {
   isOpen: boolean
@@ -39,9 +40,9 @@ export function ConfirmModal({
   if (!isOpen) return null
 
   return (
-    <div className={CONFIRM_STYLES.overlay} onClick={onCancel}>
+    <div className={COMMON_STYLES.modalOverlay} style={{ zIndex: 110 }} onClick={onCancel}>
       <div
-        className={CONFIRM_STYLES.container}
+        className={`${COMMON_STYLES.modalContainer} max-w-sm text-center items-center`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header/Warning Icon */}
@@ -77,8 +78,6 @@ export function ConfirmModal({
 
 // STYLES (Colocation Style Pattern 기조 일치 및 흘러내림 방지 튜닝)
 const CONFIRM_STYLES = {
-  overlay: 'fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in',
-  container: 'bg-slate-950/95 border border-slate-800/80 rounded-2xl p-5 sm:p-6 w-full max-w-sm flex flex-col items-center shadow-2xl animate-scale-up text-center select-none',
   iconArea: 'w-11 h-11 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-3.5 select-none',
   icon: 'text-xl leading-none',
   body: 'flex flex-col gap-1 mb-4.5',

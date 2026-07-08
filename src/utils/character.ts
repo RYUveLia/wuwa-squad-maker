@@ -77,3 +77,34 @@ export const getMaxDeployment = (charId: string): number => {
   if (charId === 'chisa') return 2 // 치사 3.5 시즌 임시 2회 룰 기본 적용
   return 1
 }
+
+/** 특정 공명자가 편성된 모든 스쿼드 인덱스 목록 추출 */
+export function getAssignedSquadIndices(charId: string, squads: (Character | null)[][]): number[] {
+  const indices: number[] = []
+  for (let i = 0; i < squads.length; i++) {
+    if (squads[i].some(slot => slot && slot.id === charId)) {
+      indices.push(i)
+    }
+  }
+  return indices
+}
+
+/** 특정 공명자가 출전 횟수 한도에 다다랐는지 검증 (방랑자 상호 잠금 규칙 포함) */
+export function checkCharacterMaxedOut(charId: string, squads: (Character | null)[][]): boolean {
+  const ROVER_IDS = ['rover-spectro', 'rover-havoc', 'rover-aero', 'rover-electro']
+  const isRover = ROVER_IDS.includes(charId)
+  
+  const assignedIndices = getAssignedSquadIndices(charId, squads)
+  const isThisRoverDeployed = assignedIndices.length > 0
+  
+  const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
+    ROVER_IDS.includes(c.id) && 
+    c.id !== charId && 
+    getAssignedSquadIndices(c.id, squads).length > 0
+  )
+  
+  const maxAllowed = getMaxDeployment(charId)
+  return isRover 
+    ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
+    : (assignedIndices.length >= maxAllowed)
+}

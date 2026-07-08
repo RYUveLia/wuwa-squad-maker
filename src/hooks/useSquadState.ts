@@ -3,8 +3,7 @@ import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent, typ
 import { arrayMove } from '@dnd-kit/sortable'
 
 import type { Character } from '../types'
-import { ROVER_IDS } from '../constants'
-import { MOCK_CHARACTERS, getMaxDeployment } from '../utils/character'
+import { MOCK_CHARACTERS, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 
 export function useSquadState() {
@@ -251,18 +250,7 @@ export function useSquadState() {
 
   // 1) 도감에서 끌어오는 경우 (도감 카드 드래그)
   const handleDropFromPool = (char: Character, overId: string) => {
-    const assignedSquadIndices = getAssignedSquadIndices(char.id)
-    const isRover = ROVER_IDS.includes(char.id)
-    const isThisRoverDeployed = assignedSquadIndices.length > 0
-    const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
-      ROVER_IDS.includes(c.id) && 
-      c.id !== char.id && 
-      getAssignedSquadIndices(c.id).length > 0
-    )
-    const maxAllowed = getMaxDeployment(char.id)
-    const isMaxedOut = isRover 
-      ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
-      : (assignedSquadIndices.length >= maxAllowed)
+    const isMaxedOut = checkCharacterMaxedOut(char.id, squads)
 
     if (isMaxedOut) return
 
@@ -364,16 +352,7 @@ export function useSquadState() {
     }
   }
 
-  // 특정 공명자가 편성된 모든 스쿼드 인덱스 목록
-  const getAssignedSquadIndices = (charId: string): number[] => {
-    const indices: number[] = []
-    for (let i = 0; i < squads.length; i++) {
-      if (squads[i].some(slot => slot && slot.id === charId)) {
-        indices.push(i)
-      }
-    }
-    return indices
-  }
+
 
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
 
@@ -405,23 +384,8 @@ export function useSquadState() {
     showToast('보유 공명자 현황이 저장되었습니다.')
   }
 
-  const isCharacterMaxedOut = (charId: string): boolean => {
-    const assignedSquadIndices = getAssignedSquadIndices(charId)
-    const isRover = ROVER_IDS.includes(charId)
-    const isThisRoverDeployed = assignedSquadIndices.length > 0
-    const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
-      ROVER_IDS.includes(c.id) && 
-      c.id !== charId && 
-      getAssignedSquadIndices(c.id).length > 0
-    )
-    const maxAllowed = getMaxDeployment(charId)
-    return isRover 
-      ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
-      : (assignedSquadIndices.length >= maxAllowed)
-  }
-
   const handleToggleCharacter = (char: Character) => {
-    const assigned = getAssignedSquadIndices(char.id)
+    const assigned = getAssignedSquadIndices(char.id, squads)
     const maxAllowed = getMaxDeployment(char.id)
 
     // 만약 배치된 횟수가 최대 허용 개수보다 미만일 경우 ➔ 새로운 슬롯에 추가로 배치함
@@ -501,10 +465,10 @@ export function useSquadState() {
     handleCapture,
     handleDragStart,
     handleDragEnd,
-    getAssignedSquadIndices,
+    getAssignedSquadIndices: (charId: string) => getAssignedSquadIndices(charId, squads),
     elements,
     filteredCharacters,
-    isCharacterMaxedOut,
+    isCharacterMaxedOut: (charId: string) => checkCharacterMaxedOut(charId, squads),
     getMaxDeployment,
     squadIds,
     importModalOpen,

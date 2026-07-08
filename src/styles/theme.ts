@@ -17,5 +17,11 @@ export const COMMON_STYLES = {
   checkboxLabel: 'flex items-center gap-1.5 cursor-pointer text-[10.5px] sm:text-xs text-slate-400 font-bold hover:text-slate-300 select-none',
   
   // 5. 보유 필터링 체크박스 인풋 공통
-  checkboxInput: 'w-3.5 h-3.5 rounded border-slate-800 bg-slate-900 text-purple-600 focus:ring-purple-500 cursor-pointer'
+  checkboxInput: 'w-3.5 h-3.5 rounded border-slate-800 bg-slate-900 text-purple-600 focus:ring-purple-500 cursor-pointer',
+
+  // 6. 모달 공통 백드롭 오버레이 (블러 + 어두움 80% 통일)
+  modalOverlay: 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 select-none animate-fade-in',
+  
+  // 7. 모달 공통 컨테이너 프레임 (어두운 배경색 + 연한 테두리선 + 둥근 모서리)
+  modalContainer: 'bg-slate-950/95 border border-slate-800/80 rounded-2xl p-5 sm:p-6 w-full shadow-2xl animate-scale-up flex flex-col'
 }

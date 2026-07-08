@@ -40,9 +40,9 @@ export function OwnedResonatorModal({
   }
 
   return (
-    <div className={OWNED_MODAL_STYLES.overlay} onClick={onClose}>
+    <div className={COMMON_STYLES.modalOverlay} onClick={onClose}>
       <div
-        className={OWNED_MODAL_STYLES.container}
+        className={`${COMMON_STYLES.modalContainer} max-w-xl max-h-[85vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -129,8 +129,6 @@ export function OwnedResonatorModal({
 
 // STYLES (App.tsx Colocation Style Pattern 기조 통일)
 const OWNED_MODAL_STYLES = {
-  overlay: 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in',
-  container: 'bg-slate-950/95 border border-slate-800/80 rounded-2xl p-4 w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl animate-scale-up',
   header: 'flex items-center justify-between pb-3 border-b border-slate-900 flex-shrink-0',
   headerTitleArea: 'flex flex-col',
   title: 'text-base font-bold text-slate-100',

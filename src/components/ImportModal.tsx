@@ -10,9 +10,9 @@ export function ImportModal({ onImport, onClose }: ImportModalProps) {
   const [code, setCode] = useState('')
 
   return (
-    <div className={IMPORT_STYLES.overlay} onClick={onClose}>
+    <div className={COMMON_STYLES.modalOverlay} onClick={onClose}>
       <div
-        className={IMPORT_STYLES.container}
+        className={`${COMMON_STYLES.modalContainer} max-w-md`}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className={IMPORT_STYLES.title}>편성 코드 불러오기</h3>
@@ -49,8 +49,6 @@ export function ImportModal({ onImport, onClose }: ImportModalProps) {
 
 // STYLES
 const IMPORT_STYLES = {
-  overlay: 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in',
-  container: 'bg-slate-900 border border-slate-700 rounded-2xl p-6 w-[90%] max-w-md shadow-2xl animate-scale-up',
   title: 'text-lg font-bold text-slate-100 mb-2',
   subMessage: 'text-xs text-slate-400 mb-4',
   textarea: 'w-full h-28 bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500 resize-none font-mono',
