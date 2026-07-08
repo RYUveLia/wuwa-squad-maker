@@ -106,7 +106,7 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
           {error ? (
             <div className={GATE_STYLES.errorBox}>
               <p className={GATE_STYLES.errorText}>{error}</p>
-              <div className="flex gap-2 justify-center mt-2.5">
+              <div className={GATE_STYLES.errorBtnArea}>
                 <button
                   onClick={() => window.location.reload()}
                   className={GATE_STYLES.retryBtn}
@@ -115,19 +115,19 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
                 </button>
                 <button
                   onClick={() => onVerify('bypass-test-token')}
-                  className="px-3 py-1 text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition-colors active:scale-95"
+                  className={GATE_STYLES.bypassTestBtn}
                 >
                   보안 검사 건너뛰기
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center">
-              <div ref={containerRef} className="my-2"></div>
+            <div className={GATE_STYLES.centerCol}>
+              <div ref={containerRef} className={GATE_STYLES.widgetContainer}></div>
               {/* 로딩 지연이나 광고 차단기 활성화 대비 수동 진입 통로 열기 */}
               <button
                 onClick={() => onVerify('bypass-timeout-token')}
-                className="mt-3 text-[10px] text-slate-500 hover:text-slate-300 underline cursor-pointer transition-all"
+                className={GATE_STYLES.bypassTimeoutBtn}
               >
                 웹페이지 진입이 안 되시나요? (보안 인증 건너뛰기)
               </button>
@@ -137,9 +137,9 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
 
         {/* Footer */}
         <div className={GATE_STYLES.footer}>
-          <div className="flex flex-col items-center gap-1">
+          <div className={GATE_STYLES.footerInnerCol}>
             <span className={GATE_STYLES.footerText}>Protected by Cloudflare Turnstile</span>
-            <span className="text-[8px] font-mono text-slate-700 select-all">
+            <span className={GATE_STYLES.debuggerText}>
               {SITE_KEY === '1x00000000000000000000AA'
                 ? '보안 상태: 더미 데모 키 작동 중 (Vercel 환경변수 미감지)'
                 : `보안 상태: 사용자 정의 키 작동 중 (${SITE_KEY.slice(0, 10)}...)`}
@@ -167,5 +167,13 @@ const GATE_STYLES = {
   errorText: 'text-[11px] sm:text-xs text-rose-400 font-medium leading-relaxed',
   retryBtn: 'mt-2.5 px-3 py-1 text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-lg cursor-pointer transition-colors active:scale-95',
   footer: 'border-t border-slate-800/60 pt-4 w-full text-center flex justify-center',
-  footerText: 'text-[9.5px] font-mono text-slate-600 tracking-wider'
+  footerText: 'text-[9.5px] font-mono text-slate-600 tracking-wider',
+  
+  errorBtnArea: 'flex gap-2 justify-center mt-2.5',
+  bypassTestBtn: 'px-3 py-1 text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition-colors active:scale-95',
+  centerCol: 'flex flex-col items-center',
+  widgetContainer: 'my-2',
+  bypassTimeoutBtn: 'mt-3 text-[10px] text-slate-500 hover:text-slate-300 underline cursor-pointer transition-all',
+  footerInnerCol: 'flex flex-col items-center gap-1',
+  debuggerText: 'text-[8px] font-mono text-slate-700 select-all'
 }
