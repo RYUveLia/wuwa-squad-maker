@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 interface ConfirmModalProps {
   isOpen: boolean
   message: string
@@ -15,6 +17,25 @@ export function ConfirmModal({
   onConfirm,
   onCancel
 }: ConfirmModalProps) {
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        onConfirm()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        onCancel()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onConfirm, onCancel])
+
   if (!isOpen) return null
 
   return (
