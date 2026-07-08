@@ -32,7 +32,12 @@ export function SortableSquadRow({
   const numStr = String(squadIdx + 1).padStart(2, '0')
 
   return (
-    <div ref={setNodeRef} style={style} className={SQUAD_LIST_STYLES.row}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={SQUAD_LIST_STYLES.row}
+      data-capture-exclude={squad.every(char => char === null) ? 'true' : 'false'}
+    >
       {/* Left: Drag Handle + Number */}
       <div className={SQUAD_LIST_STYLES.numberBadgeArea}>
         <span

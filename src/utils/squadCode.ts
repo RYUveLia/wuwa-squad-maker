@@ -16,7 +16,9 @@ MOCK_CHARACTERS.forEach((c, idx) => {
 
 /** 파티 배열 → Base64 코드 문자열 (영문 ID 기반) */
 export function encodeSquads(squads: (Character | null)[][]): string {
-  const idSquads = squads.map(squad =>
+  // 공명자가 1명이라도 편성된 파티만 걸러냄
+  const activeSquads = squads.filter(squad => squad.some(char => char !== null))
+  const idSquads = activeSquads.map(squad =>
     squad.map(char => char ? char.id : null)
   )
   const jsonStr = JSON.stringify(idSquads)
