@@ -197,9 +197,29 @@ export function useSquadState() {
       return
     }
     showToast('파티 캡처 이미지 생성 중...')
+    
+    // 1. 실제 화면(UI)의 덜컥거림을 원천 방지하기 위해 컨테이너를 메모리 상에 임시 복제(Clone)
+    const clone = container.cloneNode(true) as HTMLElement
+    
+    // 2. 복제본을 오프스크린(보이지 않는 영역)에 배치하고 전체 크기를 확장하여 스타일링
+    clone.style.position = 'absolute'
+    clone.style.top = '-9999px'
+    clone.style.left = '-9999px'
+    clone.style.height = 'auto'
+    clone.style.maxHeight = 'none'
+    clone.style.overflow = 'visible'
+    clone.style.width = container.offsetWidth + 'px' // 원래 요소와 동일한 너비 유지
+    
+    // 3. 복제본 내에서 제외할 컴포넌트([data-capture-exclude="true"])들을 완전히 물리적으로 삭제
+    const excludeElements = clone.querySelectorAll('[data-capture-exclude="true"]')
+    excludeElements.forEach((el) => el.remove())
+
+    // 4. 렌더링을 위해 document body에 복제본을 임시 주입
+    document.body.appendChild(clone)
+
     try {
       const { toPng } = await import('html-to-image')
-      const dataUrl = await toPng(container, {
+      const dataUrl = await toPng(clone, {
         backgroundColor: '#020617', // slate-950
         pixelRatio: 2,
         cacheBust: true
@@ -212,6 +232,9 @@ export function useSquadState() {
     } catch (err) {
       console.error(err)
       showToast('이미지 변환 중 오류가 발생했습니다.')
+    } finally {
+      // 5. 사용이 끝난 복제본 노드를 깔끔하게 제거(메모리 정리)
+      clone.remove()
     }
   }
 

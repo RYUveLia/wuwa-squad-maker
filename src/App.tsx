@@ -219,6 +219,7 @@ function App() {
               <div 
                 onClick={handleAddSquad}
                 className={SQUAD_LIST_STYLES.addSquadBar}
+                data-capture-exclude="true"
               >
                 <span className={SQUAD_LIST_STYLES.addSquadPlus}>
                   ＋
