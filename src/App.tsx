@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
+import { DndContext, DragOverlay } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import type { Character } from './types'
+
+// 공용 스타일 시스템 가져오기
+import { COMMON_STYLES } from './styles/theme'
 
 // 타입, 상수, 데이터 및 하위 컴포넌트 가져오기
 import { ELEMENT_KR_MAP } from './constants'
@@ -32,6 +34,7 @@ function App() {
     handleExport,
     handleImport,
     handleCapture,
+    handleDragStart,
     handleDragEnd,
     getAssignedSquadIndices,
     elements,
@@ -53,32 +56,18 @@ function App() {
     handleSaveOwnedResonators,
     confirmModalOpen,
     setConfirmModalOpen,
-    confirmAction
+    confirmAction,
+    activeDragChar
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
-  const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event
-    const activeId = active.id as string
-    // 도감 카드 드래그 시작 시에만 오버레이 활성화 (squad-row, squad-char 제외)
-    if (!activeId.startsWith('squad-row-') && !activeId.startsWith('squad-char-')) {
-      setActiveDragChar(active.data.current as Character)
-    }
-  }
-
-  const wrappedHandleDragEnd = (event: Parameters<typeof handleDragEnd>[0]) => {
-    setActiveDragChar(null)
-    handleDragEnd(event)
-  }
 
   if (!isVerified) {
     return <TurnstileGate onVerify={() => setIsVerified(true)} />
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={wrappedHandleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className={LAYOUT_STYLES.wrapper}>
         
         {/* Header */}
@@ -117,19 +106,19 @@ function App() {
               </div>
 
               {/* Owned Resonators Filtering bar */}
-              <div className="flex items-center justify-between px-1.5 py-1 mb-3.5 select-none bg-slate-950/20 border border-slate-900 rounded-xl">
+              <div className={RESONATOR_POOL_STYLES.ownedFilterBar}>
                 <button
                   onClick={() => setOwnedModalOpen(true)}
-                  className="text-[10.5px] sm:text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg cursor-pointer transition-all flex items-center gap-1 active:scale-95"
+                  className={RESONATOR_POOL_STYLES.ownedSettingsBtn}
                 >
                   ⚙️ 보유 공명자 설정
                 </button>
-                <label className="flex items-center gap-1.5 cursor-pointer text-[10.5px] sm:text-xs text-slate-400 font-bold hover:text-slate-300">
+                <label className={RESONATOR_POOL_STYLES.ownedFilterLabel}>
                   <input
                     type="checkbox"
                     checked={showOnlyOwned}
                     onChange={(e) => setShowOnlyOwned(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded border-slate-800 bg-slate-900 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    className={RESONATOR_POOL_STYLES.ownedCheckbox}
                   />
                   보유한 공명자만 보기
                 </label>
@@ -342,7 +331,11 @@ const RESONATOR_POOL_STYLES = {
   filterBar: 'flex flex-wrap gap-1 bg-slate-950/60 p-1 rounded-lg border border-slate-800/80',
   filterButton: (isActive: boolean) => `px-3 py-1 text-xs md:text-sm font-semibold rounded-md transition-all duration-200 cursor-pointer ${
     isActive ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-  }`
+  }`,
+  ownedFilterBar: 'flex items-center justify-between px-1.5 py-1 mb-3.5 select-none bg-slate-950/20 border border-slate-900 rounded-xl',
+  ownedSettingsBtn: COMMON_STYLES.subBtn,
+  ownedFilterLabel: COMMON_STYLES.checkboxLabel,
+  ownedCheckbox: COMMON_STYLES.checkboxInput
 }
 
 const SQUAD_LIST_STYLES = {

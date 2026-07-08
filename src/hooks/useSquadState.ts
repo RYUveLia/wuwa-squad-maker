@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 
 import type { Character } from '../types'
-import { ROVER_IDS } from '../constants'
-import { MOCK_CHARACTERS, getMaxDeployment } from '../utils/character'
+import { MOCK_CHARACTERS, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 
 export function useSquadState() {
@@ -17,6 +16,7 @@ export function useSquadState() {
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
   const [activeSquadIdxForMobile, setActiveSquadIdxForMobile] = useState<number | null>(null)
+  const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
 
   const [ownedResonatorIds, setOwnedResonatorIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('owned-resonators')
@@ -250,18 +250,7 @@ export function useSquadState() {
 
   // 1) 도감에서 끌어오는 경우 (도감 카드 드래그)
   const handleDropFromPool = (char: Character, overId: string) => {
-    const assignedSquadIndices = getAssignedSquadIndices(char.id)
-    const isRover = ROVER_IDS.includes(char.id)
-    const isThisRoverDeployed = assignedSquadIndices.length > 0
-    const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
-      ROVER_IDS.includes(c.id) && 
-      c.id !== char.id && 
-      getAssignedSquadIndices(c.id).length > 0
-    )
-    const maxAllowed = getMaxDeployment(char.id)
-    const isMaxedOut = isRover 
-      ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
-      : (assignedSquadIndices.length >= maxAllowed)
+    const isMaxedOut = checkCharacterMaxedOut(char.id, squads)
 
     if (isMaxedOut) return
 
@@ -312,8 +301,19 @@ export function useSquadState() {
     showToast('파티원 배치가 이동되었습니다.')
   }
 
+  // 드래그 시작 핸들러
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event
+    const activeId = active.id as string
+    // 도감 카드 드래그 시작 시에만 오버레이 활성화 (squad-row, squad-char 제외)
+    if (!activeId.startsWith('squad-row-') && !activeId.startsWith('squad-char-')) {
+      setActiveDragChar(active.data.current as Character)
+    }
+  }
+
   // 드래그 종료 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragChar(null)
     const { active, over } = event
     const activeId = active.id as string
 
@@ -352,16 +352,7 @@ export function useSquadState() {
     }
   }
 
-  // 특정 공명자가 편성된 모든 스쿼드 인덱스 목록
-  const getAssignedSquadIndices = (charId: string): number[] => {
-    const indices: number[] = []
-    for (let i = 0; i < squads.length; i++) {
-      if (squads[i].some(slot => slot && slot.id === charId)) {
-        indices.push(i)
-      }
-    }
-    return indices
-  }
+
 
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
 
@@ -393,23 +384,8 @@ export function useSquadState() {
     showToast('보유 공명자 현황이 저장되었습니다.')
   }
 
-  const isCharacterMaxedOut = (charId: string): boolean => {
-    const assignedSquadIndices = getAssignedSquadIndices(charId)
-    const isRover = ROVER_IDS.includes(charId)
-    const isThisRoverDeployed = assignedSquadIndices.length > 0
-    const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
-      ROVER_IDS.includes(c.id) && 
-      c.id !== charId && 
-      getAssignedSquadIndices(c.id).length > 0
-    )
-    const maxAllowed = getMaxDeployment(charId)
-    return isRover 
-      ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
-      : (assignedSquadIndices.length >= maxAllowed)
-  }
-
   const handleToggleCharacter = (char: Character) => {
-    const assigned = getAssignedSquadIndices(char.id)
+    const assigned = getAssignedSquadIndices(char.id, squads)
     const maxAllowed = getMaxDeployment(char.id)
 
     // 만약 배치된 횟수가 최대 허용 개수보다 미만일 경우 ➔ 새로운 슬롯에 추가로 배치함
@@ -430,7 +406,16 @@ export function useSquadState() {
       if (targetSquadIdx !== -1 && targetSlotIdx !== -1) {
         handleSelectCharacter(char, targetSquadIdx, targetSlotIdx)
       } else {
-        showToast('배치할 수 있는 빈 파티 슬롯이 없습니다.')
+        setConfirmAction({
+          message: '편성할 빈 슬롯이 없습니다.',
+          subMessage: `새로운 파티를 추가하고 [${char.name}] 공명자를 배치하시겠습니까?`,
+          confirmText: '파티 추가 및 배치',
+          onConfirm: () => {
+            setSquads((prev) => [...prev, [char, null, null]])
+            showToast(`새 파티가 추가되고 ${char.name}이 배치되었습니다.`)
+          }
+        })
+        setConfirmModalOpen(true)
       }
     } 
     // 이미 최대 배치 허용 개수만큼 가득 차 있는 상태에서 다시 누를 경우 ➔ 토글 오프 (가장 아래 파티에서 제거)
@@ -478,11 +463,12 @@ export function useSquadState() {
     handleExport,
     handleImport,
     handleCapture,
+    handleDragStart,
     handleDragEnd,
-    getAssignedSquadIndices,
+    getAssignedSquadIndices: (charId: string) => getAssignedSquadIndices(charId, squads),
     elements,
     filteredCharacters,
-    isCharacterMaxedOut,
+    isCharacterMaxedOut: (charId: string) => checkCharacterMaxedOut(charId, squads),
     getMaxDeployment,
     squadIds,
     importModalOpen,
@@ -498,6 +484,7 @@ export function useSquadState() {
     handleSaveOwnedResonators,
     confirmModalOpen,
     setConfirmModalOpen,
-    confirmAction
+    confirmAction,
+    activeDragChar
   }
 }
