@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 
@@ -7,11 +7,33 @@ import { MOCK_CHARACTERS, getMaxDeployment, getAssignedSquadIndices, checkCharac
 import { generateExportText, parseImportText } from '../utils/squadCode'
 
 export function useSquadState() {
-  const [squads, setSquads] = useState<(Character | null)[][]>([
-    [null, null, null],
-    [null, null, null],
-    [null, null, null],
-  ])
+  const [squads, setSquads] = useState<(Character | null)[][]>(() => {
+    const saved = localStorage.getItem('wuwa-squads')
+    if (saved) {
+      try {
+        const parsedIds = JSON.parse(saved) as (string | null)[][]
+        return parsedIds.map(row =>
+          row.map(id => {
+            if (!id) return null
+            return MOCK_CHARACTERS.find(c => c.id === id) || null
+          })
+        )
+      } catch (e) {
+        // empty
+      }
+    }
+    return [
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]
+  })
+
+  // squads 상태가 바뀔 때마다 localStorage에 ID 형태로 영구 보존
+  useEffect(() => {
+    const ids = squads.map(row => row.map(slot => slot ? slot.id : null))
+    localStorage.setItem('wuwa-squads', JSON.stringify(ids))
+  }, [squads])
   
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
