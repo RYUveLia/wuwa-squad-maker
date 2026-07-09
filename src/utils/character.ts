@@ -111,3 +111,18 @@ export function checkCharacterMaxedOut(charId: string, squads: (Character | null
     ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
     : (assignedIndices.length >= maxAllowed)
 }
+
+/** 유출 설정에 따라 중복 편성이 허용되는 공명자들의 한글 이름 목록 괄호 포맷 텍스트 반환 */
+export function getDoubleDeploymentNamesText(showLeakInfo: boolean): string {
+  const allowedIds = DOUBLE_DEPLOYMENT_CHARACTERS.filter(id => {
+    if (id === 'suisui') return showLeakInfo
+    return true
+  })
+  
+  const names = allowedIds.map(id => {
+    const char = MOCK_CHARACTERS.find(c => c.id === id)
+    return char ? char.name : ''
+  }).filter(Boolean)
+  
+  return `(${names.join(', ')})`
+}

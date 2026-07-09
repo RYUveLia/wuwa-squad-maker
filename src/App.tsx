@@ -17,8 +17,9 @@ import { OwnedResonatorModal } from './components/OwnedResonatorModal'
 import { TurnstileGate } from './components/TurnstileGate'
 import { ConfirmModal } from './components/ConfirmModal'
 
-// 커스텀 훅 가져오기
+// 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
+import { getDoubleDeploymentNamesText } from './utils/character'
 
 function App() {
   const {
@@ -79,7 +80,7 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br />
-            일부 공명자<span className="text-purple-400 font-semibold">{showLeakInfo ? '(설지, 복링, 벨리나, 파수인, 모니에, 수수)' : '(설지, 복링, 벨리나, 파수인, 모니에)'}</span> 및 <span className="text-amber-400 font-bold">3.5 시즌 버프 대상인 치사</span>는 최대 2회까지 중복 편성이 허용됩니다.
+            일부 공명자<span className="text-purple-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold">3.5 시즌 버프 대상인 치사</span>는 최대 2회까지 중복 편성이 허용됩니다.
           </p>
         </header>
 
