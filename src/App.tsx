@@ -80,7 +80,7 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br className="hidden sm:inline" />
-            일부 공명자<span className="text-purple-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold">3.5 시즌 버프 대상인 치사</span>는 최대 2회까지 중복 편성이 허용됩니다.
+            일부 공명자<span className="text-purple-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold">3.5 시즌 버프 대상인 치사</span>는 <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
           </p>
         </header>
 
