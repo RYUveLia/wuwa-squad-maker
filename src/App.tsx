@@ -17,8 +17,9 @@ import { OwnedResonatorModal } from './components/OwnedResonatorModal'
 import { TurnstileGate } from './components/TurnstileGate'
 import { ConfirmModal } from './components/ConfirmModal'
 
-// 커스텀 훅 가져오기
+// 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
+import { getDoubleDeploymentNamesText } from './utils/character'
 
 function App() {
   const {
@@ -57,7 +58,9 @@ function App() {
     confirmModalOpen,
     setConfirmModalOpen,
     confirmAction,
-    activeDragChar
+    activeDragChar,
+    showLeakInfo,
+    setShowLeakInfo
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
@@ -77,7 +80,7 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br />
-            일부 공명자<span className="text-purple-400 font-semibold">(설지, 복링, 벨리나, 파수인, 모니에, 수수)</span> 및 <span className="text-amber-400 font-bold">3.5 시즌 버프 대상인 치사</span>는 최대 2회까지 중복 편성이 허용됩니다.
+            일부 공명자<span className="text-purple-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold">3.5 시즌 버프 대상인 치사</span>는 최대 2회까지 중복 편성이 허용됩니다.
           </p>
         </header>
 
@@ -113,15 +116,38 @@ function App() {
                 >
                   ⚙️ 보유 공명자 설정
                 </button>
-                <label className={RESONATOR_POOL_STYLES.ownedFilterLabel}>
-                  <input
-                    type="checkbox"
-                    checked={showOnlyOwned}
-                    onChange={(e) => setShowOnlyOwned(e.target.checked)}
-                    className={RESONATOR_POOL_STYLES.ownedCheckbox}
-                  />
-                  보유한 공명자만 보기
-                </label>
+                <div className="flex items-center gap-3.5">
+                  <label className={RESONATOR_POOL_STYLES.ownedFilterLabel}>
+                    <input
+                      type="checkbox"
+                      checked={showOnlyOwned}
+                      onChange={(e) => setShowOnlyOwned(e.target.checked)}
+                      className={RESONATOR_POOL_STYLES.ownedCheckbox}
+                    />
+                    보유한 공명자만 보기
+                  </label>
+
+                  {/* Leak Filter Toggle Button */}
+                  <div className="flex items-center gap-2 border-l border-slate-800/80 pl-3.5">
+                    <span className="text-[10px] sm:text-xs font-semibold text-slate-400 select-none">유출 정보</span>
+                    <button
+                      role="switch"
+                      aria-checked={showLeakInfo}
+                      onClick={() => setShowLeakInfo(!showLeakInfo)}
+                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-slate-700/60 ${
+                        showLeakInfo 
+                          ? 'bg-purple-600/90 shadow-[0_0_8px_rgba(168,85,247,0.35)]' 
+                          : 'bg-slate-800'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition-all duration-200 ease-in-out ${
+                          showLeakInfo ? 'translate-x-5 bg-white' : 'translate-x-0.5 bg-slate-400'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -32,6 +32,20 @@ export function useSquadState() {
   const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
   const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
 
+  const [showLeakInfo, setShowLeakInfo] = useState<boolean>(() => {
+    const saved = localStorage.getItem('show-leak-info')
+    return saved === 'true'
+  })
+
+  const handleSetShowLeakInfo = (val: boolean) => {
+    setShowLeakInfo(val)
+    localStorage.setItem('show-leak-info', String(val))
+  }
+
+  // 훅 내부 간소화 헬퍼 정의
+  const limitOf = (charId: string) => getMaxDeployment(charId, showLeakInfo)
+  const isMaxed = (charId: string) => checkCharacterMaxedOut(charId, squads, showLeakInfo)
+
   // 제거 확인 모달 상태
   const [confirmModalOpen, setConfirmModalOpen] = useState<boolean>(false)
   const [confirmAction, setConfirmAction] = useState<{
@@ -116,7 +130,7 @@ export function useSquadState() {
         })
       })
 
-      const maxAllowed = getMaxDeployment(char.id)
+      const maxAllowed = limitOf(char.id)
 
       if (currentDeployments.length >= maxAllowed) {
         const removeCount = currentDeployments.length - maxAllowed + 1
@@ -250,7 +264,7 @@ export function useSquadState() {
 
   // 1) 도감에서 끌어오는 경우 (도감 카드 드래그)
   const handleDropFromPool = (char: Character, overId: string) => {
-    const isMaxedOut = checkCharacterMaxedOut(char.id, squads)
+    const isMaxedOut = isMaxed(char.id)
 
     if (isMaxedOut) return
 
@@ -386,7 +400,7 @@ export function useSquadState() {
 
   const handleToggleCharacter = (char: Character) => {
     const assigned = getAssignedSquadIndices(char.id, squads)
-    const maxAllowed = getMaxDeployment(char.id)
+    const maxAllowed = limitOf(char.id)
 
     // 만약 배치된 횟수가 최대 허용 개수보다 미만일 경우 ➔ 새로운 슬롯에 추가로 배치함
     if (assigned.length < maxAllowed) {
@@ -468,8 +482,8 @@ export function useSquadState() {
     getAssignedSquadIndices: (charId: string) => getAssignedSquadIndices(charId, squads),
     elements,
     filteredCharacters,
-    isCharacterMaxedOut: (charId: string) => checkCharacterMaxedOut(charId, squads),
-    getMaxDeployment,
+    isCharacterMaxedOut: isMaxed,
+    getMaxDeployment: limitOf,
     squadIds,
     importModalOpen,
     setImportModalOpen,
@@ -485,6 +499,8 @@ export function useSquadState() {
     confirmModalOpen,
     setConfirmModalOpen,
     confirmAction,
-    activeDragChar
+    activeDragChar,
+    showLeakInfo,
+    setShowLeakInfo: handleSetShowLeakInfo
   }
 }

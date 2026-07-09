@@ -72,7 +72,10 @@ export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, rove
   return a.enName.localeCompare(b.enName)
 })
 
-export const getMaxDeployment = (charId: string): number => {
+export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {
+  if (charId === 'suisui') {
+    return showLeakInfo ? 2 : 1
+  }
   if (DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) return 2
   if (charId === 'chisa') return 2 // 치사 3.5 시즌 임시 2회 룰 기본 적용
   return 1
@@ -90,7 +93,7 @@ export function getAssignedSquadIndices(charId: string, squads: (Character | nul
 }
 
 /** 특정 공명자가 출전 횟수 한도에 다다랐는지 검증 (방랑자 상호 잠금 규칙 포함) */
-export function checkCharacterMaxedOut(charId: string, squads: (Character | null)[][]): boolean {
+export function checkCharacterMaxedOut(charId: string, squads: (Character | null)[][], showLeakInfo: boolean = false): boolean {
   const ROVER_IDS = ['rover-spectro', 'rover-havoc', 'rover-aero', 'rover-electro']
   const isRover = ROVER_IDS.includes(charId)
   
@@ -103,8 +106,23 @@ export function checkCharacterMaxedOut(charId: string, squads: (Character | null
     getAssignedSquadIndices(c.id, squads).length > 0
   )
   
-  const maxAllowed = getMaxDeployment(charId)
+  const maxAllowed = getMaxDeployment(charId, showLeakInfo)
   return isRover 
     ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
     : (assignedIndices.length >= maxAllowed)
+}
+
+/** 유출 설정에 따라 중복 편성이 허용되는 공명자들의 한글 이름 목록 괄호 포맷 텍스트 반환 */
+export function getDoubleDeploymentNamesText(showLeakInfo: boolean): string {
+  const allowedIds = DOUBLE_DEPLOYMENT_CHARACTERS.filter(id => {
+    if (id === 'suisui') return showLeakInfo
+    return true
+  })
+  
+  const names = allowedIds.map(id => {
+    const char = MOCK_CHARACTERS.find(c => c.id === id)
+    return char ? char.name : ''
+  }).filter(Boolean)
+  
+  return `(${names.join(', ')})`
 }
