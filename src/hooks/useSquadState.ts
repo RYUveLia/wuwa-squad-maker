@@ -237,10 +237,17 @@ export function useSquadState() {
     // 1. 실제 화면(UI)의 덜컥거림을 원천 방지하기 위해 컨테이너를 메모리 상에 임시 복제(Clone)
     const clone = container.cloneNode(true) as HTMLElement
     
-    // 2. 복제본을 오프스크린(보이지 않는 영역)에 배치하고 전체 크기를 확장하여 스타일링
-    clone.style.position = 'absolute'
-    clone.style.top = '-9999px'
-    clone.style.left = '-9999px'
+    // 2. 복제본을 화면에서 완전히 숨겨진 임시 Wrapper에 담아 배치 (absolute 좌표 오프셋 문제를 피함)
+    const wrapper = document.createElement('div')
+    wrapper.style.position = 'fixed'
+    wrapper.style.top = '0'
+    wrapper.style.left = '0'
+    wrapper.style.width = '0'
+    wrapper.style.height = '0'
+    wrapper.style.overflow = 'hidden'
+    wrapper.style.opacity = '0'
+    wrapper.style.pointerEvents = 'none'
+    
     clone.style.height = 'auto'
     clone.style.maxHeight = 'none'
     clone.style.overflow = 'visible'
@@ -250,8 +257,9 @@ export function useSquadState() {
     const excludeElements = clone.querySelectorAll('[data-capture-exclude="true"]')
     excludeElements.forEach((el) => el.remove())
 
-    // 4. 렌더링을 위해 document body에 복제본을 임시 주입
-    document.body.appendChild(clone)
+    // 4. 렌더링을 위해 document body에 wrapper와 복제본을 임시 주입
+    wrapper.appendChild(clone)
+    document.body.appendChild(wrapper)
 
     try {
       const { toPng } = await import('html-to-image')
@@ -269,8 +277,8 @@ export function useSquadState() {
       console.error(err)
       showToast('이미지 변환 중 오류가 발생했습니다.')
     } finally {
-      // 5. 사용이 끝난 복제본 노드를 깔끔하게 제거(메모리 정리)
-      clone.remove()
+      // 5. 사용이 끝난 임시 Wrapper 노드를 깔끔하게 제거(메모리 정리)
+      wrapper.remove()
     }
   }
 
