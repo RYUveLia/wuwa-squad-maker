@@ -401,9 +401,9 @@ export function useSquadState() {
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
 
   const sortedCharacters = [...MOCK_CHARACTERS].sort((a, b) => {
-    // 유출 토글이 켜져 있으면 3.6 버전 캐릭터는 정식 출시군(최신순)에 포함 (한도 9.0)
+    // 유출 토글이 켜져 있으면 3.6 버전 캐릭터는 정식 출시군(최신순)에 포함 (한도 3.65)
     // 유출 토글이 꺼져 있으면 3.55 초과 버전(3.61, 3.62 등)은 미출시군(맨 뒤)에 포함 (한도 3.55)
-    const versionLimit = showLeakInfo ? 9.0 : 3.55
+    const versionLimit = showLeakInfo ? 3.65 : 3.55
     const aIsFutureOrUnknown = a.releaseVersion > versionLimit
     const bIsFutureOrUnknown = b.releaseVersion > versionLimit
 
