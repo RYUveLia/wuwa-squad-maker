@@ -400,7 +400,31 @@ export function useSquadState() {
 
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
 
-  const filteredCharacters = MOCK_CHARACTERS.filter(c => {
+  const sortedCharacters = [...MOCK_CHARACTERS].sort((a, b) => {
+    // 유출 토글이 켜져 있으면 3.6 버전 캐릭터는 정식 출시군(최신순)에 포함 (한도 9.0)
+    // 유출 토글이 꺼져 있으면 3.55 초과 버전(3.61, 3.62 등)은 미출시군(맨 뒤)에 포함 (한도 3.55)
+    const versionLimit = showLeakInfo ? 9.0 : 3.55
+    const aIsFutureOrUnknown = a.releaseVersion > versionLimit
+    const bIsFutureOrUnknown = b.releaseVersion > versionLimit
+
+    if (aIsFutureOrUnknown && bIsFutureOrUnknown) {
+      // 미출시/미래 캐릭터들 사이에서는 버전 오름차순 (예: 3.61 -> 3.62 -> 9.9)
+      if (a.releaseVersion !== b.releaseVersion) {
+        return a.releaseVersion - b.releaseVersion
+      }
+      if (a.rarity !== b.rarity) return b.rarity - a.rarity
+      return a.enName.localeCompare(b.enName)
+    }
+    if (aIsFutureOrUnknown) return 1
+    if (bIsFutureOrUnknown) return -1
+
+    // 정식 출시 캐릭터들 사이에서는 등급 내림차순 -> 출시 버전 내림차순 -> 이름 알파벳순
+    if (a.rarity !== b.rarity) return b.rarity - a.rarity
+    if (a.releaseVersion !== b.releaseVersion) return b.releaseVersion - a.releaseVersion
+    return a.enName.localeCompare(b.enName)
+  })
+
+  const filteredCharacters = sortedCharacters.filter(c => {
     if (selectedElement !== 'All' && c.element !== selectedElement) return false
     if (showOnlyOwned && !ownedResonatorIds.includes(c.id)) return false
     return true
