@@ -525,7 +525,7 @@
     "enName": "Jingran",
     "rarity": 5,
     "element": "Fusion",
-    "weapon": "Unknown",
+    "weapon": "Broadblade",
     "releaseVersion": 9.9,
     "img": "/characters/jingran.png"
   },
@@ -535,7 +535,7 @@
     "enName": "Qingxiao",
     "rarity": 5,
     "element": "Aero",
-    "weapon": "Unknown",
+    "weapon": "Sword",
     "releaseVersion": 9.9,
     "img": "/characters/qingxiao.png"
   },
