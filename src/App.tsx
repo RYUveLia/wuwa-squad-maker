@@ -122,16 +122,6 @@ function App() {
                   <label className={RESONATOR_POOL_STYLES.ownedFilterLabel}>
                     <input
                       type="checkbox"
-                      checked={showOnlyOwned}
-                      onChange={(e) => setShowOnlyOwned(e.target.checked)}
-                      className={RESONATOR_POOL_STYLES.ownedCheckbox}
-                    />
-                    보유한 공명자만 보기
-                  </label>
-
-                  <label className={RESONATOR_POOL_STYLES.ownedFilterLabel}>
-                    <input
-                      type="checkbox"
                       checked={hideMaxedOut}
                       onChange={(e) => setHideMaxedOut(e.target.checked)}
                       className={RESONATOR_POOL_STYLES.ownedCheckbox}
@@ -299,8 +289,6 @@ function App() {
             activeSquadIdx={activeSquadIdxForMobile}
             currentSquad={squads[activeSquadIdxForMobile]}
             onRemoveSlot={(slotIdx) => handleRemoveCharacter(activeSquadIdxForMobile, slotIdx)}
-            showOnlyOwned={showOnlyOwned}
-            setShowOnlyOwned={setShowOnlyOwned}
             onOpenOwnedSettings={() => setOwnedModalOpen(true)}
             showLeakInfo={showLeakInfo}
             setShowLeakInfo={setShowLeakInfo}
@@ -315,6 +303,8 @@ function App() {
             onClose={() => setOwnedModalOpen(false)}
             ownedIds={ownedResonatorIds}
             onSave={handleSaveOwnedResonators}
+            showOnlyOwned={showOnlyOwned}
+            setShowOnlyOwned={setShowOnlyOwned}
           />
         )}
         

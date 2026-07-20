@@ -20,8 +20,6 @@ interface ResonatorSelectModalProps {
   onRemoveSlot: (slotIdx: number) => void
 
   // Ownership states
-  showOnlyOwned: boolean
-  setShowOnlyOwned: (val: boolean) => void
   onOpenOwnedSettings: () => void
 
   // Leak Info states
@@ -46,8 +44,6 @@ export function ResonatorSelectModal({
   activeSquadIdx,
   currentSquad,
   onRemoveSlot,
-  showOnlyOwned,
-  setShowOnlyOwned,
   onOpenOwnedSettings,
   showLeakInfo,
   setShowLeakInfo,
@@ -123,16 +119,6 @@ export function ResonatorSelectModal({
           </button>
           
           <div className="flex items-center gap-3">
-            <label className={SELECT_MODAL_STYLES.ownedLabel}>
-              <input
-                type="checkbox"
-                checked={showOnlyOwned}
-                onChange={(e) => setShowOnlyOwned(e.target.checked)}
-                className={SELECT_MODAL_STYLES.ownedCheckbox}
-              />
-              보유만 보기
-            </label>
-
             <label className={SELECT_MODAL_STYLES.ownedLabel}>
               <input
                 type="checkbox"
