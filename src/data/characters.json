@@ -526,7 +526,7 @@
     "rarity": 5,
     "element": "Fusion",
     "weapon": "Broadblade",
-    "releaseVersion": 9.9,
+    "releaseVersion": 3.6,
     "img": "/characters/jingran.png"
   },
   {
@@ -536,7 +536,7 @@
     "rarity": 5,
     "element": "Aero",
     "weapon": "Sword",
-    "releaseVersion": 9.9,
+    "releaseVersion": 3.6,
     "img": "/characters/qingxiao.png"
   },
   {
