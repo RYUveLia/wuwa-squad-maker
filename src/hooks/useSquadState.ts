@@ -401,24 +401,35 @@ export function useSquadState() {
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
 
   const sortedCharacters = [...MOCK_CHARACTERS].sort((a, b) => {
-    // 유출 토글이 켜져 있으면 3.6 버전 캐릭터는 정식 출시군(최신순)에 포함 (한도 3.65)
-    // 유출 토글이 꺼져 있으면 3.55 초과 버전(3.61, 3.62 등)은 미출시군(맨 뒤)에 포함 (한도 3.55)
-    const versionLimit = showLeakInfo ? 3.65 : 3.55
-    const aIsFutureOrUnknown = a.releaseVersion > versionLimit
-    const bIsFutureOrUnknown = b.releaseVersion > versionLimit
-
-    if (aIsFutureOrUnknown && bIsFutureOrUnknown) {
-      // 미출시/미래 캐릭터들 사이에서는 버전 오름차순 (예: 3.61 -> 3.62 -> 9.9)
-      if (a.releaseVersion !== b.releaseVersion) {
-        return a.releaseVersion - b.releaseVersion
-      }
+    // 1. 완전히 미정인 9.9 캐릭터는 항상 가장 마지막으로 고정
+    const aIsUnknown = a.releaseVersion === 9.9
+    const bIsUnknown = b.releaseVersion === 9.9
+    if (aIsUnknown && bIsUnknown) {
       if (a.rarity !== b.rarity) return b.rarity - a.rarity
       return a.enName.localeCompare(b.enName)
     }
-    if (aIsFutureOrUnknown) return 1
-    if (bIsFutureOrUnknown) return -1
+    if (aIsUnknown) return 1
+    if (bIsUnknown) return -1
 
-    // 정식 출시 캐릭터들 사이에서는 등급 내림차순 -> 출시 버전 내림차순 -> 이름 알파벳순
+    // 2. 유출 토글에 따른 미래 캐릭터 판별
+    // 유출 토글이 켜져 있으면 3.65 이하의 캐릭터는 정식 출시군으로 취급
+    // 유출 토글이 꺼져 있으면 3.55 초과 9.9 미만 캐릭터는 미래(미출시)군으로 취급
+    const versionLimit = showLeakInfo ? 3.65 : 3.55
+    const aIsFuture = a.releaseVersion > versionLimit
+    const bIsFuture = b.releaseVersion > versionLimit
+
+    if (aIsFuture && bIsFuture) {
+      // 미래 캐릭터들 사이에서도 출시 캐릭터와 마찬가지로 등급 내림차순 -> 출시 버전 내림차순(최신순) 일관성 적용
+      if (a.rarity !== b.rarity) return b.rarity - a.rarity
+      if (a.releaseVersion !== b.releaseVersion) {
+        return b.releaseVersion - a.releaseVersion // 내림차순: 3.62(경연) -> 3.61(청초)
+      }
+      return a.enName.localeCompare(b.enName)
+    }
+    if (aIsFuture) return 1
+    if (bIsFuture) return -1
+
+    // 3. 정식 출시 캐릭터 정렬 (등급 내림차순 -> 출시 버전 내림차순 -> 이름 알파벳순)
     if (a.rarity !== b.rarity) return b.rarity - a.rarity
     if (a.releaseVersion !== b.releaseVersion) return b.releaseVersion - a.releaseVersion
     return a.enName.localeCompare(b.enName)
