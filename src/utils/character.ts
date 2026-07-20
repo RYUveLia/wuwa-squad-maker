@@ -72,8 +72,11 @@ export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, rove
   return a.enName.localeCompare(b.enName)
 })
 
+// 유출 정보 설정에 의존하는 중복 편성 가능 캐릭터 목록 (추후 신규 캐릭터 등장 시 이곳에 ID 추가)
+export const LEAK_DOUBLE_DEPLOYMENT_CHARACTERS: string[] = []
+
 export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {
-  if (charId === 'suisui') {
+  if (LEAK_DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) {
     return showLeakInfo ? 2 : 1
   }
   if (DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) return 2
@@ -114,10 +117,10 @@ export function checkCharacterMaxedOut(charId: string, squads: (Character | null
 
 /** 유출 설정에 따라 중복 편성이 허용되는 공명자들의 한글 이름 목록 괄호 포맷 텍스트 반환 */
 export function getDoubleDeploymentNamesText(showLeakInfo: boolean): string {
-  const allowedIds = DOUBLE_DEPLOYMENT_CHARACTERS.filter(id => {
-    if (id === 'suisui') return showLeakInfo
-    return true
-  })
+  const allowedIds = [
+    ...DOUBLE_DEPLOYMENT_CHARACTERS,
+    ...(showLeakInfo ? LEAK_DOUBLE_DEPLOYMENT_CHARACTERS : [])
+  ]
   
   const names = allowedIds.map(id => {
     const char = MOCK_CHARACTERS.find(c => c.id === id)
