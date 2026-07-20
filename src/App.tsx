@@ -60,7 +60,9 @@ function App() {
     confirmAction,
     activeDragChar,
     showLeakInfo,
-    setShowLeakInfo
+    setShowLeakInfo,
+    hideMaxedOut,
+    setHideMaxedOut
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
@@ -125,6 +127,16 @@ function App() {
                       className={RESONATOR_POOL_STYLES.ownedCheckbox}
                     />
                     보유한 공명자만 보기
+                  </label>
+
+                  <label className={RESONATOR_POOL_STYLES.ownedFilterLabel}>
+                    <input
+                      type="checkbox"
+                      checked={hideMaxedOut}
+                      onChange={(e) => setHideMaxedOut(e.target.checked)}
+                      className={RESONATOR_POOL_STYLES.ownedCheckbox}
+                    />
+                    배치 완료 숨기기
                   </label>
 
                   {/* Leak Filter Toggle Button */}
@@ -292,6 +304,8 @@ function App() {
             onOpenOwnedSettings={() => setOwnedModalOpen(true)}
             showLeakInfo={showLeakInfo}
             setShowLeakInfo={setShowLeakInfo}
+            hideMaxedOut={hideMaxedOut}
+            setHideMaxedOut={setHideMaxedOut}
           />
         )}
         {/* Owned Resonators Selector Modal */}

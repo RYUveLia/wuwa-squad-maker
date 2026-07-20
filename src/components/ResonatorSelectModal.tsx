@@ -27,6 +27,10 @@ interface ResonatorSelectModalProps {
   // Leak Info states
   showLeakInfo: boolean
   setShowLeakInfo: (val: boolean) => void
+
+  // Hide Maxed Out states
+  hideMaxedOut: boolean
+  setHideMaxedOut: (val: boolean) => void
 }
 
 export function ResonatorSelectModal({
@@ -46,7 +50,9 @@ export function ResonatorSelectModal({
   setShowOnlyOwned,
   onOpenOwnedSettings,
   showLeakInfo,
-  setShowLeakInfo
+  setShowLeakInfo,
+  hideMaxedOut,
+  setHideMaxedOut
 }: ResonatorSelectModalProps) {
   return (
     <div className={COMMON_STYLES.modalOverlay} onClick={onClose}>
@@ -125,6 +131,16 @@ export function ResonatorSelectModal({
                 className={SELECT_MODAL_STYLES.ownedCheckbox}
               />
               보유만 보기
+            </label>
+
+            <label className={SELECT_MODAL_STYLES.ownedLabel}>
+              <input
+                type="checkbox"
+                checked={hideMaxedOut}
+                onChange={(e) => setHideMaxedOut(e.target.checked)}
+                className={SELECT_MODAL_STYLES.ownedCheckbox}
+              />
+              완료 숨기기
             </label>
 
             {/* Leak Filter Toggle Button */}
