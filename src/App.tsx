@@ -82,7 +82,7 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br className="hidden sm:inline" />
-            일부 공명자<span className="text-purple-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold">3.5 시즌 버프 대상인 치사</span>는 <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
+            일부 공명자<span className="text-purple-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold whitespace-nowrap">3.5 시즌 버프 대상인 치사</span>는 <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
           </p>
         </header>
 
@@ -350,7 +350,7 @@ const LAYOUT_STYLES = {
 }
 
 const HEADER_STYLES = {
-  container: 'text-center mb-8 max-w-xl select-none mx-auto',
+  container: 'text-center mb-8 max-w-2xl select-none mx-auto',
   title: 'text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-cyan-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm',
   description: 'text-slate-400 mt-2 text-sm md:text-base leading-relaxed break-keep'
 }

@@ -144,12 +144,12 @@ export function OwnedResonatorModal({
 
 // STYLES (App.tsx Colocation Style Pattern 기조 통일)
 const OWNED_MODAL_STYLES = {
-  header: 'flex items-center justify-between pb-3 border-b border-slate-900 flex-shrink-0',
+  header: 'flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-900 flex-shrink-0',
   headerTitleArea: 'flex flex-col',
   title: 'text-base font-bold text-slate-100',
   description: 'text-[10px] sm:text-xs text-slate-500 mt-0.5',
-  headerBtnArea: 'flex gap-2',
-  shortcutBtn: COMMON_STYLES.subBtn,
+  headerBtnArea: 'flex gap-2 self-end sm:self-auto shrink-0',
+  shortcutBtn: `${COMMON_STYLES.subBtn} whitespace-nowrap shrink-0`,
   grid: 'grid grid-cols-4 sm:grid-cols-5 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 overflow-y-auto flex-1 py-5 px-2 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent justify-items-center',
   imgFrame: 'w-full aspect-square overflow-hidden rounded-lg relative',
   img: 'w-full h-full object-cover pointer-events-none',
