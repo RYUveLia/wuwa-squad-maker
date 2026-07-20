@@ -524,9 +524,9 @@
     "name": "경연",
     "enName": "Jingran",
     "rarity": 5,
-    "element": "Unknown",
-    "weapon": "Unknown",
-    "releaseVersion": 9.9,
+    "element": "Fusion",
+    "weapon": "Broadblade",
+    "releaseVersion": 3.62,
     "img": "/characters/jingran.png"
   },
   {
@@ -534,9 +534,9 @@
     "name": "청초",
     "enName": "Qingxiao",
     "rarity": 5,
-    "element": "Unknown",
-    "weapon": "Unknown",
-    "releaseVersion": 9.9,
+    "element": "Aero",
+    "weapon": "Sword",
+    "releaseVersion": 3.61,
     "img": "/characters/qingxiao.png"
   },
   {

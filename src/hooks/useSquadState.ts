@@ -400,7 +400,27 @@ export function useSquadState() {
 
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
 
-  const filteredCharacters = MOCK_CHARACTERS.filter(c => {
+  const sortedCharacters = [...MOCK_CHARACTERS].sort((a, b) => {
+    // 1. 그룹 가중치 판별 (정식 출시: 0, 미래 미출시: 1, 완전히 미정: 2)
+    const getWeight = (c: Character) => {
+      if (c.releaseVersion === 9.9) return 2
+      const limit = showLeakInfo ? 3.65 : 3.55
+      return c.releaseVersion > limit ? 1 : 0
+    }
+    const weightA = getWeight(a)
+    const weightB = getWeight(b)
+
+    if (weightA !== weightB) {
+      return weightA - weightB
+    }
+
+    // 2. 동일 그룹 내 정렬 (등급 내림차순 -> 출시 버전 내림차순 -> 이름 알파벳순)
+    if (a.rarity !== b.rarity) return b.rarity - a.rarity
+    if (a.releaseVersion !== b.releaseVersion) return b.releaseVersion - a.releaseVersion
+    return a.enName.localeCompare(b.enName)
+  })
+
+  const filteredCharacters = sortedCharacters.filter(c => {
     if (selectedElement !== 'All' && c.element !== selectedElement) return false
     if (showOnlyOwned && !ownedResonatorIds.includes(c.id)) return false
     return true

@@ -23,6 +23,10 @@ interface ResonatorSelectModalProps {
   showOnlyOwned: boolean
   setShowOnlyOwned: (val: boolean) => void
   onOpenOwnedSettings: () => void
+
+  // Leak Info states
+  showLeakInfo: boolean
+  setShowLeakInfo: (val: boolean) => void
 }
 
 export function ResonatorSelectModal({
@@ -40,7 +44,9 @@ export function ResonatorSelectModal({
   onRemoveSlot,
   showOnlyOwned,
   setShowOnlyOwned,
-  onOpenOwnedSettings
+  onOpenOwnedSettings,
+  showLeakInfo,
+  setShowLeakInfo
 }: ResonatorSelectModalProps) {
   return (
     <div className={COMMON_STYLES.modalOverlay} onClick={onClose}>
@@ -101,7 +107,7 @@ export function ResonatorSelectModal({
           ))}
         </div>
 
-        {/* Owned Toggle inside Modal */}
+        {/* Owned & Leak Toggle inside Modal */}
         <div className={SELECT_MODAL_STYLES.ownedFilterArea}>
           <button
             onClick={onOpenOwnedSettings}
@@ -109,15 +115,39 @@ export function ResonatorSelectModal({
           >
             ⚙️ 보유 설정
           </button>
-          <label className={SELECT_MODAL_STYLES.ownedLabel}>
-            <input
-              type="checkbox"
-              checked={showOnlyOwned}
-              onChange={(e) => setShowOnlyOwned(e.target.checked)}
-              className={SELECT_MODAL_STYLES.ownedCheckbox}
-            />
-            보유한 공명자만 보기
-          </label>
+          
+          <div className="flex items-center gap-3">
+            <label className={SELECT_MODAL_STYLES.ownedLabel}>
+              <input
+                type="checkbox"
+                checked={showOnlyOwned}
+                onChange={(e) => setShowOnlyOwned(e.target.checked)}
+                className={SELECT_MODAL_STYLES.ownedCheckbox}
+              />
+              보유만 보기
+            </label>
+
+            {/* Leak Filter Toggle Button */}
+            <div className="flex items-center gap-1.5 border-l border-slate-800/80 pl-2.5">
+              <span className="text-[10px] font-semibold text-slate-400 select-none">유출</span>
+              <button
+                role="switch"
+                aria-checked={showLeakInfo}
+                onClick={() => setShowLeakInfo(!showLeakInfo)}
+                className={`relative inline-flex h-5 w-8.5 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-slate-700/60 ${
+                  showLeakInfo 
+                    ? 'bg-purple-600/90 shadow-[0_0_8px_rgba(168,85,247,0.35)]' 
+                    : 'bg-slate-800'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full shadow ring-0 transition-all duration-200 ease-in-out ${
+                    showLeakInfo ? 'translate-x-4 bg-white' : 'translate-x-0.5 bg-slate-400'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Characters Scroller */}

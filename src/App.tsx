@@ -290,6 +290,8 @@ function App() {
             showOnlyOwned={showOnlyOwned}
             setShowOnlyOwned={setShowOnlyOwned}
             onOpenOwnedSettings={() => setOwnedModalOpen(true)}
+            showLeakInfo={showLeakInfo}
+            setShowLeakInfo={setShowLeakInfo}
           />
         )}
         {/* Owned Resonators Selector Modal */}
