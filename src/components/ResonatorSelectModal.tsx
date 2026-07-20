@@ -20,13 +20,15 @@ interface ResonatorSelectModalProps {
   onRemoveSlot: (slotIdx: number) => void
 
   // Ownership states
-  showOnlyOwned: boolean
-  setShowOnlyOwned: (val: boolean) => void
   onOpenOwnedSettings: () => void
 
   // Leak Info states
   showLeakInfo: boolean
   setShowLeakInfo: (val: boolean) => void
+
+  // Hide Maxed Out states
+  hideMaxedOut: boolean
+  setHideMaxedOut: (val: boolean) => void
 }
 
 export function ResonatorSelectModal({
@@ -42,11 +44,11 @@ export function ResonatorSelectModal({
   activeSquadIdx,
   currentSquad,
   onRemoveSlot,
-  showOnlyOwned,
-  setShowOnlyOwned,
   onOpenOwnedSettings,
   showLeakInfo,
-  setShowLeakInfo
+  setShowLeakInfo,
+  hideMaxedOut,
+  setHideMaxedOut
 }: ResonatorSelectModalProps) {
   return (
     <div className={COMMON_STYLES.modalOverlay} onClick={onClose}>
@@ -120,11 +122,11 @@ export function ResonatorSelectModal({
             <label className={SELECT_MODAL_STYLES.ownedLabel}>
               <input
                 type="checkbox"
-                checked={showOnlyOwned}
-                onChange={(e) => setShowOnlyOwned(e.target.checked)}
+                checked={hideMaxedOut}
+                onChange={(e) => setHideMaxedOut(e.target.checked)}
                 className={SELECT_MODAL_STYLES.ownedCheckbox}
               />
-              보유만 보기
+              완료 숨기기
             </label>
 
             {/* Leak Filter Toggle Button */}

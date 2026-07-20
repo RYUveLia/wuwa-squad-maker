@@ -64,6 +64,16 @@ export function useSquadState() {
     localStorage.setItem('show-leak-info', String(val))
   }
 
+  const [hideMaxedOut, setHideMaxedOut] = useState<boolean>(() => {
+    const saved = localStorage.getItem('hide-maxed-out')
+    return saved === 'true'
+  })
+
+  const handleSetHideMaxedOut = (val: boolean) => {
+    setHideMaxedOut(val)
+    localStorage.setItem('hide-maxed-out', String(val))
+  }
+
   // 훅 내부 간소화 헬퍼 정의
   const limitOf = (charId: string) => getMaxDeployment(charId, showLeakInfo)
   const isMaxed = (charId: string) => checkCharacterMaxedOut(charId, squads, showLeakInfo)
@@ -423,6 +433,7 @@ export function useSquadState() {
   const filteredCharacters = sortedCharacters.filter(c => {
     if (selectedElement !== 'All' && c.element !== selectedElement) return false
     if (showOnlyOwned && !ownedResonatorIds.includes(c.id)) return false
+    if (hideMaxedOut && isMaxed(c.id)) return false
     return true
   })
 
@@ -551,6 +562,8 @@ export function useSquadState() {
     confirmAction,
     activeDragChar,
     showLeakInfo,
-    setShowLeakInfo: handleSetShowLeakInfo
+    setShowLeakInfo: handleSetShowLeakInfo,
+    hideMaxedOut,
+    setHideMaxedOut: handleSetHideMaxedOut
   }
 }

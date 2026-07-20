@@ -8,13 +8,17 @@ interface OwnedResonatorModalProps {
   onClose: () => void
   ownedIds: string[]
   onSave: (ids: string[]) => void
+  showOnlyOwned: boolean
+  setShowOnlyOwned: (val: boolean) => void
 }
 
 export function OwnedResonatorModal({
   isOpen,
   onClose,
   ownedIds,
-  onSave
+  onSave,
+  showOnlyOwned,
+  setShowOnlyOwned
 }: OwnedResonatorModalProps) {
   const [tempOwnedIds, setTempOwnedIds] = useState<string[]>(ownedIds)
 
@@ -109,18 +113,29 @@ export function OwnedResonatorModal({
 
         {/* Footer */}
         <div className={OWNED_MODAL_STYLES.footer}>
-          <button
-            onClick={onClose}
-            className={OWNED_MODAL_STYLES.cancelBtn}
-          >
-            취소
-          </button>
-          <button
-            onClick={handleSaveAndClose}
-            className={OWNED_MODAL_STYLES.saveBtn}
-          >
-            보유 현황 저장
-          </button>
+          <label className={COMMON_STYLES.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={showOnlyOwned}
+              onChange={(e) => setShowOnlyOwned(e.target.checked)}
+              className={COMMON_STYLES.checkboxInput}
+            />
+            보유한 공명자만 보기
+          </label>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className={OWNED_MODAL_STYLES.cancelBtn}
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSaveAndClose}
+              className={OWNED_MODAL_STYLES.saveBtn}
+            >
+              보유 현황 저장
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -129,12 +144,12 @@ export function OwnedResonatorModal({
 
 // STYLES (App.tsx Colocation Style Pattern 기조 통일)
 const OWNED_MODAL_STYLES = {
-  header: 'flex items-center justify-between pb-3 border-b border-slate-900 flex-shrink-0',
+  header: 'flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-900 flex-shrink-0',
   headerTitleArea: 'flex flex-col',
   title: 'text-base font-bold text-slate-100',
   description: 'text-[10px] sm:text-xs text-slate-500 mt-0.5',
-  headerBtnArea: 'flex gap-2',
-  shortcutBtn: COMMON_STYLES.subBtn,
+  headerBtnArea: 'flex gap-2 self-end sm:self-auto shrink-0',
+  shortcutBtn: `${COMMON_STYLES.subBtn} whitespace-nowrap shrink-0`,
   grid: 'grid grid-cols-4 sm:grid-cols-5 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 overflow-y-auto flex-1 py-5 px-2 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent justify-items-center',
   imgFrame: 'w-full aspect-square overflow-hidden rounded-lg relative',
   img: 'w-full h-full object-cover pointer-events-none',
@@ -142,7 +157,7 @@ const OWNED_MODAL_STYLES = {
   nameText: 'text-[9.5px] sm:text-[10.5px] font-bold text-slate-300 group-hover:text-white truncate block px-0.5',
   checkBadge: 'absolute top-1 right-1 bg-emerald-500 text-white rounded-full w-4 h-4 flex items-center justify-center shadow border border-emerald-400 select-none pointer-events-none scale-90 sm:scale-100 animate-scale-up',
   checkText: 'text-[10px] font-black leading-none',
-  footer: 'flex items-center justify-end gap-3 pt-3 border-t border-slate-900 flex-shrink-0',
+  footer: 'flex items-center justify-between pt-3 border-t border-slate-900 flex-shrink-0',
   cancelBtn: COMMON_STYLES.cancelBtn,
   saveBtn: COMMON_STYLES.confirmBtn
 }
