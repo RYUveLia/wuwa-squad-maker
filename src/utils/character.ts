@@ -49,17 +49,23 @@ const roverElectro: Character = {
   img: '/characters/rover.png'
 }
 
-// 최종 60명 공명자 리스트 다차원 정렬 (등급 내림차순 → 출시 버전 내림차순 → 이름 오름차순, Unknown은 끝으로)
-export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro].sort((a, b) => {
-  const aIsUnknown = a.releaseVersion === 9.9
-  const bIsUnknown = b.releaseVersion === 9.9
+const CURRENT_VERSION = 3.55
 
-  if (aIsUnknown && bIsUnknown) {
+// 최종 60명 공명자 리스트 다차원 정렬 (출시 버전 > 3.55 미래/Unknown 캐릭터는 끝으로)
+export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro].sort((a, b) => {
+  const aIsFutureOrUnknown = a.releaseVersion > CURRENT_VERSION
+  const bIsFutureOrUnknown = b.releaseVersion > CURRENT_VERSION
+
+  if (aIsFutureOrUnknown && bIsFutureOrUnknown) {
+    // 미래/미출시 캐릭터들 사이에서는 출시 버전 오름차순 (예: 3.61 -> 3.62 -> 9.9)
+    if (a.releaseVersion !== b.releaseVersion) {
+      return a.releaseVersion - b.releaseVersion
+    }
     if (a.rarity !== b.rarity) return b.rarity - a.rarity
     return a.enName.localeCompare(b.enName)
   }
-  if (aIsUnknown) return 1
-  if (bIsUnknown) return -1
+  if (aIsFutureOrUnknown) return 1
+  if (bIsFutureOrUnknown) return -1
 
   // 1차: 등급 내림차순 (5성 → 4성)
   if (a.rarity !== b.rarity) {
