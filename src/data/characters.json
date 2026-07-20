@@ -524,7 +524,7 @@
     "name": "경연",
     "enName": "Jingran",
     "rarity": 5,
-    "element": "Unknown",
+    "element": "Fusion",
     "weapon": "Unknown",
     "releaseVersion": 9.9,
     "img": "/characters/jingran.png"
@@ -534,7 +534,7 @@
     "name": "청초",
     "enName": "Qingxiao",
     "rarity": 5,
-    "element": "Unknown",
+    "element": "Aero",
     "weapon": "Unknown",
     "releaseVersion": 9.9,
     "img": "/characters/qingxiao.png"
