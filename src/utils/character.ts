@@ -76,11 +76,18 @@ export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, rove
 export const LEAK_DOUBLE_DEPLOYMENT_CHARACTERS: string[] = []
 
 export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {
+  if (showLeakInfo) {
+    if (charId === 'denia') return 2
+    if (charId === 'chisa') return 1
+  } else {
+    if (charId === 'chisa') return 2
+    if (charId === 'denia') return 1
+  }
+
   if (LEAK_DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) {
     return showLeakInfo ? 2 : 1
   }
   if (DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) return 2
-  if (charId === 'chisa') return 2 // 치사 3.5 시즌 임시 2회 룰 기본 적용
   return 1
 }
 
