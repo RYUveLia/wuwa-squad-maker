@@ -9,6 +9,7 @@ interface DraggableCharacterCardProps {
   isMaxedOut: boolean
   maxAllowed: number
   isDraggable?: boolean
+  isSeasonBuff?: boolean
 }
 
 export function DraggableCharacterCard({
@@ -17,7 +18,8 @@ export function DraggableCharacterCard({
   onClick,
   isMaxedOut,
   maxAllowed,
-  isDraggable = true
+  isDraggable = true,
+  isSeasonBuff = false
 }: DraggableCharacterCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: char.id,
@@ -81,7 +83,7 @@ export function DraggableCharacterCard({
         </span>
         {maxAllowed === 2 && (
           <span className={LIMIT2_BADGE_CLASS}>
-            {char.id === 'chisa' ? '2회 (시즌)' : '2회'}
+            {isSeasonBuff ? '2회 (시즌)' : '2회'}
           </span>
         )}
       </div>
