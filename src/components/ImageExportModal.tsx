@@ -200,12 +200,14 @@ export function ImageExportModal({
 
                         {/* Circuit Buff Icon Badge if selected */}
                         {buff && (
-                          <div className="w-[50px] sm:w-[58px] aspect-square rounded-lg border border-amber-400/80 bg-amber-950/20 p-1 flex items-center justify-center flex-shrink-0">
-                            <img
-                              src={buff.iconUrl}
-                              alt={buff.name}
-                              className="w-full h-full object-contain filter drop-shadow"
-                            />
+                          <div className="flex items-center justify-center pl-1 border-l border-[#262630]/80">
+                            <div className={MODAL_STYLES.circuitBox}>
+                              <img
+                                src={buff.iconUrl}
+                                alt={buff.name}
+                                className="w-full h-full object-contain filter drop-shadow"
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -258,20 +260,21 @@ const MODAL_STYLES = {
   previewArea: 'flex-1 overflow-auto my-3 bg-[#09090d]/80 rounded-xl border border-[#262630] scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent',
   
   // Capture Board Styles (Fixed 2xN Width)
-  boardContainer: 'bg-[#09090d] text-zinc-100 p-5 sm:p-6 rounded-2xl border border-[#262630] shadow-2xl flex flex-col gap-4 select-none w-[880px]',
+  boardContainer: 'bg-[#09090d] text-zinc-100 p-5 sm:p-6 rounded-2xl border border-[#262630] shadow-2xl flex flex-col gap-4 select-none w-[920px]',
   boardHeader: 'flex items-center justify-between border-b border-[#262630] pb-3',
   boardTitle: 'text-lg sm:text-xl font-extrabold text-white tracking-tight',
   boardSubtitle: 'text-xs text-zinc-400 font-semibold mt-0.5',
   boardDateBadge: 'text-xs font-mono font-bold text-amber-400 bg-[#14141a] border border-[#262630] px-2.5 py-1 rounded-md',
   
   squadsGrid: 'grid grid-cols-2 gap-3.5',
-  squadCard: 'bg-[#14141a] border border-[#262630] rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-md',
-  squadNumberArea: 'flex items-center justify-center flex-shrink-0 w-10',
-  squadNumberText: 'text-xl sm:text-2xl font-black font-mono text-zinc-500 tracking-wider',
-  slotsRow: 'flex flex-row gap-2.5 justify-center flex-1',
-  slotBox: 'w-18 h-18 sm:w-20 sm:h-20 aspect-square rounded-xl bg-[#09090d] border border-[#262630] relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
+  squadCard: 'bg-[#14141a] border border-[#262630] rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2 shadow-md overflow-hidden',
+  squadNumberArea: 'flex items-center justify-center flex-shrink-0 w-8 sm:w-9',
+  squadNumberText: 'text-lg sm:text-xl font-black font-mono text-zinc-500 tracking-wider',
+  slotsRow: 'flex flex-row gap-2 items-center justify-center flex-1',
+  slotBox: 'w-[68px] h-[68px] sm:w-[72px] sm:h-[72px] aspect-square rounded-xl bg-[#09090d] border border-[#262630] relative overflow-hidden flex flex-col items-center justify-center shadow-inner flex-shrink-0',
+  circuitBox: 'w-[54px] h-[54px] sm:w-[58px] sm:h-[58px] aspect-square rounded-xl border border-amber-400/80 bg-amber-950/20 p-1 flex items-center justify-center flex-shrink-0',
   charImage: 'w-full h-full object-cover',
-  charNameOverlay: 'absolute bottom-0 inset-x-0 bg-[#09090d]/90 backdrop-blur-[2px] text-[10px] sm:text-[11px] font-bold text-zinc-200 text-center py-0.5 truncate px-1 border-t border-[#262630]',
+  charNameOverlay: 'absolute bottom-0 inset-x-0 bg-[#09090d]/90 backdrop-blur-[2px] text-[9.5px] sm:text-[10.5px] font-bold text-zinc-200 text-center py-0.5 truncate px-1 border-t border-[#262630]',
   emptySlot: 'flex flex-col items-center justify-center text-zinc-600',
   emptyPlus: 'text-base sm:text-lg leading-none',
   emptyLabel: 'text-[9.5px] font-bold mt-0.5 text-zinc-500',
