@@ -198,18 +198,14 @@ export function ImageExportModal({
                           </div>
                         ))}
 
-                        {/* Circuit Buff Icon Badge if selected and 3 resonators complete */}
-                        {buff && squad.every((c) => c !== null) && (
-                          <div className="w-[50px] sm:w-[58px] aspect-square rounded-lg border border-amber-500/50 bg-amber-950/20 p-1 flex flex-col items-center justify-center flex-shrink-0 relative">
+                        {/* Circuit Buff Icon Badge if selected */}
+                        {buff && (
+                          <div className="w-[50px] sm:w-[58px] aspect-square rounded-lg border border-amber-400/80 bg-amber-950/20 p-1 flex items-center justify-center flex-shrink-0">
                             <img
                               src={buff.iconUrl}
                               alt={buff.name}
                               className="w-full h-full object-contain filter drop-shadow"
-                              crossOrigin="anonymous"
                             />
-                            <span className="absolute -bottom-1 text-[7px] font-extrabold text-amber-300 bg-[#09090d] border border-amber-500/40 px-0.5 rounded leading-none">
-                              {buff.name.replace(' 강화', '')}
-                            </span>
                           </div>
                         )}
                       </div>

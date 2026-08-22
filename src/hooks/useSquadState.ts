@@ -62,6 +62,39 @@ export function useSquadState() {
       })
     }
   }, [squads.length, circuitBuffs.length])
+
+  // 고유 파티 행 ID 관리 (dnd-kit 및 React 렌더링 키 불일치 방지)
+  const [squadIds, setSquadIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('wuwa-squad-row-ids')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length === squads.length) {
+          return parsed
+        }
+      } catch {
+        // empty
+      }
+    }
+    return squads.map((_, i) => `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`)
+  })
+
+  useEffect(() => {
+    localStorage.setItem('wuwa-squad-row-ids', JSON.stringify(squadIds))
+  }, [squadIds])
+
+  useEffect(() => {
+    if (squadIds.length !== squads.length) {
+      setSquadIds(prev => {
+        const next = [...prev]
+        while (next.length < squads.length) {
+          next.push(`squad-row-${Date.now()}-${next.length}-${Math.random().toString(36).substring(2, 7)}`)
+        }
+        if (next.length > squads.length) next.length = squads.length
+        return next
+      })
+    }
+  }, [squads.length, squadIds.length])
   
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
@@ -151,21 +184,29 @@ export function useSquadState() {
 
   // 1) 스쿼드 동적 추가
   const handleAddSquad = () => {
+    const newId = `squad-row-${Date.now()}-${squads.length}-${Math.random().toString(36).substring(2, 7)}`
     setSquads((prev) => [...prev, [null, null, null]])
     setCircuitBuffs((prev) => [...prev, null])
+    setSquadIds((prev) => [...prev, newId])
   }
 
-  // 2) 스쿼드 동적 삭제 (최소 1개 스쿼드는 강제 보존)
+  // 2) 스쿼드 동적 삭제
   const handleDeleteSquad = (squadIdx: number) => {
-    if (squads.length <= 1) return
     requestRemoveConfirm(
       `정말 ${squadIdx + 1}번 파티를 삭제하시겠습니까?`,
       () => {
-        setSquads((prev) => prev.filter((_, idx) => idx !== squadIdx))
-        setCircuitBuffs((prev) => prev.filter((_, idx) => idx !== squadIdx))
+        if (squads.length > 1) {
+          setSquads((prev) => prev.filter((_, idx) => idx !== squadIdx))
+          setCircuitBuffs((prev) => prev.filter((_, idx) => idx !== squadIdx))
+          setSquadIds((prev) => prev.filter((_, idx) => idx !== squadIdx))
+        } else {
+          setSquads([[null, null, null]])
+          setCircuitBuffs([null])
+          setSquadIds([`squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`])
+        }
         showToast(`${squadIdx + 1}번 파티가 삭제되었습니다.`)
       },
-      '해당 파티의 모든 캐릭터 배치 내용이 사라집니다.',
+      '해당 파티의 모든 캐릭터 배치 및 회로 버프가 즉시 제거됩니다.',
       '삭제하기'
     )
   }
@@ -274,11 +315,12 @@ export function useSquadState() {
 
   // 0) 파티 행 드래그 정렬 처리
   const handleSortSquadRows = (activeId: string, overId: string) => {
-    const oldIndex = parseInt(activeId.replace('squad-row-', ''), 10)
-    const newIndex = parseInt(overId.replace('squad-row-', ''), 10)
-    if (oldIndex !== newIndex) {
+    const oldIndex = squadIds.indexOf(activeId)
+    const newIndex = squadIds.indexOf(overId)
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
       setSquads((prev) => arrayMove(prev, oldIndex, newIndex))
       setCircuitBuffs((prev) => arrayMove(prev, oldIndex, newIndex))
+      setSquadIds((prev) => arrayMove(prev, oldIndex, newIndex))
       showToast('파티 순서가 변경되었습니다.')
     }
   }
@@ -428,6 +470,11 @@ export function useSquadState() {
           [null, null, null]
         ])
         setCircuitBuffs([null, null, null])
+        setSquadIds([
+          `squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`,
+          `squad-row-${Date.now()}-1-${Math.random().toString(36).substring(2, 7)}`,
+          `squad-row-${Date.now()}-2-${Math.random().toString(36).substring(2, 7)}`
+        ])
         showToast('모든 파티 편성이 초기화되었습니다.')
       },
       '모든 파티 슬롯이 즉시 비워지며 되돌릴 수 없습니다.',
@@ -477,8 +524,10 @@ export function useSquadState() {
           subMessage: `새로운 파티를 추가하고 [${char.name}] 공명자를 배치하시겠습니까?`,
           confirmText: '파티 추가 및 배치',
           onConfirm: () => {
+            const newId = `squad-row-${Date.now()}-${squads.length}-${Math.random().toString(36).substring(2, 7)}`
             setSquads((prev) => [...prev, [char, null, null]])
             setCircuitBuffs((prev) => [...prev, null])
+            setSquadIds((prev) => [...prev, newId])
             showToast(`새 파티가 추가되고 ${char.name}이 배치되었습니다.`)
           }
         })
@@ -512,9 +561,6 @@ export function useSquadState() {
       )
     }
   }
-
-  // 파티 행 고유 ID 배열 (SortableContext에 전달)
-  const squadIds = squads.map((_, idx) => `squad-row-${idx}`)
 
   return {
     squads,

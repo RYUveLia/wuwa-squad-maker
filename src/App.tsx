@@ -238,7 +238,6 @@ function App() {
                     id={squadIds[squadIdx]}
                     squadIdx={squadIdx}
                     squad={squad}
-                    squadsLength={squads.length}
                     circuitBuffId={circuitBuffs[squadIdx]}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}

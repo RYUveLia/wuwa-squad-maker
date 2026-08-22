@@ -8,7 +8,6 @@ interface SortableSquadRowProps {
   id: string
   squadIdx: number
   squad: (Character | null)[]
-  squadsLength: number
   circuitBuffId?: string | null
   handleRemoveCharacter: (squadIdx: number, slotIdx: number) => void
   handleDeleteSquad: (squadIdx: number) => void
@@ -20,7 +19,6 @@ export function SortableSquadRow({
   id,
   squadIdx,
   squad,
-  squadsLength,
   circuitBuffId,
   handleRemoveCharacter,
   handleDeleteSquad,
@@ -35,7 +33,6 @@ export function SortableSquadRow({
     zIndex: isDragging ? 50 : ('auto' as const),
   }
   const numStr = String(squadIdx + 1).padStart(2, '0')
-  const isComplete = squad.every(char => char !== null)
   const selectedBuff = circuitBuffId ? CIRCUIT_BUFFS.find(b => b.id === circuitBuffId) : null
 
   return (
@@ -78,57 +75,51 @@ export function SortableSquadRow({
           )
         })}
 
-        {/* Circuit Buff Slot (Only when 3 resonators deployed) */}
-        {isComplete && (
-          <div className="flex items-center justify-center pl-1 sm:pl-2 border-l border-[#262630]/80">
-            <button
-              type="button"
-              onClick={() => onCircuitBuffClick && onCircuitBuffClick(squadIdx)}
-              className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-lg sm:rounded-2xl flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all duration-200 cursor-pointer group relative ${
-                selectedBuff 
-                  ? 'bg-amber-950/25 border-2 border-amber-400 hover:border-amber-300 hover:shadow-[0_0_12px_rgba(251,189,35,0.25)]' 
-                  : 'bg-[#0e0e13] border-2 border-dashed border-zinc-700 hover:border-amber-400 hover:bg-amber-950/15'
-              }`}
-              title={selectedBuff ? `특이점 확장 회로 버프: ${selectedBuff.name}` : '회로 버프 선택'}
-            >
-              {selectedBuff ? (
-                <>
-                  <div className="w-full h-full flex items-center justify-center">
-                    <img
-                      src={selectedBuff.iconUrl}
-                      alt={selectedBuff.name}
-                      className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200"
-                      crossOrigin="anonymous"
-                    />
-                  </div>
-                  <span className="absolute -bottom-1.5 text-[8px] sm:text-[9.5px] font-extrabold text-amber-300 bg-[#09090d] border border-amber-500/50 px-1 rounded truncate max-w-[90%] leading-tight shadow select-none">
-                    {selectedBuff.name.replace(' 강화', '')}
-                  </span>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-amber-400 transition-colors select-none">
-                  <span className="text-base sm:text-lg animate-pulse">⚡</span>
-                  <span className="text-[8px] sm:text-[9.5px] font-bold mt-0.5 tracking-tighter whitespace-nowrap">
-                    회로 선택
-                  </span>
-                </div>
-              )}
-            </button>
-          </div>
-        )}
+        {/* Circuit Buff Slot (Always available) */}
+        <div className="flex items-center justify-center pl-1 sm:pl-2 border-l border-[#262630]/80">
+          <button
+            type="button"
+            onClick={() => onCircuitBuffClick && onCircuitBuffClick(squadIdx)}
+            className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-lg sm:rounded-2xl flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all duration-200 cursor-pointer group relative ${
+              selectedBuff 
+                ? 'bg-amber-950/20 border border-amber-400/80 hover:border-amber-300 hover:shadow-md' 
+                : 'bg-[#0e0e13] border border-dashed border-zinc-700 hover:border-amber-400 hover:bg-amber-950/15'
+            }`}
+            title={selectedBuff ? `특이점 확장 회로 버프: ${selectedBuff.name}` : '회로 버프 선택'}
+          >
+            {selectedBuff ? (
+              <div className="w-full h-full flex items-center justify-center p-0.5 sm:p-1">
+                <img
+                  src={selectedBuff.iconUrl}
+                  alt={selectedBuff.name}
+                  className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200"
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-amber-400 transition-colors select-none gap-0.5 sm:gap-1">
+                <img
+                  src="/circuits/T_Iconpropertyredattack_UI.webp"
+                  alt="회로 선택"
+                  className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 object-contain opacity-40 group-hover:opacity-90 group-hover:scale-110 transition-all"
+                />
+                <span className="text-[7.5px] sm:text-[9px] font-bold tracking-tighter whitespace-nowrap">
+                  회로 선택
+                </span>
+              </div>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Right: Actions */}
       <div className={SQUAD_LIST_STYLES.actionArea}>
-        {squadsLength > 1 && (
-          <button
-            onClick={() => handleDeleteSquad(squadIdx)}
-            className={SQUAD_LIST_STYLES.deleteBtn}
-            title="파티 제거"
-          >
-            제거
-          </button>
-        )}
+        <button
+          onClick={() => handleDeleteSquad(squadIdx)}
+          className={SQUAD_LIST_STYLES.deleteBtn}
+          title="파티 제거"
+        >
+          제거
+        </button>
       </div>
     </div>
   )
