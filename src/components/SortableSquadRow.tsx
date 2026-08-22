@@ -2,15 +2,18 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { DroppableSquadSlot } from './DroppableSquadSlot'
 import type { Character } from '../types'
+import { CIRCUIT_BUFFS } from '../constants/circuitBuffs'
 
 interface SortableSquadRowProps {
   id: string
   squadIdx: number
   squad: (Character | null)[]
   squadsLength: number
+  circuitBuffId?: string | null
   handleRemoveCharacter: (squadIdx: number, slotIdx: number) => void
   handleDeleteSquad: (squadIdx: number) => void
   onSlotClick?: (squadIdx: number, slotIdx: number) => void
+  onCircuitBuffClick?: (squadIdx: number) => void
 }
 
 export function SortableSquadRow({
@@ -18,9 +21,11 @@ export function SortableSquadRow({
   squadIdx,
   squad,
   squadsLength,
+  circuitBuffId,
   handleRemoveCharacter,
   handleDeleteSquad,
-  onSlotClick
+  onSlotClick,
+  onCircuitBuffClick
 }: SortableSquadRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const style = {
@@ -30,6 +35,8 @@ export function SortableSquadRow({
     zIndex: isDragging ? 50 : ('auto' as const),
   }
   const numStr = String(squadIdx + 1).padStart(2, '0')
+  const isComplete = squad.every(char => char !== null)
+  const selectedBuff = circuitBuffId ? CIRCUIT_BUFFS.find(b => b.id === circuitBuffId) : null
 
   return (
     <div
@@ -53,7 +60,7 @@ export function SortableSquadRow({
         </span>
       </div>
 
-      {/* Center: Slots Row */}
+      {/* Center: Slots Row + Circuit Buff */}
       <div className={SQUAD_LIST_STYLES.slotsArea}>
         {squad.map((char, slotIdx) => {
           const slotName = String(slotIdx + 1)
@@ -70,6 +77,45 @@ export function SortableSquadRow({
             />
           )
         })}
+
+        {/* Circuit Buff Slot (Only when 3 resonators deployed) */}
+        {isComplete && (
+          <div className="flex items-center justify-center pl-1 sm:pl-2 border-l border-[#262630]/80">
+            <button
+              type="button"
+              onClick={() => onCircuitBuffClick && onCircuitBuffClick(squadIdx)}
+              className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-lg sm:rounded-2xl flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all duration-200 cursor-pointer group relative ${
+                selectedBuff 
+                  ? 'bg-amber-950/25 border-2 border-amber-400 hover:border-amber-300 hover:shadow-[0_0_12px_rgba(251,189,35,0.25)]' 
+                  : 'bg-[#0e0e13] border-2 border-dashed border-zinc-700 hover:border-amber-400 hover:bg-amber-950/15'
+              }`}
+              title={selectedBuff ? `특이점 확장 회로 버프: ${selectedBuff.name}` : '회로 버프 선택'}
+            >
+              {selectedBuff ? (
+                <>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src={selectedBuff.iconUrl}
+                      alt={selectedBuff.name}
+                      className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200"
+                      crossOrigin="anonymous"
+                    />
+                  </div>
+                  <span className="absolute -bottom-1.5 text-[8px] sm:text-[9.5px] font-extrabold text-amber-300 bg-[#09090d] border border-amber-500/50 px-1 rounded truncate max-w-[90%] leading-tight shadow select-none">
+                    {selectedBuff.name.replace(' 강화', '')}
+                  </span>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-amber-400 transition-colors select-none">
+                  <span className="text-base sm:text-lg animate-pulse">⚡</span>
+                  <span className="text-[8px] sm:text-[9.5px] font-bold mt-0.5 tracking-tighter whitespace-nowrap">
+                    회로 선택
+                  </span>
+                </div>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right: Actions */}
@@ -96,3 +142,4 @@ const SQUAD_LIST_STYLES = {
   actionArea: 'flex items-center justify-end select-none flex-shrink-0 min-w-[36px] sm:min-w-[48px]',
   deleteBtn: 'text-[9.5px] sm:text-[11px] lg:text-[12px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-2 sm:px-2.5 py-1 rounded-lg cursor-pointer transition-colors whitespace-nowrap',
 }
+

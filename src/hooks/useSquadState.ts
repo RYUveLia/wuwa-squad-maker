@@ -34,10 +34,39 @@ export function useSquadState() {
     const ids = squads.map(row => row.map(slot => slot ? slot.id : null))
     localStorage.setItem('wuwa-squads', JSON.stringify(ids))
   }, [squads])
+
+  const [circuitBuffs, setCircuitBuffs] = useState<(string | null)[]>(() => {
+    const saved = localStorage.getItem('wuwa-squad-circuit-buffs')
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch {
+        // empty
+      }
+    }
+    return [null, null, null]
+  })
+
+  useEffect(() => {
+    localStorage.setItem('wuwa-squad-circuit-buffs', JSON.stringify(circuitBuffs))
+  }, [circuitBuffs])
+
+  // squads 길이와 circuitBuffs 길이 동기화
+  useEffect(() => {
+    if (circuitBuffs.length !== squads.length) {
+      setCircuitBuffs(prev => {
+        const next = [...prev]
+        while (next.length < squads.length) next.push(null)
+        if (next.length > squads.length) next.length = squads.length
+        return next
+      })
+    }
+  }, [squads.length, circuitBuffs.length])
   
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
   const [activeSquadIdxForMobile, setActiveSquadIdxForMobile] = useState<number | null>(null)
+  const [activeCircuitModalSquadIdx, setActiveCircuitModalSquadIdx] = useState<number | null>(null)
   const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
 
   const [ownedResonatorIds, setOwnedResonatorIds] = useState<string[]>(() => {
@@ -123,6 +152,7 @@ export function useSquadState() {
   // 1) 스쿼드 동적 추가
   const handleAddSquad = () => {
     setSquads((prev) => [...prev, [null, null, null]])
+    setCircuitBuffs((prev) => [...prev, null])
   }
 
   // 2) 스쿼드 동적 삭제 (최소 1개 스쿼드는 강제 보존)
@@ -132,6 +162,7 @@ export function useSquadState() {
       `정말 ${squadIdx + 1}번 파티를 삭제하시겠습니까?`,
       () => {
         setSquads((prev) => prev.filter((_, idx) => idx !== squadIdx))
+        setCircuitBuffs((prev) => prev.filter((_, idx) => idx !== squadIdx))
         showToast(`${squadIdx + 1}번 파티가 삭제되었습니다.`)
       },
       '해당 파티의 모든 캐릭터 배치 내용이 사라집니다.',
@@ -247,6 +278,7 @@ export function useSquadState() {
     const newIndex = parseInt(overId.replace('squad-row-', ''), 10)
     if (oldIndex !== newIndex) {
       setSquads((prev) => arrayMove(prev, oldIndex, newIndex))
+      setCircuitBuffs((prev) => arrayMove(prev, oldIndex, newIndex))
       showToast('파티 순서가 변경되었습니다.')
     }
   }
@@ -395,11 +427,21 @@ export function useSquadState() {
           [null, null, null],
           [null, null, null]
         ])
+        setCircuitBuffs([null, null, null])
         showToast('모든 파티 편성이 초기화되었습니다.')
       },
       '모든 파티 슬롯이 즉시 비워지며 되돌릴 수 없습니다.',
       '초기화하기'
     )
+  }
+
+  const handleSelectCircuitBuff = (squadIdx: number, buffId: string | null) => {
+    setCircuitBuffs((prev) => {
+      const next = [...prev]
+      next[squadIdx] = buffId
+      return next
+    })
+    showToast(buffId ? '회로 버프가 적용되었습니다.' : '회로 버프 선택이 해제되었습니다.')
   }
 
   const handleSaveOwnedResonators = (ids: string[]) => {
@@ -436,6 +478,7 @@ export function useSquadState() {
           confirmText: '파티 추가 및 배치',
           onConfirm: () => {
             setSquads((prev) => [...prev, [char, null, null]])
+            setCircuitBuffs((prev) => [...prev, null])
             showToast(`새 파티가 추가되고 ${char.name}이 배치되었습니다.`)
           }
         })
@@ -475,6 +518,10 @@ export function useSquadState() {
 
   return {
     squads,
+    circuitBuffs,
+    activeCircuitModalSquadIdx,
+    setActiveCircuitModalSquadIdx,
+    handleSelectCircuitBuff,
     selectedElement,
     setSelectedElement,
     toast,

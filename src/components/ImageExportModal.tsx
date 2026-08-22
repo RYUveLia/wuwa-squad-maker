@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import type { Character } from '../types'
+import { CIRCUIT_BUFFS } from '../constants/circuitBuffs'
 
 interface ImageExportModalProps {
   isOpen: boolean
   squads: (Character | null)[][]
+  circuitBuffs?: (string | null)[]
   onClose: () => void
   showToast: (msg: string) => void
 }
@@ -12,6 +14,7 @@ interface ImageExportModalProps {
 export function ImageExportModal({
   isOpen,
   squads,
+  circuitBuffs,
   onClose,
   showToast
 }: ImageExportModalProps) {
@@ -40,7 +43,7 @@ export function ImageExportModal({
 
   const displaySquads = activeSquadsWithIndex.length > 0
     ? activeSquadsWithIndex
-    : squads.slice(0, 1).map((squad, idx) => ({ squad, idx }))
+    : [{ squad: [null, null, null], idx: 0 }]
 
   const currentDateStr = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -150,6 +153,9 @@ export function ImageExportModal({
               <div className={MODAL_STYLES.squadsGrid}>
                 {displaySquads.map(({ squad, idx }) => {
                   const numStr = String(idx + 1).padStart(2, '0')
+                  const buffId = circuitBuffs ? circuitBuffs[idx] : null
+                  const buff = buffId ? CIRCUIT_BUFFS.find((b) => b.id === buffId) : null
+
                   return (
                     <div
                       key={idx}
@@ -162,7 +168,7 @@ export function ImageExportModal({
                         </span>
                       </div>
 
-                      {/* Center/Right: 3 Character Slots */}
+                      {/* Center/Right: 3 Character Slots + Circuit Buff */}
                       <div className={MODAL_STYLES.slotsRow}>
                         {squad.map((char, slotIdx) => (
                           <div
@@ -191,6 +197,21 @@ export function ImageExportModal({
                             )}
                           </div>
                         ))}
+
+                        {/* Circuit Buff Icon Badge if selected and 3 resonators complete */}
+                        {buff && squad.every((c) => c !== null) && (
+                          <div className="w-[50px] sm:w-[58px] aspect-square rounded-lg border border-amber-500/50 bg-amber-950/20 p-1 flex flex-col items-center justify-center flex-shrink-0 relative">
+                            <img
+                              src={buff.iconUrl}
+                              alt={buff.name}
+                              className="w-full h-full object-contain filter drop-shadow"
+                              crossOrigin="anonymous"
+                            />
+                            <span className="absolute -bottom-1 text-[7px] font-extrabold text-amber-300 bg-[#09090d] border border-amber-500/40 px-0.5 rounded leading-none">
+                              {buff.name.replace(' 강화', '')}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )

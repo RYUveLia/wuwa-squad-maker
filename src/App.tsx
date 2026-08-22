@@ -17,6 +17,7 @@ import { OwnedResonatorModal } from './components/OwnedResonatorModal'
 import { TurnstileGate } from './components/TurnstileGate'
 import { ConfirmModal } from './components/ConfirmModal'
 import { ImageExportModal } from './components/ImageExportModal'
+import { CircuitBuffSelectModal } from './components/CircuitBuffSelectModal'
 
 // 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -25,6 +26,10 @@ import { getDoubleDeploymentNamesText, getSeasonBuffInfo } from './utils/charact
 function App() {
   const {
     squads,
+    circuitBuffs,
+    activeCircuitModalSquadIdx,
+    setActiveCircuitModalSquadIdx,
+    handleSelectCircuitBuff,
     selectedElement,
     setSelectedElement,
     toast,
@@ -234,6 +239,7 @@ function App() {
                     squadIdx={squadIdx}
                     squad={squad}
                     squadsLength={squads.length}
+                    circuitBuffId={circuitBuffs[squadIdx]}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}
                     onSlotClick={(sIdx, _slotIdx) => {
@@ -241,6 +247,7 @@ function App() {
                         setActiveSquadIdxForMobile(sIdx)
                       }
                     }}
+                    onCircuitBuffClick={(idx) => setActiveCircuitModalSquadIdx(idx)}
                   />
                 ))}
               </SortableContext>
@@ -309,6 +316,17 @@ function App() {
             setHideMaxedOut={setHideMaxedOut}
           />
         )}
+
+        {/* Circuit Buff Selection Modal */}
+        {activeCircuitModalSquadIdx !== null && (
+          <CircuitBuffSelectModal
+            squadIdx={activeCircuitModalSquadIdx}
+            selectedBuffId={circuitBuffs[activeCircuitModalSquadIdx] || null}
+            onSelectBuff={handleSelectCircuitBuff}
+            onClose={() => setActiveCircuitModalSquadIdx(null)}
+          />
+        )}
+
         {/* Owned Resonators Selector Modal */}
         {ownedModalOpen && (
           <OwnedResonatorModal
@@ -341,6 +359,7 @@ function App() {
           <ImageExportModal
             isOpen={imageExportModalOpen}
             squads={squads}
+            circuitBuffs={circuitBuffs}
             onClose={() => setImageExportModalOpen(false)}
             showToast={showToast}
           />
