@@ -1,6 +1,31 @@
 import { useDroppable, useDraggable } from '@dnd-kit/core'
 import type { Character } from '../types'
 
+export function getElementBorderClass(element?: string): string {
+  switch (element) {
+    case 'Aero':
+    case '기류':
+      return 'border-emerald-400/60 bg-emerald-950/15 shadow-[0_0_12px_rgba(52,211,153,0.15)]'
+    case 'Fusion':
+    case '용융':
+      return 'border-red-400/60 bg-red-950/15 shadow-[0_0_12px_rgba(248,113,113,0.15)]'
+    case 'Electro':
+    case '전도':
+      return 'border-purple-400/60 bg-purple-950/15 shadow-[0_0_12px_rgba(192,132,252,0.15)]'
+    case 'Glacio':
+    case '응결':
+      return 'border-cyan-400/60 bg-cyan-950/15 shadow-[0_0_12px_rgba(56,189,248,0.15)]'
+    case 'Spectro':
+    case '회절':
+      return 'border-amber-300/60 bg-amber-950/15 shadow-[0_0_12px_rgba(253,224,71,0.15)]'
+    case 'Havoc':
+    case '인멸':
+      return 'border-pink-400/60 bg-pink-950/15 shadow-[0_0_12px_rgba(244,114,182,0.15)]'
+    default:
+      return 'border-[#262630] bg-[#0e0e13]'
+  }
+}
+
 interface DraggableSquadCharacterProps {
   char: Character
   squadIdx: number
@@ -52,7 +77,7 @@ function DraggableSquadCharacter({
 interface DroppableSquadSlotProps {
   id: string
   char: Character | null
-  slotName: string
+  slotName?: string
   onRemove: () => void
   squadIdx: number
   slotIdx: number
@@ -62,7 +87,6 @@ interface DroppableSquadSlotProps {
 export function DroppableSquadSlot({
   id,
   char,
-  slotName,
   onRemove,
   squadIdx,
   slotIdx,
@@ -75,7 +99,7 @@ export function DroppableSquadSlot({
   return (
     <div
       ref={setNodeRef}
-      className={SLOT_BOX_CLASS(isOver)}
+      className={SLOT_BOX_CLASS(isOver, char)}
       onClick={() => {
         if (!char && onSlotClick) {
           onSlotClick(squadIdx, slotIdx)
@@ -90,13 +114,14 @@ export function DroppableSquadSlot({
           onRemove={onRemove}
         />
       ) : (
-        <div className={EMPTY_AREA_CLASS}>
-          <span className={PLUS_ICON_CLASS(isOver)}>
-            ＋
-          </span>
-          <span className={SLOT_LABEL_CLASS(isOver)}>
-            {slotName}
-          </span>
+        <div className="w-full h-full flex items-center justify-center select-none">
+          <img
+            src="/SP_FuncIconRole.webp"
+            alt="공명자 슬롯"
+            className={`w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 object-contain transition-all duration-300 pointer-events-none ${
+              isOver ? 'opacity-80 scale-110' : 'opacity-25 group-hover:opacity-50'
+            }`}
+          />
         </div>
       )}
     </div>
@@ -104,7 +129,10 @@ export function DroppableSquadSlot({
 }
 
 // STYLES
-const SLOT_BOX_CLASS = (isOver: boolean) => {
+const SLOT_BOX_CLASS = (isOver: boolean, char: Character | null) => {
+  if (char) {
+    return `w-14 h-14 sm:w-20 sm:h-20 lg:w-[100px] lg:h-[100px] xl:w-[110px] xl:h-[110px] aspect-square rounded-lg sm:rounded-2xl flex flex-col items-center justify-center p-0.5 sm:p-1 md:p-1.5 relative group transition-all duration-300 border ${getElementBorderClass(char.element)}`
+  }
   const borderClass = isOver 
     ? 'border-amber-400 bg-amber-400/10 shadow-lg shadow-amber-400/10' 
     : 'border-dashed border-[#262630] bg-[#0e0e13]/90 hover:border-zinc-700'
@@ -116,10 +144,3 @@ const CHAR_WRAPPER_CLASS = (isDragging: boolean) => `w-full h-full flex flex-col
 }`
 
 const CHAR_IMAGE_CLASS = 'w-full h-full object-cover rounded-lg sm:rounded-xl shadow-md'
-const EMPTY_AREA_CLASS = 'text-center text-zinc-500 select-none'
-const PLUS_ICON_CLASS = (isOver: boolean) => `text-base sm:text-2xl lg:text-3xl block leading-none transition-transform duration-300 ${
-  isOver ? 'text-amber-400 scale-125' : 'text-zinc-600 group-hover:text-zinc-400'
-}`
-const SLOT_LABEL_CLASS = (isOver: boolean) => `text-[9px] sm:text-xs lg:text-sm font-bold block mt-0.5 sm:mt-1 transition-colors duration-300 ${
-  isOver ? 'text-amber-300' : 'text-zinc-600 group-hover:text-zinc-400'
-}`

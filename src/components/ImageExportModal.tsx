@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import type { Character } from '../types'
 import { CIRCUIT_BUFFS } from '../constants/circuitBuffs'
+import { getElementBorderClass } from './DroppableSquadSlot'
 
 interface ImageExportModalProps {
   isOpen: boolean
@@ -175,7 +176,7 @@ export function ImageExportModal({
                             key={slotIdx}
                             className={MODAL_STYLES.slotItem}
                           >
-                            <div className={MODAL_STYLES.slotBox}>
+                            <div className={`${MODAL_STYLES.slotBox} ${char ? getElementBorderClass(char.element) : 'border-dashed border-[#262630]'}`}>
                               {char ? (
                                 <img
                                   src={char.img}
@@ -184,11 +185,12 @@ export function ImageExportModal({
                                   draggable="false"
                                 />
                               ) : (
-                                <div className={MODAL_STYLES.emptySlot}>
-                                  <span className={MODAL_STYLES.emptyPlus}>＋</span>
-                                  <span className={MODAL_STYLES.emptyLabel}>
-                                    {slotIdx + 1}
-                                  </span>
+                                <div className="w-full h-full flex items-center justify-center select-none">
+                                  <img
+                                    src="/SP_FuncIconRole.webp"
+                                    alt="공명자 슬롯"
+                                    className="w-5 h-5 sm:w-6 sm:h-6 object-contain opacity-25"
+                                  />
                                 </div>
                               )}
                             </div>
