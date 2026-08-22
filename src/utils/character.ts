@@ -77,11 +77,11 @@ export const LEAK_DOUBLE_DEPLOYMENT_CHARACTERS: string[] = []
 
 export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {
   if (showLeakInfo) {
-    if (charId === 'denia') return 2
-    if (charId === 'chisa') return 1
-  } else {
-    if (charId === 'chisa') return 2
+    // 3.7 시즌 버프 대상 캐릭터 (현재 미정)
     if (charId === 'denia') return 1
+  } else {
+    // 3.6 시즌 버프 대상 캐릭터 (데니아)
+    if (charId === 'denia') return 2
   }
 
   if (LEAK_DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) {

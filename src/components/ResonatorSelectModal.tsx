@@ -168,7 +168,7 @@ export function ResonatorSelectModal({
                 maxAllowed={maxAllowed}
                 onClick={() => onSelect(char)}
                 isDraggable={false}
-                isSeasonBuff={char.id === (showLeakInfo ? 'denia' : 'chisa')}
+                isSeasonBuff={char.id === (showLeakInfo ? '' : 'denia')}
               />
             )
           })}
