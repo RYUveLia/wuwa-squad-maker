@@ -15,7 +15,6 @@ export function ImageExportModal({
   onClose,
   showToast
 }: ImageExportModalProps) {
-  const [layout, setLayout] = useState<'2col' | '1col'>('2col')
   const [isProcessing, setIsProcessing] = useState(false)
   const boardRef = useRef<HTMLDivElement>(null)
 
@@ -114,26 +113,7 @@ export function ImageExportModal({
       >
         {/* Modal Header */}
         <div className={MODAL_STYLES.header}>
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <h3 className={MODAL_STYLES.title}>📸 파티 배치도 이미지 저장</h3>
-            {/* 2열 / 1열 전환 탭 */}
-            <div className={MODAL_STYLES.tabBar}>
-              <button
-                type="button"
-                onClick={() => setLayout('2col')}
-                className={MODAL_STYLES.tabButton(layout === '2col')}
-              >
-                2열 (2×N)
-              </button>
-              <button
-                type="button"
-                onClick={() => setLayout('1col')}
-                className={MODAL_STYLES.tabButton(layout === '1col')}
-              >
-                1열 (1×N)
-              </button>
-            </div>
-          </div>
+          <h3 className={MODAL_STYLES.title}>📸 파티 배치도 이미지 저장</h3>
           <button
             onClick={onClose}
             className={MODAL_STYLES.closeButton}
@@ -146,10 +126,10 @@ export function ImageExportModal({
         {/* Scrollable Preview Area */}
         <div className={MODAL_STYLES.previewArea}>
           <div className="flex justify-center min-w-full p-2 sm:p-4">
-            {/* Renderable Capture Board */}
+            {/* Renderable Capture Board (Fixed 2xN Layout) */}
             <div
               ref={boardRef}
-              className={MODAL_STYLES.boardContainer(layout === '2col')}
+              className={MODAL_STYLES.boardContainer}
             >
               {/* Header Branding Banner */}
               <div className={MODAL_STYLES.boardHeader}>
@@ -166,8 +146,8 @@ export function ImageExportModal({
                 </div>
               </div>
 
-              {/* Squads Grid (2xN or 1xN) */}
-              <div className={MODAL_STYLES.squadsGrid(layout === '2col')}>
+              {/* Squads 2xN Grid */}
+              <div className={MODAL_STYLES.squadsGrid}>
                 {displaySquads.map(({ squad, idx }) => {
                   const numStr = String(idx + 1).padStart(2, '0')
                   return (
@@ -182,7 +162,7 @@ export function ImageExportModal({
                         </span>
                       </div>
 
-                      {/* Center: 3 Character Slots */}
+                      {/* Center/Right: 3 Character Slots */}
                       <div className={MODAL_STYLES.slotsRow}>
                         {squad.map((char, slotIdx) => (
                           <div
@@ -211,13 +191,6 @@ export function ImageExportModal({
                             )}
                           </div>
                         ))}
-                      </div>
-
-                      {/* Right: Squad Label Badge */}
-                      <div className={MODAL_STYLES.squadLabelArea}>
-                        <span className={MODAL_STYLES.squadBadge}>
-                          {idx + 1}번 파티
-                        </span>
                       </div>
                     </div>
                   )
@@ -264,30 +237,19 @@ export function ImageExportModal({
 const MODAL_STYLES = {
   header: 'flex items-center justify-between pb-3 border-b border-slate-800/80 select-none gap-2 shrink-0',
   title: 'text-sm sm:text-base font-bold text-slate-200 flex items-center gap-1.5',
-  tabBar: 'flex bg-slate-950/80 p-0.5 rounded-lg border border-slate-800 select-none',
-  tabButton: (isActive: boolean) =>
-    `px-2.5 py-1 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
-      isActive
-        ? 'bg-purple-600 text-white shadow-sm'
-        : 'text-slate-400 hover:text-slate-200'
-    }`,
   closeButton: 'text-slate-400 hover:text-slate-200 transition-colors p-1.5 rounded-lg text-sm select-none cursor-pointer',
   previewArea: 'flex-1 overflow-auto my-3 bg-slate-950/60 rounded-xl border border-slate-900 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent',
   
-  // Capture Board Styles
-  boardContainer: (is2Col: boolean) =>
-    `bg-slate-950 text-slate-100 p-5 sm:p-6 rounded-2xl border border-slate-800/80 shadow-2xl flex flex-col gap-4 select-none ${
-      is2Col ? 'w-[960px]' : 'w-[520px]'
-    }`,
+  // Capture Board Styles (Fixed 2xN Width)
+  boardContainer: 'bg-slate-950 text-slate-100 p-5 sm:p-6 rounded-2xl border border-slate-800/80 shadow-2xl flex flex-col gap-4 select-none w-[880px]',
   boardHeader: 'flex items-center justify-between border-b border-slate-800/80 pb-3',
   boardTitle: 'text-lg sm:text-xl font-extrabold bg-gradient-to-r from-purple-400 via-cyan-400 to-amber-400 bg-clip-text text-transparent tracking-tight',
   boardSubtitle: 'text-xs text-slate-400 font-semibold mt-0.5',
   boardDateBadge: 'text-xs font-mono font-bold text-slate-500 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md',
   
-  squadsGrid: (is2Col: boolean) =>
-    is2Col ? 'grid grid-cols-2 gap-3.5' : 'flex flex-col gap-3.5',
+  squadsGrid: 'grid grid-cols-2 gap-3.5',
   squadCard: 'bg-slate-900/70 border border-slate-800/90 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-md',
-  squadNumberArea: 'flex items-center justify-center flex-shrink-0 w-8',
+  squadNumberArea: 'flex items-center justify-center flex-shrink-0 w-10',
   squadNumberText: 'text-xl sm:text-2xl font-black font-mono text-slate-500 tracking-wider',
   slotsRow: 'flex flex-row gap-2.5 justify-center flex-1',
   slotBox: 'w-18 h-18 sm:w-20 sm:h-20 aspect-square rounded-xl bg-slate-950/80 border border-slate-800 relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
@@ -296,8 +258,6 @@ const MODAL_STYLES = {
   emptySlot: 'flex flex-col items-center justify-center text-slate-600',
   emptyPlus: 'text-base sm:text-lg leading-none',
   emptyLabel: 'text-[9.5px] font-bold mt-0.5 text-slate-500',
-  squadLabelArea: 'flex flex-col items-end flex-shrink-0 min-w-[65px]',
-  squadBadge: 'text-[10.5px] sm:text-[11.5px] font-bold px-2 py-0.5 rounded border tracking-wide uppercase text-purple-400 bg-purple-950/30 border-purple-900/60 whitespace-nowrap',
   
   footer: 'flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-slate-800/80 shrink-0 select-none',
   infoText: 'text-[11px] sm:text-xs text-slate-400 text-center sm:text-left break-keep'
