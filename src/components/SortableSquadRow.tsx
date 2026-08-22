@@ -80,10 +80,10 @@ export function SortableSquadRow({
           <button
             type="button"
             onClick={() => onCircuitBuffClick && onCircuitBuffClick(squadIdx)}
-            className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-lg sm:rounded-2xl flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all duration-200 cursor-pointer group relative ${
+            className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-[88px] lg:h-[88px] rounded-lg sm:rounded-2xl flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all duration-200 cursor-pointer group relative bg-[#0e0e13] ${
               selectedBuff 
-                ? 'bg-amber-950/20 border border-amber-400/80 hover:border-amber-300 hover:shadow-md' 
-                : 'bg-[#0e0e13] border border-dashed border-zinc-700 hover:border-amber-400 hover:bg-amber-950/15'
+                ? 'border border-solid border-[#262630] hover:border-zinc-500' 
+                : 'border border-dashed border-[#262630] hover:border-zinc-500'
             }`}
             title={selectedBuff ? `특이점 확장 회로 버프: ${selectedBuff.name}` : '회로 버프 선택'}
           >

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import type { Character } from '../types'
 import { CIRCUIT_BUFFS } from '../constants/circuitBuffs'
-import { getElementBorderClass } from './DroppableSquadSlot'
 
 interface ImageExportModalProps {
   isOpen: boolean
@@ -37,14 +36,15 @@ export function ImageExportModal({
 
   if (!isOpen) return null
 
-  // 비어있지 않은 파티 목록 필터링 (모두 비어있는 경우 최소 1개 파티 표시)
+  // 활성화된 파티 목록
   const activeSquadsWithIndex = squads
     .map((squad, idx) => ({ squad, idx }))
     .filter(({ squad }) => squad.some((char) => char !== null))
 
-  const displaySquads = activeSquadsWithIndex.length > 0
-    ? activeSquadsWithIndex
-    : [{ squad: [null, null, null], idx: 0 }]
+  const displaySquads =
+    activeSquadsWithIndex.length > 0
+      ? activeSquadsWithIndex
+      : [{ squad: [null, null, null], idx: 0 }]
 
   const currentDateStr = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -61,7 +61,7 @@ export function ImageExportModal({
     try {
       const { toPng } = await import('html-to-image')
       const dataUrl = await toPng(boardRef.current, {
-        backgroundColor: '#09090d', // WuWa Tracker dark background
+        backgroundColor: '#09090d',
         pixelRatio: 2,
         cacheBust: true
       })
@@ -110,14 +110,20 @@ export function ImageExportModal({
   }
 
   return (
-    <div className={COMMON_STYLES.modalOverlay} onClick={onClose}>
+    <div
+      className={COMMON_STYLES.modalOverlay}
+      onClick={onClose}
+    >
       <div
-        className={`${COMMON_STYLES.modalContainer} max-w-4xl max-h-[92vh] overflow-hidden p-3.5 sm:p-5`}
+        className={`${COMMON_STYLES.modalContainer} max-w-5xl w-full max-h-[90vh] flex flex-col p-4 sm:p-6 shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className={MODAL_STYLES.header}>
-          <h3 className={MODAL_STYLES.title}>📸 파티 배치도 이미지 저장</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 font-bold text-sm sm:text-base">📸</span>
+            <h2 className={MODAL_STYLES.title}>파티 배치도 이미지 저장</h2>
+          </div>
           <button
             onClick={onClose}
             className={MODAL_STYLES.closeButton}
@@ -129,18 +135,18 @@ export function ImageExportModal({
 
         {/* Scrollable Preview Area */}
         <div className={MODAL_STYLES.previewArea}>
-          <div className="flex justify-center min-w-full p-2 sm:p-4">
-            {/* Renderable Capture Board (Fixed 2xN Layout) */}
+          <div className="p-4 flex justify-center min-w-[940px]">
+            {/* Capture Target Canvas */}
             <div
               ref={boardRef}
               className={MODAL_STYLES.boardContainer}
             >
-              {/* Header Branding Banner */}
+              {/* Header Title Banner */}
               <div className={MODAL_STYLES.boardHeader}>
                 <div>
-                  <h4 className={MODAL_STYLES.boardTitle}>
+                  <h1 className={MODAL_STYLES.boardTitle}>
                     WuWa Matrix Squad Maker
-                  </h4>
+                  </h1>
                   <p className={MODAL_STYLES.boardSubtitle}>
                     명조: 워더링 웨이브 종말 매트릭스 파티 편성표
                   </p>
@@ -176,7 +182,7 @@ export function ImageExportModal({
                             key={slotIdx}
                             className={MODAL_STYLES.slotItem}
                           >
-                            <div className={`${MODAL_STYLES.slotBox} ${char ? `border-2 ${getElementBorderClass(char.element)}` : 'border-dashed border-[#262630]'}`}>
+                            <div className={`${MODAL_STYLES.slotBox} ${char ? 'border-solid border-[#262630]' : 'border-dashed border-[#262630]'}`}>
                               {char ? (
                                 <img
                                   src={char.img}
@@ -294,10 +300,10 @@ const MODAL_STYLES = {
   squadNumberText: 'text-lg sm:text-xl font-black font-mono text-zinc-500 tracking-wider',
   slotsRow: 'flex flex-row gap-1.5 sm:gap-2 items-center justify-center flex-1',
   slotItem: 'flex flex-col items-center w-[64px] sm:w-[70px] flex-shrink-0',
-  slotBox: 'w-full aspect-square rounded-xl bg-[#09090d] border border-[#262630] relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
+  slotBox: 'w-full aspect-square rounded-xl bg-[#09090d] border relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
   slotNameText: 'mt-1 text-[10px] sm:text-[11px] font-bold text-zinc-200 truncate w-full text-center whitespace-nowrap leading-tight',
-  circuitBox: 'w-full aspect-square rounded-xl border border-amber-400/50 bg-amber-950/15 p-1 flex items-center justify-center shadow-inner',
-  circuitNameText: 'mt-1 text-[9.5px] sm:text-[10px] font-extrabold text-amber-400 truncate w-full text-center whitespace-nowrap leading-tight',
+  circuitBox: 'w-full aspect-square rounded-xl border border-solid border-[#262630] bg-[#09090d] p-1 flex items-center justify-center shadow-inner',
+  circuitNameText: 'mt-1 text-[10px] sm:text-[11px] font-bold text-zinc-200 truncate w-full text-center whitespace-nowrap leading-tight',
   charImage: 'w-full h-full object-cover',
   emptySlot: 'flex flex-col items-center justify-center text-zinc-600',
   emptyPlus: 'text-base sm:text-lg leading-none',
