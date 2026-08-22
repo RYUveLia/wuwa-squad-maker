@@ -20,6 +20,9 @@ export function ImageExportModal({
 }: ImageExportModalProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const boardRef = useRef<HTMLDivElement>(null)
+  const previewWrapperRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+  const [boardHeight, setBoardHeight] = useState(0)
 
   // ESC 키로 모달 닫기
   useEffect(() => {
@@ -33,8 +36,6 @@ export function ImageExportModal({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
-
-  if (!isOpen) return null
 
   // 활성화된 파티 목록
   const activeSquadsWithIndex = squads
@@ -51,6 +52,43 @@ export function ImageExportModal({
     month: '2-digit',
     day: '2-digit'
   })
+
+  // 모바일 및 좁은 화면에서의 2xN 캡처 보드 반응형 축소 스케일링 계산
+  useEffect(() => {
+    if (!isOpen) return
+
+    const updateScale = () => {
+      if (previewWrapperRef.current && boardRef.current) {
+        const containerWidth = previewWrapperRef.current.clientWidth - 16
+        const targetWidth = 920
+        const newScale = containerWidth < targetWidth ? Math.max(0.2, containerWidth / targetWidth) : 1
+        setScale(newScale)
+        setBoardHeight(boardRef.current.offsetHeight)
+      }
+    }
+
+    updateScale()
+
+    const observer = new ResizeObserver(() => {
+      updateScale()
+    })
+
+    if (previewWrapperRef.current) {
+      observer.observe(previewWrapperRef.current)
+    }
+    if (boardRef.current) {
+      observer.observe(boardRef.current)
+    }
+
+    window.addEventListener('resize', updateScale)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', updateScale)
+    }
+  }, [isOpen, displaySquads.length])
+
+  if (!isOpen) return null
 
   // PNG 다운로드 핸들러
   const handleDownload = async () => {
@@ -115,7 +153,7 @@ export function ImageExportModal({
       onClick={onClose}
     >
       <div
-        className={`${COMMON_STYLES.modalContainer} max-w-5xl w-full max-h-[90vh] flex flex-col p-4 sm:p-6 shadow-2xl`}
+        className={`${COMMON_STYLES.modalContainer} max-w-5xl w-full max-h-[90vh] flex flex-col p-3 sm:p-6 shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -134,114 +172,141 @@ export function ImageExportModal({
         </div>
 
         {/* Scrollable Preview Area */}
-        <div className={MODAL_STYLES.previewArea}>
-          <div className="p-4 flex justify-center min-w-[940px]">
-            {/* Capture Target Canvas */}
+        <div
+          ref={previewWrapperRef}
+          className={MODAL_STYLES.previewArea}
+        >
+          <div
+            className="flex justify-center items-start w-full"
+            style={
+              scale < 1 && boardHeight > 0
+                ? {
+                    height: `${Math.ceil(boardHeight * scale) + 16}px`,
+                    overflow: 'hidden',
+                    padding: '8px 0'
+                  }
+                : { padding: '16px' }
+            }
+          >
             <div
-              ref={boardRef}
-              className={MODAL_STYLES.boardContainer}
+              style={
+                scale < 1
+                  ? {
+                      transform: `scale(${scale})`,
+                      transformOrigin: 'top center',
+                      width: '920px',
+                      flexShrink: 0
+                    }
+                  : undefined
+              }
             >
-              {/* Header Title Banner */}
-              <div className={MODAL_STYLES.boardHeader}>
-                <div>
-                  <h1 className={MODAL_STYLES.boardTitle}>
-                    WuWa Matrix Squad Maker
-                  </h1>
-                  <p className={MODAL_STYLES.boardSubtitle}>
-                    명조: 워더링 웨이브 종말 매트릭스 파티 편성표
-                  </p>
+              {/* Capture Target Canvas */}
+              <div
+                ref={boardRef}
+                className={MODAL_STYLES.boardContainer}
+              >
+                {/* Header Title Banner */}
+                <div className={MODAL_STYLES.boardHeader}>
+                  <div>
+                    <h1 className={MODAL_STYLES.boardTitle}>
+                      WuWa Matrix Squad Maker
+                    </h1>
+                    <p className={MODAL_STYLES.boardSubtitle}>
+                      명조: 워더링 웨이브 종말 매트릭스 파티 편성표
+                    </p>
+                  </div>
+                  <div className={MODAL_STYLES.boardDateBadge}>
+                    {currentDateStr}
+                  </div>
                 </div>
-                <div className={MODAL_STYLES.boardDateBadge}>
-                  {currentDateStr}
-                </div>
-              </div>
 
-              {/* Squads 2xN Grid */}
-              <div className={MODAL_STYLES.squadsGrid}>
-                {displaySquads.map(({ squad, idx }) => {
-                  const numStr = String(idx + 1).padStart(2, '0')
-                  const buffId = circuitBuffs ? circuitBuffs[idx] : null
-                  const buff = buffId ? CIRCUIT_BUFFS.find((b) => b.id === buffId) : null
+                {/* Squads 2xN Grid */}
+                <div className={MODAL_STYLES.squadsGrid}>
+                  {displaySquads.map(({ squad, idx }) => {
+                    const numStr = String(idx + 1).padStart(2, '0')
+                    const buffId = circuitBuffs ? circuitBuffs[idx] : null
+                    const buff = buffId ? CIRCUIT_BUFFS.find((b) => b.id === buffId) : null
 
-                  return (
-                    <div
-                      key={idx}
-                      className={MODAL_STYLES.squadCard}
-                    >
-                      {/* Left: Squad Number */}
-                      <div className={MODAL_STYLES.squadNumberArea}>
-                        <span className={MODAL_STYLES.squadNumberText}>
-                          {numStr}
-                        </span>
-                      </div>
+                    return (
+                      <div
+                        key={idx}
+                        className={MODAL_STYLES.squadCard}
+                      >
+                        {/* Left: Squad Number */}
+                        <div className={MODAL_STYLES.squadNumberArea}>
+                          <span className={MODAL_STYLES.squadNumberText}>
+                            {numStr}
+                          </span>
+                        </div>
 
-                      {/* Center/Right: 3 Character Slots + Circuit Buff */}
-                      <div className={MODAL_STYLES.slotsRow}>
-                        {squad.map((char, slotIdx) => (
-                          <div
-                            key={slotIdx}
-                            className={MODAL_STYLES.slotItem}
-                          >
-                            <div className={`${MODAL_STYLES.slotBox} ${char ? 'border-solid border-[#262630]' : 'border-dashed border-[#262630]'}`}>
-                              {char ? (
-                                <img
-                                  src={char.img}
-                                  alt={char.name}
-                                  className={MODAL_STYLES.charImage}
-                                  draggable="false"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center select-none">
+                        {/* Center/Right: 3 Character Slots + Circuit Buff */}
+                        <div className={MODAL_STYLES.slotsRow}>
+                          {squad.map((char, slotIdx) => (
+                            <div
+                              key={slotIdx}
+                              className={MODAL_STYLES.slotItem}
+                            >
+                              <div className={`${MODAL_STYLES.slotBox} ${char ? 'border-solid border-[#262630]' : 'border-dashed border-[#262630]'}`}>
+                                {char ? (
                                   <img
-                                    src="/SP_FuncIconRole.webp"
-                                    alt="공명자 슬롯"
-                                    className="w-5 h-5 sm:w-6 sm:h-6 object-contain opacity-25"
+                                    src={char.img}
+                                    alt={char.name}
+                                    className={MODAL_STYLES.charImage}
+                                    draggable="false"
                                   />
-                                </div>
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center select-none">
+                                    <img
+                                      src="/SP_FuncIconRole.webp"
+                                      alt="공명자 슬롯"
+                                      className="w-5 h-5 sm:w-6 sm:h-6 object-contain opacity-25"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <span className={MODAL_STYLES.slotNameText}>
+                                {char ? char.name : '-'}
+                              </span>
+                            </div>
+                          ))}
+
+                          {/* Circuit Buff Slot (Always rendered for consistent alignment) */}
+                          <div className="flex items-center justify-center pl-1 sm:pl-1.5 border-l border-[#262630]/80">
+                            <div className={MODAL_STYLES.slotItem}>
+                              {buff ? (
+                                <>
+                                  <div className={MODAL_STYLES.circuitBox}>
+                                    <img
+                                      src={buff.iconUrl}
+                                      alt={buff.name}
+                                      className="w-full h-full object-contain filter drop-shadow"
+                                    />
+                                  </div>
+                                  <span className={MODAL_STYLES.circuitNameText}>
+                                    {buff.name.replace(' 강화', '')}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <div className={`${MODAL_STYLES.slotBox} border-dashed border-[#262630] bg-[#0e0e13]`}>
+                                    <img
+                                      src="/circuits/T_Iconpropertyredattack_UI.webp"
+                                      alt="미선택 회로"
+                                      className="w-4 h-4 sm:w-5 sm:h-5 object-contain opacity-20"
+                                    />
+                                  </div>
+                                  <span className="mt-1 text-[10px] sm:text-[11px] font-bold text-zinc-600 truncate w-full text-center whitespace-nowrap leading-tight">
+                                    -
+                                  </span>
+                                </>
                               )}
                             </div>
-                            <span className={MODAL_STYLES.slotNameText}>
-                              {char ? char.name : '-'}
-                            </span>
-                          </div>
-                        ))}
-
-                        {/* Circuit Buff Slot (Always rendered for consistent alignment) */}
-                        <div className="flex items-center justify-center pl-1 sm:pl-1.5 border-l border-[#262630]/80">
-                          <div className={MODAL_STYLES.slotItem}>
-                            {buff ? (
-                              <>
-                                <div className={MODAL_STYLES.circuitBox}>
-                                  <img
-                                    src={buff.iconUrl}
-                                    alt={buff.name}
-                                    className="w-full h-full object-contain filter drop-shadow"
-                                  />
-                                </div>
-                                <span className={MODAL_STYLES.circuitNameText}>
-                                  {buff.name.replace(' 강화', '')}
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <div className={`${MODAL_STYLES.slotBox} border-dashed border-[#262630] bg-[#0e0e13]`}>
-                                  <img
-                                    src="/circuits/T_Iconpropertyredattack_UI.webp"
-                                    alt="미선택 회로"
-                                    className="w-4 h-4 sm:w-5 sm:h-5 object-contain opacity-20"
-                                  />
-                                </div>
-                                <span className="mt-1 text-[10px] sm:text-[11px] font-bold text-zinc-600 truncate w-full text-center whitespace-nowrap leading-tight">
-                                  -
-                                </span>
-                              </>
-                            )}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -285,7 +350,7 @@ const MODAL_STYLES = {
   header: 'flex items-center justify-between pb-3 border-b border-[#262630] select-none gap-2 shrink-0',
   title: 'text-sm sm:text-base font-bold text-zinc-200 flex items-center gap-1.5',
   closeButton: 'text-zinc-400 hover:text-zinc-200 transition-colors p-1.5 rounded-lg text-sm select-none cursor-pointer',
-  previewArea: 'flex-1 overflow-auto my-3 bg-[#09090d]/80 rounded-xl border border-[#262630] scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent',
+  previewArea: 'flex-1 overflow-y-auto overflow-x-hidden my-3 bg-[#09090d]/80 rounded-xl border border-[#262630] scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent',
   
   // Capture Board Styles (Fixed 2xN Width)
   boardContainer: 'bg-[#09090d] text-zinc-100 p-5 sm:p-6 rounded-2xl border border-[#262630] shadow-2xl flex flex-col gap-4 select-none w-[920px]',
