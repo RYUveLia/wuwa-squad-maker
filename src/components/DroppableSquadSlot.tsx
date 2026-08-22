@@ -5,24 +5,24 @@ export function getElementBorderClass(element?: string): string {
   switch (element) {
     case 'Aero':
     case '기류':
-      return 'border-emerald-400/60 bg-emerald-950/15 shadow-[0_0_12px_rgba(52,211,153,0.15)]'
+      return 'border-emerald-400/35 shadow-[0_0_8px_rgba(52,211,153,0.08)]'
     case 'Fusion':
     case '용융':
-      return 'border-red-400/60 bg-red-950/15 shadow-[0_0_12px_rgba(248,113,113,0.15)]'
+      return 'border-red-400/35 shadow-[0_0_8px_rgba(248,113,113,0.08)]'
     case 'Electro':
     case '전도':
-      return 'border-purple-400/60 bg-purple-950/15 shadow-[0_0_12px_rgba(192,132,252,0.15)]'
+      return 'border-purple-400/35 shadow-[0_0_8px_rgba(192,132,252,0.08)]'
     case 'Glacio':
     case '응결':
-      return 'border-cyan-400/60 bg-cyan-950/15 shadow-[0_0_12px_rgba(56,189,248,0.15)]'
+      return 'border-cyan-400/35 shadow-[0_0_8px_rgba(56,189,248,0.08)]'
     case 'Spectro':
     case '회절':
-      return 'border-amber-300/60 bg-amber-950/15 shadow-[0_0_12px_rgba(253,224,71,0.15)]'
+      return 'border-amber-300/35 shadow-[0_0_8px_rgba(253,224,71,0.08)]'
     case 'Havoc':
     case '인멸':
-      return 'border-pink-400/60 bg-pink-950/15 shadow-[0_0_12px_rgba(244,114,182,0.15)]'
+      return 'border-pink-400/35 shadow-[0_0_8px_rgba(244,114,182,0.08)]'
     default:
-      return 'border-[#262630] bg-[#0e0e13]'
+      return 'border-[#262630]'
   }
 }
 

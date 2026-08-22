@@ -200,23 +200,38 @@ export function ImageExportModal({
                           </div>
                         ))}
 
-                        {/* Circuit Buff Icon Badge if selected */}
-                        {buff && (
-                          <div className="flex items-center justify-center pl-1 sm:pl-1.5 border-l border-[#262630]/80">
-                            <div className={MODAL_STYLES.slotItem}>
-                              <div className={MODAL_STYLES.circuitBox}>
-                                <img
-                                  src={buff.iconUrl}
-                                  alt={buff.name}
-                                  className="w-full h-full object-contain filter drop-shadow"
-                                />
-                              </div>
-                              <span className={MODAL_STYLES.circuitNameText}>
-                                {buff.name.replace(' 강화', '')}
-                              </span>
-                            </div>
+                        {/* Circuit Buff Slot (Always rendered for consistent alignment) */}
+                        <div className="flex items-center justify-center pl-1 sm:pl-1.5 border-l border-[#262630]/80">
+                          <div className={MODAL_STYLES.slotItem}>
+                            {buff ? (
+                              <>
+                                <div className={MODAL_STYLES.circuitBox}>
+                                  <img
+                                    src={buff.iconUrl}
+                                    alt={buff.name}
+                                    className="w-full h-full object-contain filter drop-shadow"
+                                  />
+                                </div>
+                                <span className={MODAL_STYLES.circuitNameText}>
+                                  {buff.name.replace(' 강화', '')}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <div className={`${MODAL_STYLES.slotBox} border-dashed border-[#262630] bg-[#0e0e13]`}>
+                                  <img
+                                    src="/circuits/T_Iconpropertyredattack_UI.webp"
+                                    alt="미선택 회로"
+                                    className="w-4 h-4 sm:w-5 sm:h-5 object-contain opacity-20"
+                                  />
+                                </div>
+                                <span className="mt-1 text-[10px] sm:text-[11px] font-bold text-zinc-600 truncate w-full text-center whitespace-nowrap leading-tight">
+                                  -
+                                </span>
+                              </>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                   )
@@ -281,7 +296,7 @@ const MODAL_STYLES = {
   slotItem: 'flex flex-col items-center w-[64px] sm:w-[70px] flex-shrink-0',
   slotBox: 'w-full aspect-square rounded-xl bg-[#09090d] border border-[#262630] relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
   slotNameText: 'mt-1 text-[10px] sm:text-[11px] font-bold text-zinc-200 truncate w-full text-center whitespace-nowrap leading-tight',
-  circuitBox: 'w-full aspect-square rounded-xl border border-amber-400/80 bg-amber-950/20 p-1 flex items-center justify-center shadow-inner',
+  circuitBox: 'w-full aspect-square rounded-xl border border-amber-400/50 bg-amber-950/15 p-1 flex items-center justify-center shadow-inner',
   circuitNameText: 'mt-1 text-[9.5px] sm:text-[10px] font-extrabold text-amber-400 truncate w-full text-center whitespace-nowrap leading-tight',
   charImage: 'w-full h-full object-cover',
   emptySlot: 'flex flex-col items-center justify-center text-zinc-600',
