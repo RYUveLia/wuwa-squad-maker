@@ -173,40 +173,45 @@ export function ImageExportModal({
                         {squad.map((char, slotIdx) => (
                           <div
                             key={slotIdx}
-                            className={MODAL_STYLES.slotBox}
+                            className={MODAL_STYLES.slotItem}
                           >
-                            {char ? (
-                              <>
+                            <div className={MODAL_STYLES.slotBox}>
+                              {char ? (
                                 <img
                                   src={char.img}
                                   alt={char.name}
                                   className={MODAL_STYLES.charImage}
                                   draggable="false"
                                 />
-                                <div className={MODAL_STYLES.charNameOverlay}>
-                                  {char.name}
+                              ) : (
+                                <div className={MODAL_STYLES.emptySlot}>
+                                  <span className={MODAL_STYLES.emptyPlus}>＋</span>
+                                  <span className={MODAL_STYLES.emptyLabel}>
+                                    {slotIdx + 1}
+                                  </span>
                                 </div>
-                              </>
-                            ) : (
-                              <div className={MODAL_STYLES.emptySlot}>
-                                <span className={MODAL_STYLES.emptyPlus}>＋</span>
-                                <span className={MODAL_STYLES.emptyLabel}>
-                                  {slotIdx + 1}
-                                </span>
-                              </div>
-                            )}
+                              )}
+                            </div>
+                            <span className={MODAL_STYLES.slotNameText}>
+                              {char ? char.name : '-'}
+                            </span>
                           </div>
                         ))}
 
                         {/* Circuit Buff Icon Badge if selected */}
                         {buff && (
-                          <div className="flex items-center justify-center pl-1 border-l border-[#262630]/80">
-                            <div className={MODAL_STYLES.circuitBox}>
-                              <img
-                                src={buff.iconUrl}
-                                alt={buff.name}
-                                className="w-full h-full object-contain filter drop-shadow"
-                              />
+                          <div className="flex items-center justify-center pl-1 sm:pl-1.5 border-l border-[#262630]/80">
+                            <div className={MODAL_STYLES.slotItem}>
+                              <div className={MODAL_STYLES.circuitBox}>
+                                <img
+                                  src={buff.iconUrl}
+                                  alt={buff.name}
+                                  className="w-full h-full object-contain filter drop-shadow"
+                                />
+                              </div>
+                              <span className={MODAL_STYLES.circuitNameText}>
+                                {buff.name.replace(' 강화', '')}
+                              </span>
                             </div>
                           </div>
                         )}
@@ -270,11 +275,13 @@ const MODAL_STYLES = {
   squadCard: 'bg-[#14141a] border border-[#262630] rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2 shadow-md overflow-hidden',
   squadNumberArea: 'flex items-center justify-center flex-shrink-0 w-8 sm:w-9',
   squadNumberText: 'text-lg sm:text-xl font-black font-mono text-zinc-500 tracking-wider',
-  slotsRow: 'flex flex-row gap-2 items-center justify-center flex-1',
-  slotBox: 'w-[68px] h-[68px] sm:w-[72px] sm:h-[72px] aspect-square rounded-xl bg-[#09090d] border border-[#262630] relative overflow-hidden flex flex-col items-center justify-center shadow-inner flex-shrink-0',
-  circuitBox: 'w-[54px] h-[54px] sm:w-[58px] sm:h-[58px] aspect-square rounded-xl border border-amber-400/80 bg-amber-950/20 p-1 flex items-center justify-center flex-shrink-0',
+  slotsRow: 'flex flex-row gap-1.5 sm:gap-2 items-center justify-center flex-1',
+  slotItem: 'flex flex-col items-center w-[64px] sm:w-[70px] flex-shrink-0',
+  slotBox: 'w-full aspect-square rounded-xl bg-[#09090d] border border-[#262630] relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
+  slotNameText: 'mt-1 text-[10px] sm:text-[11px] font-bold text-zinc-200 truncate w-full text-center whitespace-nowrap leading-tight',
+  circuitBox: 'w-full aspect-square rounded-xl border border-amber-400/80 bg-amber-950/20 p-1 flex items-center justify-center shadow-inner',
+  circuitNameText: 'mt-1 text-[9.5px] sm:text-[10px] font-extrabold text-amber-400 truncate w-full text-center whitespace-nowrap leading-tight',
   charImage: 'w-full h-full object-cover',
-  charNameOverlay: 'absolute bottom-0 inset-x-0 bg-[#09090d]/90 backdrop-blur-[2px] text-[9.5px] sm:text-[10.5px] font-bold text-zinc-200 text-center py-0.5 truncate px-1 border-t border-[#262630]',
   emptySlot: 'flex flex-col items-center justify-center text-zinc-600',
   emptyPlus: 'text-base sm:text-lg leading-none',
   emptyLabel: 'text-[9.5px] font-bold mt-0.5 text-zinc-500',
