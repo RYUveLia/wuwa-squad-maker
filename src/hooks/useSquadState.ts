@@ -288,7 +288,7 @@ export function useSquadState() {
   // 파티 데이터 내보내기 (Export) — 하스스톤 스타일 Base64 코드
   const handleExport = () => {
     try {
-      const code = generateExportText(squads)
+      const code = generateExportText(squadsList)
       navigator.clipboard.writeText(code)
       showToast('편성 코드가 클립보드에 복사되었습니다!')
     } catch {
@@ -305,10 +305,10 @@ export function useSquadState() {
         return
       }
 
-      const importedSquadsList: SquadRowData[] = parsedSquads.map((row, i) => ({
+      const importedSquadsList: SquadRowData[] = parsedSquads.map((item, i) => ({
         id: `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
-        characters: row,
-        circuitBuffId: null
+        characters: item.characters,
+        circuitBuffId: item.circuitBuffId
       }))
 
       setSquadsList(importedSquadsList)

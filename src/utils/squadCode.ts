@@ -1,31 +1,20 @@
 import { MOCK_CHARACTERS } from './character'
 import type { Character } from '../types'
 
-/**
- * 영문 ID 기반 JSON의 Base64 인코딩/디코딩 (레거시 바이너리 포맷 하위 호환 지원)
- */
+export interface SquadExportInput {
+  characters: (Character | null)[]
+  circuitBuffId?: string | null
+}
+
+export interface DecodedSquadResult {
+  characters: (Character | null)[]
+  circuitBuffId: string | null
+}
 
 const EMPTY_SLOT = 0xFF
 const CODE_VERSION = 1
 
-// 레거시 id → MOCK_CHARACTERS 인덱스 매핑
-const idToIndex = new Map<string, number>()
-MOCK_CHARACTERS.forEach((c, idx) => {
-  idToIndex.set(c.id, idx)
-})
-
-/** 파티 배열 → Base64 코드 문자열 (영문 ID 기반) */
-export function encodeSquads(squads: (Character | null)[][]): string {
-  // 공명자가 1명이라도 편성된 파티만 걸러냄
-  const activeSquads = squads.filter(squad => squad.some(char => char !== null))
-  const idSquads = activeSquads.map(squad =>
-    squad.map(char => char ? char.id : null)
-  )
-  const jsonStr = JSON.stringify(idSquads)
-  return btoa(jsonStr)
-}
-
-/** 레거시 Base64 코드 문자열 디코딩 */
+/** 레거시 Base64 바이너리 코드 문자열 디코딩 */
 function decodeSquadsLegacy(code: string): (Character | null)[][] | null {
   try {
     const binary = atob(code)
@@ -60,47 +49,96 @@ function decodeSquadsLegacy(code: string): (Character | null)[][] | null {
   }
 }
 
-/** Base64 코드 문자열 → 파티 배열 (영문 ID 기반 우선, 실패 시 레거시 폴백) */
-export function decodeSquads(code: string): (Character | null)[][] | null {
+/** 파티 배열 (공명자 + 회로 버프) → Base64 코드 문자열 */
+export function encodeSquads(squads: SquadExportInput[] | (Character | null)[][]): string {
+  const normalized = squads
+    .map(item => {
+      if (Array.isArray(item)) {
+        return {
+          c: item.map(char => (char ? char.id : null)),
+          b: null
+        }
+      }
+      return {
+        c: item.characters.map(char => (char ? char.id : null)),
+        b: item.circuitBuffId || null
+      }
+    })
+    .filter(item => item.c.some(id => id !== null) || item.b !== null)
+
+  const payload = {
+    v: 2,
+    s: normalized
+  }
+  return btoa(JSON.stringify(payload))
+}
+
+/** Base64 코드 문자열 → 파티 배열 (v2 객체 포맷, v1 2D 배열 포맷, 레거시 바이너리 하위 호환) */
+export function decodeSquads(code: string): DecodedSquadResult[] | null {
   try {
     const jsonStr = atob(code)
-    // 간단한 검증: JSON 포맷인지 확인
-    if (!jsonStr.startsWith('[')) {
-      return decodeSquadsLegacy(code)
+    if (!jsonStr.startsWith('{') && !jsonStr.startsWith('[')) {
+      const legacy = decodeSquadsLegacy(code)
+      if (!legacy) return null
+      return legacy.map(s => ({ characters: s, circuitBuffId: null }))
     }
-    const idSquads = JSON.parse(jsonStr) as (string | null)[][]
-    
-    if (!Array.isArray(idSquads)) return decodeSquadsLegacy(code)
-    
+
+    const parsed = JSON.parse(jsonStr)
     const idToChar = new Map<string, Character>()
     MOCK_CHARACTERS.forEach(c => {
       idToChar.set(c.id, c)
     })
-    
-    const squads: (Character | null)[][] = []
-    for (const squad of idSquads) {
-      if (!Array.isArray(squad)) return null
-      const restoredSquad = squad.map(id => {
-        if (!id) return null
-        return idToChar.get(id) || null
+
+    // v2 형식: { v: 2, s: [ { c: [...], b: '...' } ] }
+    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.s)) {
+      return parsed.s.map((item: { c: (string | null)[]; b?: string | null }) => {
+        const chars: (Character | null)[] = Array.isArray(item.c)
+          ? item.c.map(id => (id ? idToChar.get(id) || null : null))
+          : [null, null, null]
+        while (chars.length < 3) chars.push(null)
+        if (chars.length > 3) chars.length = 3
+        return {
+          characters: chars,
+          circuitBuffId: typeof item.b === 'string' ? item.b : null
+        }
       })
-      squads.push(restoredSquad)
     }
-    return squads
+
+    // v1 형식: (string | null)[][]
+    if (Array.isArray(parsed)) {
+      const results: DecodedSquadResult[] = []
+      for (const squad of parsed) {
+        if (!Array.isArray(squad)) return null
+        const restoredSquad = squad.map(id => {
+          if (!id) return null
+          return idToChar.get(id) || null
+        })
+        while (restoredSquad.length < 3) restoredSquad.push(null)
+        if (restoredSquad.length > 3) restoredSquad.length = 3
+        results.push({
+          characters: restoredSquad,
+          circuitBuffId: null
+        })
+      }
+      return results
+    }
+
+    return null
   } catch {
-    return decodeSquadsLegacy(code)
+    const legacy = decodeSquadsLegacy(code)
+    if (!legacy) return null
+    return legacy.map(s => ({ characters: s, circuitBuffId: null }))
   }
 }
 
 /** 전체 내보내기 텍스트 생성 (순수 Base64 코드만 반환) */
-export function generateExportText(squads: (Character | null)[][]): string {
+export function generateExportText(squads: SquadExportInput[] | (Character | null)[][]): string {
   return encodeSquads(squads)
 }
 
 /** 불러오기 텍스트에서 Base64 코드만 추출하여 디코딩 */
-export function parseImportText(text: string): (Character | null)[][] | null {
+export function parseImportText(text: string): DecodedSquadResult[] | null {
   const lines = text.trim().split('\n')
-  // 주석(#)과 빈 줄을 건너뛰고 첫 번째 유효 라인 = Base64 코드
   const codeLine = lines.find(line => {
     const trimmed = line.trim()
     return trimmed.length > 0 && !trimmed.startsWith('#')
@@ -108,4 +146,3 @@ export function parseImportText(text: string): (Character | null)[][] | null {
   if (!codeLine) return null
   return decodeSquads(codeLine.trim())
 }
-
