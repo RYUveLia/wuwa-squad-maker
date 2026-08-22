@@ -94,7 +94,7 @@ export function DraggableCharacterCard({
 // STYLES
 const CONTAINER_CLASS = (isMaxedOut: boolean, isDragging: boolean) => {
   const isDimmed = isMaxedOut
-  return `bg-[#14141a]/80 border border-[#262630] rounded-xl sm:rounded-2xl p-1 sm:p-2 md:p-2.5 flex flex-col items-center select-none group transition-all duration-200 ${
+  return `bg-[#14141a]/80 border border-[#262630] rounded-xl sm:rounded-2xl p-1 sm:p-1.5 md:p-2 flex flex-col items-center select-none group transition-all duration-200 h-fit ${
     isDimmed ? 'opacity-30 border-zinc-900 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing hover:bg-[#1a1a22] hover:border-amber-400/40 hover:shadow-md'
   } ${isDragging ? 'scale-95 border-amber-400/80 shadow-2xl' : ''}`
 }
@@ -105,7 +105,7 @@ const DEPLOYED_OVERLAY_CLASS = (isMaxedOut: boolean) => `absolute inset-0 flex i
   isMaxedOut ? 'bg-black/75' : 'bg-transparent'
 }`
 const DEPLOYED_BADGE_CLASS = 'text-[9.5px] sm:text-xs md:text-sm font-extrabold text-amber-400 tracking-wider bg-[#09090d] border border-amber-500/40 px-1.5 sm:px-2.5 py-0.5 rounded shadow select-none'
-const NAME_CLASS = 'mt-1 sm:mt-2 text-[11px] sm:text-sm md:text-base font-bold text-zinc-300 group-hover:text-zinc-100 transition-colors truncate w-full text-center whitespace-nowrap overflow-hidden'
-const TAG_AREA_CLASS = 'mt-1 sm:mt-1.5 select-none flex flex-wrap items-center justify-center gap-0.5 sm:gap-1 md:gap-1.5 w-full font-bold'
-const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-1 sm:px-2 py-0.5 rounded border text-[9.5px] sm:text-[12px] md:text-[13px] whitespace-nowrap ${elementColor}`
-const LIMIT2_BADGE_CLASS = 'text-[9.5px] sm:text-[12px] md:text-[13px] font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1 sm:px-2 py-0.5 rounded whitespace-nowrap'
+const NAME_CLASS = 'mt-1 text-[10.5px] sm:text-xs md:text-[13px] font-bold text-zinc-300 group-hover:text-zinc-100 transition-colors truncate w-full text-center whitespace-nowrap overflow-hidden leading-tight'
+const TAG_AREA_CLASS = 'mt-1 select-none flex flex-wrap items-center justify-center gap-0.5 sm:gap-1 w-full font-bold'
+const ELEMENT_BADGE_CLASS = (elementColor: string) => `px-1 sm:px-1.5 py-0.5 rounded border text-[9px] sm:text-[10.5px] md:text-[11px] whitespace-nowrap leading-none ${elementColor}`
+const LIMIT2_BADGE_CLASS = 'text-[9px] sm:text-[10.5px] md:text-[11px] font-extrabold text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1 sm:px-1.5 py-0.5 rounded whitespace-nowrap leading-none'
