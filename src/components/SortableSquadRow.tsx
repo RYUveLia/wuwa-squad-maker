@@ -74,9 +74,6 @@ export function SortableSquadRow({
 
       {/* Right: Actions */}
       <div className={SQUAD_LIST_STYLES.actionArea}>
-        <span className={SQUAD_LIST_STYLES.squadLabel}>
-          {squadIdx + 1}번 파티
-        </span>
         {squadsLength > 1 && (
           <button
             onClick={() => handleDeleteSquad(squadIdx)}
@@ -96,7 +93,6 @@ const SQUAD_LIST_STYLES = {
   numberBadgeArea: 'flex items-center gap-1 sm:gap-2 lg:gap-4 select-none flex-shrink-0',
   numberText: 'text-lg sm:text-2xl lg:text-4xl font-black font-mono text-zinc-500 tracking-wider',
   slotsArea: 'flex flex-row gap-1 sm:gap-3 lg:gap-4 flex-1 justify-center max-w-xl',
-  actionArea: 'flex flex-col items-end gap-1 select-none flex-shrink-0 min-w-[60px] sm:w-[80px] lg:min-w-[95px]',
-  squadLabel: 'text-[9px] sm:text-[11px] lg:text-[13px] font-bold px-1.5 sm:px-2.5 py-0.5 rounded border tracking-wide uppercase text-amber-400 bg-amber-950/30 border-amber-800/50 whitespace-nowrap',
-  deleteBtn: 'text-[9px] sm:text-[11px] lg:text-[13px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-1.5 sm:px-2.5 py-0.5 rounded cursor-pointer transition-colors mt-1 whitespace-nowrap',
+  actionArea: 'flex items-center justify-end select-none flex-shrink-0 min-w-[36px] sm:min-w-[48px]',
+  deleteBtn: 'text-[9.5px] sm:text-[11px] lg:text-[12px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-2 sm:px-2.5 py-1 rounded-lg cursor-pointer transition-colors whitespace-nowrap',
 }
