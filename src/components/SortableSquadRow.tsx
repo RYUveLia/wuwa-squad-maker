@@ -43,7 +43,7 @@ export function SortableSquadRow({
         <span
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-purple-400 transition-colors text-lg md:text-xl select-none touch-none"
+          className="cursor-grab active:cursor-grabbing text-zinc-600 hover:text-amber-400 transition-colors text-lg md:text-xl select-none touch-none"
           title="드래그하여 순서 변경"
         >
           ☰
@@ -92,11 +92,11 @@ export function SortableSquadRow({
 }
 
 const SQUAD_LIST_STYLES = {
-  row: 'bg-transparent lg:bg-slate-900/50 border-b border-slate-900 lg:border lg:border-slate-800/80 rounded-none lg:rounded-2xl p-1 sm:p-3.5 lg:p-5 shadow-none lg:shadow-md flex flex-row items-center justify-between gap-1 sm:gap-3 lg:gap-5 animate-scale-up select-none',
+  row: 'bg-transparent lg:bg-[#14141a]/70 border-b border-zinc-900 lg:border lg:border-[#262630] rounded-none lg:rounded-2xl p-1 sm:p-3.5 lg:p-5 shadow-none lg:shadow-md flex flex-row items-center justify-between gap-1 sm:gap-3 lg:gap-5 animate-scale-up select-none',
   numberBadgeArea: 'flex items-center gap-1 sm:gap-2 lg:gap-4 select-none flex-shrink-0',
-  numberText: 'text-lg sm:text-2xl lg:text-4xl font-black font-mono text-slate-500 tracking-wider',
+  numberText: 'text-lg sm:text-2xl lg:text-4xl font-black font-mono text-zinc-500 tracking-wider',
   slotsArea: 'flex flex-row gap-1 sm:gap-3 lg:gap-4 flex-1 justify-center max-w-xl',
   actionArea: 'flex flex-col items-end gap-1 select-none flex-shrink-0 min-w-[60px] sm:w-[80px] lg:min-w-[95px]',
-  squadLabel: 'text-[9px] sm:text-[11px] lg:text-[13px] font-bold px-1.5 sm:px-2.5 py-0.5 rounded border tracking-wide uppercase text-purple-400 bg-purple-950/20 border-purple-900/50 whitespace-nowrap',
+  squadLabel: 'text-[9px] sm:text-[11px] lg:text-[13px] font-bold px-1.5 sm:px-2.5 py-0.5 rounded border tracking-wide uppercase text-amber-400 bg-amber-950/30 border-amber-800/50 whitespace-nowrap',
   deleteBtn: 'text-[9px] sm:text-[11px] lg:text-[13px] font-bold text-rose-400 hover:text-rose-300 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/40 px-1.5 sm:px-2.5 py-0.5 rounded cursor-pointer transition-colors mt-1 whitespace-nowrap',
 }

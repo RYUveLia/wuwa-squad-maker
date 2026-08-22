@@ -136,15 +136,15 @@ export function ResonatorSelectModal({
                 role="switch"
                 aria-checked={showLeakInfo}
                 onClick={() => setShowLeakInfo(!showLeakInfo)}
-                className={`relative inline-flex h-5 w-8.5 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-slate-700/60 ${
+                className={`relative inline-flex h-5 w-8.5 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-zinc-700/60 ${
                   showLeakInfo 
-                    ? 'bg-purple-600/90 shadow-[0_0_8px_rgba(168,85,247,0.35)]' 
-                    : 'bg-slate-800'
+                    ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
+                    : 'bg-zinc-800'
                 }`}
               >
                 <span
                   className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full shadow ring-0 transition-all duration-200 ease-in-out ${
-                    showLeakInfo ? 'translate-x-4 bg-white' : 'translate-x-0.5 bg-slate-400'
+                    showLeakInfo ? 'translate-x-4 bg-zinc-950' : 'translate-x-0.5 bg-zinc-400'
                   }`}
                 />
               </button>
@@ -180,25 +180,25 @@ export function ResonatorSelectModal({
 
 // STYLES (App.tsx Colocation Style Pattern 기조 통일)
 const SELECT_MODAL_STYLES = {
-  header: 'flex items-center justify-between mb-2.5 flex-shrink-0 bg-slate-900/30 p-2 rounded-xl border border-slate-800/40',
+  header: 'flex items-center justify-between mb-2.5 flex-shrink-0 bg-[#14141a] p-2 rounded-xl border border-[#262630]',
   headerLeft: 'flex items-center gap-2',
-  partyBadge: 'text-[10px] font-black font-mono text-purple-400 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/40 select-none',
+  partyBadge: 'text-[10px] font-black font-mono text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800/40 select-none',
   miniSlotsArea: 'flex gap-1.5 select-none',
   miniSlot: (isAssigned: boolean) => `w-8 h-8 rounded-lg overflow-hidden border flex items-center justify-center relative group cursor-pointer transition-all ${
-    isAssigned ? 'border-purple-500 bg-slate-900 shadow-md shadow-purple-950/20' : 'border-dashed border-slate-800 bg-slate-950/30'
+    isAssigned ? 'border-amber-400 bg-[#14141a] shadow-md shadow-amber-950/20' : 'border-dashed border-[#262630] bg-[#09090d]/60'
   }`,
   miniSlotImg: 'w-full h-full object-cover',
   miniSlotRemoveOverlay: 'absolute inset-0 bg-rose-950/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity',
   miniSlotRemoveText: 'text-[10px] font-black text-rose-400',
-  miniSlotEmptyText: 'text-[10px] text-slate-700 font-bold',
-  doneBtn: 'text-[10px] sm:text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 border border-purple-500/40 px-3.5 py-1.5 rounded-lg cursor-pointer shadow-md active:scale-95 transition-all',
-  filterBar: 'flex flex-wrap justify-center gap-1 bg-slate-900/40 p-1 rounded-lg border border-slate-800/40 mb-2 flex-shrink-0',
-  filterBtn: (isActive: boolean) => `px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-semibold rounded-md transition-all duration-200 cursor-pointer ${
-    isActive ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+  miniSlotEmptyText: 'text-[10px] text-zinc-600 font-bold',
+  doneBtn: 'text-[10px] sm:text-xs font-extrabold text-zinc-950 bg-amber-400 hover:bg-amber-300 border border-amber-400/50 px-3.5 py-1.5 rounded-lg cursor-pointer shadow-md active:scale-95 transition-all',
+  filterBar: 'flex flex-wrap justify-center gap-1 bg-[#14141a] p-1 rounded-lg border border-[#262630] mb-2 flex-shrink-0',
+  filterBtn: (isActive: boolean) => `px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-md transition-all duration-200 cursor-pointer ${
+    isActive ? 'bg-amber-400 text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
   }`,
   ownedFilterArea: 'flex justify-between items-center px-1 mb-2.5 select-none flex-shrink-0',
   ownedModalTrigger: COMMON_STYLES.subBtn,
   ownedLabel: COMMON_STYLES.checkboxLabel,
   ownedCheckbox: COMMON_STYLES.checkboxInput,
-  scroller: 'grid grid-cols-4 gap-1.5 justify-items-center overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent'
+  scroller: 'grid grid-cols-4 gap-1.5 justify-items-center overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent'
 }
