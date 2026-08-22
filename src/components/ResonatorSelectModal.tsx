@@ -2,6 +2,7 @@ import type { Character } from '../types'
 import { ELEMENT_KR_MAP } from '../constants'
 import { DraggableCharacterCard } from './DraggableCharacterCard'
 import { COMMON_STYLES } from '../styles/theme'
+import { getSeasonBuffInfo } from '../utils/character'
 
 interface ResonatorSelectModalProps {
   onSelect: (char: Character) => void
@@ -168,7 +169,7 @@ export function ResonatorSelectModal({
                 maxAllowed={maxAllowed}
                 onClick={() => onSelect(char)}
                 isDraggable={false}
-                isSeasonBuff={char.id === (showLeakInfo ? '' : 'denia')}
+                isSeasonBuff={getSeasonBuffInfo(showLeakInfo).character?.id === char.id}
               />
             )
           })}

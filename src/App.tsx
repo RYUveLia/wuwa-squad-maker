@@ -20,7 +20,7 @@ import { ImageExportModal } from './components/ImageExportModal'
 
 // 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
-import { getDoubleDeploymentNamesText } from './utils/character'
+import { getDoubleDeploymentNamesText, getSeasonBuffInfo } from './utils/character'
 
 function App() {
   const {
@@ -70,6 +70,7 @@ function App() {
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
+  const seasonBuffInfo = getSeasonBuffInfo(showLeakInfo)
 
   if (!isVerified) {
     return <TurnstileGate onVerify={() => setIsVerified(true)} />
@@ -86,7 +87,12 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br className="hidden sm:inline" />
-            일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold whitespace-nowrap">{showLeakInfo ? '3.7' : '3.6'} 시즌 버프 대상인 {showLeakInfo ? '미정' : '데니아'}</span>는 <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
+            일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span>
+            {seasonBuffInfo.character ? (
+              <> 및 <span className="text-amber-400 font-bold whitespace-nowrap">{seasonBuffInfo.version} 시즌 버프 대상인 {seasonBuffInfo.character.name}</span>는</>
+            ) : (
+              '는'
+            )} <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
           </p>
         </header>
 
@@ -98,7 +104,9 @@ function App() {
             <div className={RESONATOR_POOL_STYLES.header}>
               <div className={RESONATOR_POOL_STYLES.titleArea}>
                 <h3 className={RESONATOR_POOL_STYLES.title}>공명자 도감 ({filteredCharacters.length})</h3>
-                <span className={RESONATOR_POOL_STYLES.subtitle}>최신순 정렬 ({showLeakInfo ? '미정' : '데니아'}는 {showLeakInfo ? '3.7' : '3.6'} 시즌 임시 2회 적용)</span>
+                <span className={RESONATOR_POOL_STYLES.subtitle}>
+                  최신순 정렬{seasonBuffInfo.character ? ` (${seasonBuffInfo.character.name}는 ${seasonBuffInfo.version} 시즌 임시 2회 적용)` : ''}
+                </span>
               </div>
               
               {/* Element Filter */}
@@ -172,7 +180,7 @@ function App() {
                     isMaxedOut={isMaxedOut}
                     maxAllowed={maxAllowed}
                     onClick={() => handleToggleCharacter(char)}
-                    isSeasonBuff={char.id === (showLeakInfo ? '' : 'denia')}
+                    isSeasonBuff={seasonBuffInfo.character?.id === char.id}
                   />
                 )
               })}

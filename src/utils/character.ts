@@ -75,13 +75,26 @@ export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, rove
 // 유출 정보 설정에 의존하는 중복 편성 가능 캐릭터 목록 (추후 신규 캐릭터 등장 시 이곳에 ID 추가)
 export const LEAK_DOUBLE_DEPLOYMENT_CHARACTERS: string[] = []
 
-export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {
+export interface SeasonBuffInfo {
+  version: string
+  character: Character | null
+}
+
+/** 현재 활성화된 시즌 버프 정보 반환 (미정인 경우 character: null) */
+export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
   if (showLeakInfo) {
     // 3.7 시즌 버프 대상 캐릭터 (현재 미정)
-    if (charId === 'denia') return 1
-  } else {
-    // 3.6 시즌 버프 대상 캐릭터 (데니아)
-    if (charId === 'denia') return 2
+    return { version: '3.7', character: null }
+  }
+  // 3.6 시즌 버프 대상 캐릭터 (데니아)
+  const char = MOCK_CHARACTERS.find(c => c.id === 'denia') || null
+  return { version: '3.6', character: char }
+}
+
+export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {
+  const seasonBuff = getSeasonBuffInfo(showLeakInfo)
+  if (seasonBuff.character && seasonBuff.character.id === charId) {
+    return 2
   }
 
   if (LEAK_DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) {
