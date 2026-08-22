@@ -414,7 +414,7 @@ export function useSquadState() {
     // 1. 그룹 가중치 판별 (정식 출시: 0, 미래 미출시: 1, 완전히 미정: 2)
     const getWeight = (c: Character) => {
       if (c.releaseVersion === 9.9) return 2
-      const limit = showLeakInfo ? 3.65 : 3.55
+      const limit = showLeakInfo ? 3.75 : 3.65
       return c.releaseVersion > limit ? 1 : 0
     }
     const weightA = getWeight(a)
