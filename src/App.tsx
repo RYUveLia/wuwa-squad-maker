@@ -86,7 +86,7 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br className="hidden sm:inline" />
-            일부 공명자<span className="text-purple-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold whitespace-nowrap">{showLeakInfo ? '3.7' : '3.6'} 시즌 버프 대상인 {showLeakInfo ? '미정' : '데니아'}</span>는 <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
+            일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span> 및 <span className="text-amber-400 font-bold whitespace-nowrap">{showLeakInfo ? '3.7' : '3.6'} 시즌 버프 대상인 {showLeakInfo ? '미정' : '데니아'}</span>는 <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
           </p>
         </header>
 
@@ -134,21 +134,21 @@ function App() {
                   </label>
 
                   {/* Leak Filter Toggle Button */}
-                  <div className="flex items-center gap-2 border-l border-slate-800/80 pl-3.5">
-                    <span className="text-[10px] sm:text-xs font-semibold text-slate-400 select-none">유출 정보</span>
+                  <div className="flex items-center gap-2 border-l border-zinc-800 pl-3.5">
+                    <span className="text-[10px] sm:text-xs font-semibold text-zinc-400 select-none">유출 정보</span>
                     <button
                       role="switch"
                       aria-checked={showLeakInfo}
                       onClick={() => setShowLeakInfo(!showLeakInfo)}
-                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-slate-700/60 ${
+                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-zinc-700/60 ${
                         showLeakInfo 
-                          ? 'bg-purple-600/90 shadow-[0_0_8px_rgba(168,85,247,0.35)]' 
-                          : 'bg-slate-800'
+                          ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
+                          : 'bg-zinc-800'
                       }`}
                     >
                       <span
                         className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition-all duration-200 ease-in-out ${
-                          showLeakInfo ? 'translate-x-5 bg-white' : 'translate-x-0.5 bg-slate-400'
+                          showLeakInfo ? 'translate-x-5 bg-zinc-950' : 'translate-x-0.5 bg-zinc-400'
                         }`}
                       />
                     </button>
@@ -342,11 +342,11 @@ function App() {
       {/* Drag Overlay — 마우스 커서를 정확히 따라다니는 프리뷰 카드 */}
       <DragOverlay dropAnimation={null}>
         {activeDragChar ? (
-          <div className="w-20 h-24 bg-slate-900 border-2 border-purple-500 rounded-xl p-1.5 flex flex-col items-center shadow-2xl shadow-purple-500/30 pointer-events-none">
-            <div className="w-full aspect-square rounded-lg overflow-hidden bg-slate-800">
+          <div className="w-20 h-24 bg-[#14141a] border-2 border-amber-400 rounded-xl p-1.5 flex flex-col items-center shadow-2xl shadow-amber-500/30 pointer-events-none">
+            <div className="w-full aspect-square rounded-lg overflow-hidden bg-[#09090d]">
               <img src={activeDragChar.img} alt={activeDragChar.name} className="w-full h-full object-cover" />
             </div>
-            <span className="mt-1 text-[9px] font-bold text-slate-200 truncate w-full text-center">{activeDragChar.name}</span>
+            <span className="mt-1 text-[9px] font-bold text-zinc-200 truncate w-full text-center">{activeDragChar.name}</span>
           </div>
         ) : null}
       </DragOverlay>
@@ -358,40 +358,40 @@ export default App
 
 // STYLES (ads-admin Colocation Style Pattern)
 const LAYOUT_STYLES = {
-  wrapper: 'min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-3 px-2 sm:py-6 sm:px-4 font-sans selection:bg-purple-500 selection:text-white animate-fade-in max-w-full',
+  wrapper: 'min-h-screen bg-[#09090d] text-zinc-100 flex flex-col items-center py-3 px-2 sm:py-6 sm:px-4 font-sans selection:bg-amber-400 selection:text-black animate-fade-in max-w-full',
   splitGrid: 'w-full max-w-7xl flex flex-col lg:flex-row gap-3 lg:gap-6 items-stretch flex-1',
-  leftColumn: 'w-full lg:w-[43%] bg-slate-900/30 border border-slate-800/40 rounded-2xl p-4 md:p-5 backdrop-blur-sm shadow-xl flex flex-col max-h-none lg:max-h-[76vh] lg:overflow-hidden',
+  leftColumn: 'w-full lg:w-[43%] bg-[#121217]/70 border border-[#262630] rounded-2xl p-4 md:p-5 backdrop-blur-sm shadow-xl flex flex-col max-h-none lg:max-h-[76vh] lg:overflow-hidden',
   rightColumn: 'w-full lg:w-[57%] flex flex-col gap-3 lg:gap-4 max-h-none lg:max-h-[76vh] lg:overflow-hidden'
 }
 
 const HEADER_STYLES = {
   container: 'text-center mb-8 max-w-2xl select-none mx-auto',
-  title: 'text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-cyan-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm',
-  description: 'text-slate-400 mt-2 text-sm md:text-base leading-relaxed break-keep'
+  title: 'text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm',
+  description: 'text-zinc-400 mt-2 text-sm md:text-base leading-relaxed break-keep'
 }
 
 const RESONATOR_POOL_STYLES = {
   header: 'flex flex-col gap-4 select-none flex-shrink-0',
   titleArea: 'flex items-baseline justify-between',
-  title: 'text-base md:text-lg font-bold text-slate-200',
-  subtitle: 'text-xs text-slate-500',
-  filterBar: 'flex flex-wrap gap-1 bg-slate-950/60 p-1 rounded-lg border border-slate-800/80',
-  filterButton: (isActive: boolean) => `px-3 py-1 text-xs md:text-sm font-semibold rounded-md transition-all duration-200 cursor-pointer ${
-    isActive ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+  title: 'text-base md:text-lg font-bold text-zinc-200',
+  subtitle: 'text-xs text-zinc-500',
+  filterBar: 'flex flex-wrap gap-1 bg-[#14141a] p-1 rounded-lg border border-[#262630]',
+  filterButton: (isActive: boolean) => `px-3 py-1 text-xs md:text-sm font-bold rounded-md transition-all duration-200 cursor-pointer ${
+    isActive ? 'bg-amber-400 text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
   }`,
-  ownedFilterBar: 'flex items-center justify-between px-1.5 py-1 mb-3.5 select-none bg-slate-950/20 border border-slate-900 rounded-xl',
+  ownedFilterBar: 'flex items-center justify-between px-1.5 py-1 mb-3.5 select-none bg-[#14141a]/40 border border-[#262630] rounded-xl',
   ownedSettingsBtn: COMMON_STYLES.subBtn,
   ownedFilterLabel: COMMON_STYLES.checkboxLabel,
   ownedCheckbox: COMMON_STYLES.checkboxInput
 }
 
 const SQUAD_LIST_STYLES = {
-  toolbar: 'flex items-center justify-between bg-slate-900/30 border border-slate-800/40 p-2 sm:p-3 rounded-2xl select-none flex-shrink-0 gap-1.5 sm:gap-2',
-  toolbarTitle: 'text-[11px] sm:text-xs md:text-sm font-bold text-slate-300 px-1 whitespace-nowrap flex-shrink-0',
+  toolbar: 'flex items-center justify-between bg-[#14141a]/70 border border-[#262630] p-2 sm:p-3 rounded-2xl select-none flex-shrink-0 gap-1.5 sm:gap-2',
+  toolbarTitle: 'text-[11px] sm:text-xs md:text-sm font-bold text-zinc-300 px-1 whitespace-nowrap flex-shrink-0',
   toolbarBtnArea: 'flex gap-1 sm:gap-2',
-  toolbarBtn: 'px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9.5px] sm:text-[11px] font-bold text-slate-400 hover:text-slate-200 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 rounded-lg cursor-pointer transition-colors whitespace-nowrap',
-  scroller: 'flex flex-col gap-4 overflow-y-visible lg:overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent p-1',
-  addSquadBar: 'bg-slate-900/10 border-2 border-dashed border-slate-800/60 hover:border-purple-500/50 hover:bg-slate-900/25 rounded-2xl py-4 flex flex-row items-center justify-center cursor-pointer group transition-all duration-300 select-none flex-shrink-0 gap-2',
-  addSquadPlus: 'text-xl text-slate-500 group-hover:text-purple-400 group-hover:scale-110 transition-all duration-300',
-  addSquadText: 'text-sm font-bold text-slate-400 group-hover:text-purple-300 transition-colors'
+  toolbarBtn: 'px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9.5px] sm:text-[11px] font-bold text-zinc-400 hover:text-zinc-200 bg-[#14141a] hover:bg-[#1c1c24] border border-[#262630] rounded-lg cursor-pointer transition-colors whitespace-nowrap',
+  scroller: 'flex flex-col gap-4 overflow-y-visible lg:overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent p-1',
+  addSquadBar: 'bg-[#14141a]/30 border-2 border-dashed border-zinc-800/80 hover:border-amber-400/50 hover:bg-[#14141a]/70 rounded-2xl py-4 flex flex-row items-center justify-center cursor-pointer group transition-all duration-300 select-none flex-shrink-0 gap-2',
+  addSquadPlus: 'text-xl text-zinc-500 group-hover:text-amber-400 group-hover:scale-110 transition-all duration-300',
+  addSquadText: 'text-sm font-bold text-zinc-400 group-hover:text-amber-300 transition-colors'
 }

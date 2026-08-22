@@ -57,7 +57,7 @@ export function ImageExportModal({
     try {
       const { toPng } = await import('html-to-image')
       const dataUrl = await toPng(boardRef.current, {
-        backgroundColor: '#020617', // slate-950
+        backgroundColor: '#09090d', // WuWa Tracker dark background
         pixelRatio: 2,
         cacheBust: true
       })
@@ -84,7 +84,7 @@ export function ImageExportModal({
     try {
       const { toBlob } = await import('html-to-image')
       const blob = await toBlob(boardRef.current, {
-        backgroundColor: '#020617',
+        backgroundColor: '#09090d',
         pixelRatio: 2,
         cacheBust: true
       })
@@ -235,30 +235,30 @@ export function ImageExportModal({
 }
 
 const MODAL_STYLES = {
-  header: 'flex items-center justify-between pb-3 border-b border-slate-800/80 select-none gap-2 shrink-0',
-  title: 'text-sm sm:text-base font-bold text-slate-200 flex items-center gap-1.5',
-  closeButton: 'text-slate-400 hover:text-slate-200 transition-colors p-1.5 rounded-lg text-sm select-none cursor-pointer',
-  previewArea: 'flex-1 overflow-auto my-3 bg-slate-950/60 rounded-xl border border-slate-900 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent',
+  header: 'flex items-center justify-between pb-3 border-b border-[#262630] select-none gap-2 shrink-0',
+  title: 'text-sm sm:text-base font-bold text-zinc-200 flex items-center gap-1.5',
+  closeButton: 'text-zinc-400 hover:text-zinc-200 transition-colors p-1.5 rounded-lg text-sm select-none cursor-pointer',
+  previewArea: 'flex-1 overflow-auto my-3 bg-[#09090d]/80 rounded-xl border border-[#262630] scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent',
   
   // Capture Board Styles (Fixed 2xN Width)
-  boardContainer: 'bg-slate-950 text-slate-100 p-5 sm:p-6 rounded-2xl border border-slate-800/80 shadow-2xl flex flex-col gap-4 select-none w-[880px]',
-  boardHeader: 'flex items-center justify-between border-b border-slate-800/80 pb-3',
-  boardTitle: 'text-lg sm:text-xl font-extrabold bg-gradient-to-r from-purple-400 via-cyan-400 to-amber-400 bg-clip-text text-transparent tracking-tight',
-  boardSubtitle: 'text-xs text-slate-400 font-semibold mt-0.5',
-  boardDateBadge: 'text-xs font-mono font-bold text-slate-500 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md',
+  boardContainer: 'bg-[#09090d] text-zinc-100 p-5 sm:p-6 rounded-2xl border border-[#262630] shadow-2xl flex flex-col gap-4 select-none w-[880px]',
+  boardHeader: 'flex items-center justify-between border-b border-[#262630] pb-3',
+  boardTitle: 'text-lg sm:text-xl font-extrabold text-white tracking-tight',
+  boardSubtitle: 'text-xs text-zinc-400 font-semibold mt-0.5',
+  boardDateBadge: 'text-xs font-mono font-bold text-amber-400 bg-[#14141a] border border-[#262630] px-2.5 py-1 rounded-md',
   
   squadsGrid: 'grid grid-cols-2 gap-3.5',
-  squadCard: 'bg-slate-900/70 border border-slate-800/90 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-md',
+  squadCard: 'bg-[#14141a] border border-[#262630] rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-md',
   squadNumberArea: 'flex items-center justify-center flex-shrink-0 w-10',
-  squadNumberText: 'text-xl sm:text-2xl font-black font-mono text-slate-500 tracking-wider',
+  squadNumberText: 'text-xl sm:text-2xl font-black font-mono text-zinc-500 tracking-wider',
   slotsRow: 'flex flex-row gap-2.5 justify-center flex-1',
-  slotBox: 'w-18 h-18 sm:w-20 sm:h-20 aspect-square rounded-xl bg-slate-950/80 border border-slate-800 relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
+  slotBox: 'w-18 h-18 sm:w-20 sm:h-20 aspect-square rounded-xl bg-[#09090d] border border-[#262630] relative overflow-hidden flex flex-col items-center justify-center shadow-inner',
   charImage: 'w-full h-full object-cover',
-  charNameOverlay: 'absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-[2px] text-[10px] sm:text-[11px] font-bold text-slate-200 text-center py-0.5 truncate px-1 border-t border-slate-800/60',
-  emptySlot: 'flex flex-col items-center justify-center text-slate-600',
+  charNameOverlay: 'absolute bottom-0 inset-x-0 bg-[#09090d]/90 backdrop-blur-[2px] text-[10px] sm:text-[11px] font-bold text-zinc-200 text-center py-0.5 truncate px-1 border-t border-[#262630]',
+  emptySlot: 'flex flex-col items-center justify-center text-zinc-600',
   emptyPlus: 'text-base sm:text-lg leading-none',
-  emptyLabel: 'text-[9.5px] font-bold mt-0.5 text-slate-500',
+  emptyLabel: 'text-[9.5px] font-bold mt-0.5 text-zinc-500',
   
-  footer: 'flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-slate-800/80 shrink-0 select-none',
-  infoText: 'text-[11px] sm:text-xs text-slate-400 text-center sm:text-left break-keep'
+  footer: 'flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-3 border-t border-[#262630] shrink-0 select-none',
+  infoText: 'text-[11px] sm:text-xs text-zinc-400 text-center sm:text-left break-keep'
 }
