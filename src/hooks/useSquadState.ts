@@ -6,38 +6,100 @@ import type { Character } from '../types'
 import { MOCK_CHARACTERS, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 
+export interface SquadRowData {
+  id: string
+  characters: (Character | null)[]
+  circuitBuffId: string | null
+}
+
 export function useSquadState() {
-  const [squads, setSquads] = useState<(Character | null)[][]>(() => {
-    const saved = localStorage.getItem('wuwa-squads')
-    if (saved) {
+  // 단일 통합 스쿼드 상태 (characters, circuitBuffId, 고유 ID 원자적 관리)
+  const [squadsList, setSquadsList] = useState<SquadRowData[]>(() => {
+    // 1) 통합 포맷 우선 로드
+    const savedData = localStorage.getItem('wuwa-squads-data')
+    if (savedData) {
       try {
-        const parsedIds = JSON.parse(saved) as (string | null)[][]
-        return parsedIds.map(row =>
-          row.map(id => {
-            if (!id) return null
-            return MOCK_CHARACTERS.find(c => c.id === id) || null
-          })
-        )
-      } catch (e) {
+        const parsed = JSON.parse(savedData)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((item, i) => ({
+            id: item.id || `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
+            characters: (item.characters || [null, null, null]).map((id: string | null) =>
+              id ? MOCK_CHARACTERS.find(c => c.id === id) || null : null
+            ),
+            circuitBuffId: item.circuitBuffId || null
+          }))
+        }
+      } catch {
         // empty
       }
     }
-    return [
+
+    // 2) 이전 버전 데이터 마이그레이션 fallback
+    const savedSquads = localStorage.getItem('wuwa-squads')
+    const savedCircuitBuffs = localStorage.getItem('wuwa-squad-circuit-buffs')
+    let initialSquads: (Character | null)[][] = [
       [null, null, null],
       [null, null, null],
-      [null, null, null],
+      [null, null, null]
     ]
+    let initialBuffs: (string | null)[] = [null, null, null]
+
+    if (savedSquads) {
+      try {
+        const parsedIds = JSON.parse(savedSquads) as (string | null)[][]
+        if (Array.isArray(parsedIds) && parsedIds.length > 0) {
+          initialSquads = parsedIds.map(row =>
+            row.map(id => (id ? MOCK_CHARACTERS.find(c => c.id === id) || null : null))
+          )
+        }
+      } catch {
+        // empty
+      }
+    }
+
+    if (savedCircuitBuffs) {
+      try {
+        const parsedBuffs = JSON.parse(savedCircuitBuffs)
+        if (Array.isArray(parsedBuffs)) {
+          initialBuffs = parsedBuffs
+        }
+      } catch {
+        // empty
+      }
+    }
+
+    return initialSquads.map((row, i) => ({
+      id: `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
+      characters: row,
+      circuitBuffId: initialBuffs[i] || null
+    }))
   })
 
-  // squads 상태가 바뀔 때마다 localStorage에 ID 형태로 영구 보존
+  // squadsList 상태 변경 시 localStorage 영구 보존
   useEffect(() => {
-    const ids = squads.map(row => row.map(slot => slot ? slot.id : null))
-    localStorage.setItem('wuwa-squads', JSON.stringify(ids))
-  }, [squads])
-  
+    const dataToSave = squadsList.map(s => ({
+      id: s.id,
+      characters: s.characters.map(c => (c ? c.id : null)),
+      circuitBuffId: s.circuitBuffId
+    }))
+    localStorage.setItem('wuwa-squads-data', JSON.stringify(dataToSave))
+
+    // 하위 호환성 유지
+    const legacySquads = squadsList.map(s => s.characters.map(c => (c ? c.id : null)))
+    localStorage.setItem('wuwa-squads', JSON.stringify(legacySquads))
+    const legacyBuffs = squadsList.map(s => s.circuitBuffId)
+    localStorage.setItem('wuwa-squad-circuit-buffs', JSON.stringify(legacyBuffs))
+  }, [squadsList])
+
+  // 파생 상태 (기존 컴포넌트 인터페이스와 100% 호환)
+  const squads = squadsList.map(s => s.characters)
+  const circuitBuffs = squadsList.map(s => s.circuitBuffId)
+  const squadIds = squadsList.map(s => s.id)
+
   const [selectedElement, setSelectedElement] = useState<string>('All')
   const [toast, setToast] = useState<string | null>(null)
   const [activeSquadIdxForMobile, setActiveSquadIdxForMobile] = useState<number | null>(null)
+  const [activeCircuitModalSquadIdx, setActiveCircuitModalSquadIdx] = useState<number | null>(null)
   const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
 
   const [ownedResonatorIds, setOwnedResonatorIds] = useState<string[]>(() => {
@@ -45,7 +107,7 @@ export function useSquadState() {
     if (saved) {
       try {
         return JSON.parse(saved)
-      } catch (e) {
+      } catch {
         // empty
       }
     }
@@ -53,6 +115,8 @@ export function useSquadState() {
   })
   const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
   const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
+  const [importModalOpen, setImportModalOpen] = useState<boolean>(false)
+  const [imageExportModalOpen, setImageExportModalOpen] = useState<boolean>(false)
 
   const [showLeakInfo, setShowLeakInfo] = useState<boolean>(() => {
     const saved = localStorage.getItem('show-leak-info')
@@ -121,40 +185,55 @@ export function useSquadState() {
 
   // 1) 스쿼드 동적 추가
   const handleAddSquad = () => {
-    setSquads((prev) => [...prev, [null, null, null]])
+    const newId = `squad-row-${Date.now()}-${squadsList.length}-${Math.random().toString(36).substring(2, 7)}`
+    setSquadsList(prev => [...prev, { id: newId, characters: [null, null, null], circuitBuffId: null }])
   }
 
-  // 2) 스쿼드 동적 삭제 (최소 1개 스쿼드는 강제 보존)
+  // 2) 스쿼드 동적 삭제 (원자적으로 해당 파티 행, 캐릭터, 회로 버프 동시 제거)
   const handleDeleteSquad = (squadIdx: number) => {
-    if (squads.length <= 1) return
     requestRemoveConfirm(
       `정말 ${squadIdx + 1}번 파티를 삭제하시겠습니까?`,
       () => {
-        setSquads((prev) => prev.filter((_, idx) => idx !== squadIdx))
+        setSquadsList(prev => {
+          if (prev.length > 1) {
+            return prev.filter((_, idx) => idx !== squadIdx)
+          } else {
+            return [
+              {
+                id: `squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`,
+                characters: [null, null, null],
+                circuitBuffId: null
+              }
+            ]
+          }
+        })
         showToast(`${squadIdx + 1}번 파티가 삭제되었습니다.`)
       },
-      '해당 파티의 모든 캐릭터 배치 내용이 사라집니다.',
+      '해당 파티의 모든 캐릭터 배치 및 회로 버프가 즉시 제거됩니다.',
       '삭제하기'
     )
   }
 
   // 3) 캐릭터 할당 및 스마트 이동 처리
   const handleSelectCharacter = (char: Character, targetSquadIdx: number, targetSlotIdx: number) => {
-    setSquads((prevSquads) => {
-      const cleanedSquads = prevSquads.map(s => [...s])
+    setSquadsList(prevList => {
+      const nextList = prevList.map(s => ({
+        ...s,
+        characters: [...s.characters]
+      }))
 
       // [규칙 1] 동일 스쿼드 내 중복 배치 금지
-      if (cleanedSquads[targetSquadIdx]) {
-        const dupSlotIdx = cleanedSquads[targetSquadIdx].findIndex(slot => slot && slot.id === char.id)
+      if (nextList[targetSquadIdx]) {
+        const dupSlotIdx = nextList[targetSquadIdx].characters.findIndex(slot => slot && slot.id === char.id)
         if (dupSlotIdx !== -1 && dupSlotIdx !== targetSlotIdx) {
-          cleanedSquads[targetSquadIdx][dupSlotIdx] = null
+          nextList[targetSquadIdx].characters[dupSlotIdx] = null
         }
       }
 
       // [규칙 2] 전체 스쿼드 합산 한도 초과 시 스마트 재배치 (FIFO)
       const currentDeployments: { squadIdx: number; slotIdx: number }[] = []
-      cleanedSquads.forEach((squad, sIdx) => {
-        squad.forEach((slot, slIdx) => {
+      nextList.forEach((squad, sIdx) => {
+        squad.characters.forEach((slot, slIdx) => {
           if (sIdx === targetSquadIdx && slIdx === targetSlotIdx) return
           if (slot && slot.id === char.id) {
             currentDeployments.push({ squadIdx: sIdx, slotIdx: slIdx })
@@ -168,33 +247,36 @@ export function useSquadState() {
         const removeCount = currentDeployments.length - maxAllowed + 1
         for (let i = 0; i < removeCount; i++) {
           const deploy = currentDeployments[i]
-          if (cleanedSquads[deploy.squadIdx]) {
-            cleanedSquads[deploy.squadIdx][deploy.slotIdx] = null
+          if (nextList[deploy.squadIdx]) {
+            nextList[deploy.squadIdx].characters[deploy.slotIdx] = null
           }
         }
       }
-      
-      if (cleanedSquads[targetSquadIdx]) {
-        cleanedSquads[targetSquadIdx][targetSlotIdx] = char
+
+      if (nextList[targetSquadIdx]) {
+        nextList[targetSquadIdx].characters[targetSlotIdx] = char
       }
-      return cleanedSquads
+      return nextList
     })
   }
 
   // 4) 슬롯에서 캐릭터 제거
   const handleRemoveCharacter = (squadIdx: number, slotIdx: number) => {
-    const char = squads[squadIdx]?.[slotIdx]
+    const char = squadsList[squadIdx]?.characters[slotIdx]
     if (!char) return
 
     requestRemoveConfirm(
       `"${char.name}" 공명자를 파티에서 제외하시겠습니까?`,
       () => {
-        setSquads((prevSquads) => {
-          const newSquads = prevSquads.map(squad => [...squad])
-          if (newSquads[squadIdx]) {
-            newSquads[squadIdx][slotIdx] = null
-          }
-          return newSquads
+        setSquadsList(prevList => {
+          return prevList.map((squad, sIdx) => {
+            if (sIdx === squadIdx) {
+              const newChars = [...squad.characters]
+              newChars[slotIdx] = null
+              return { ...squad, characters: newChars }
+            }
+            return squad
+          })
         })
         showToast(`${char.name} 편성을 해제했습니다.`)
       },
@@ -206,98 +288,53 @@ export function useSquadState() {
   // 파티 데이터 내보내기 (Export) — 하스스톤 스타일 Base64 코드
   const handleExport = () => {
     try {
-      const exportText = generateExportText(squads)
-      navigator.clipboard.writeText(exportText)
+      const code = generateExportText(squadsList)
+      navigator.clipboard.writeText(code)
       showToast('편성 코드가 클립보드에 복사되었습니다!')
-    } catch (err) {
+    } catch {
       showToast('코드 복사에 실패했습니다.')
     }
   }
 
-  // 불러오기 모달 상태
-  const [importModalOpen, setImportModalOpen] = useState(false)
+  // 파티 데이터 불러오기 (Import)
+  const handleImport = (code: string) => {
+    try {
+      const parsedSquads = parseImportText(code)
+      if (!parsedSquads || parsedSquads.length === 0) {
+        showToast('올바르지 않은 코드 형식입니다.')
+        return
+      }
 
-  // 파티 데이터 불러오기 (Import) — Base64 코드 디코딩
-  const handleImport = (text: string) => {
-    if (!text.trim()) {
+      const importedSquadsList: SquadRowData[] = parsedSquads.map((item, i) => ({
+        id: `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
+        characters: item.characters,
+        circuitBuffId: item.circuitBuffId
+      }))
+
+      setSquadsList(importedSquadsList)
       setImportModalOpen(false)
-      showToast('코드가 비어있습니다.')
-      return
+      showToast('파티 편성을 성공적으로 불러왔습니다!')
+    } catch {
+      showToast('파티 코드를 파싱하는 도중 오류가 발생했습니다.')
     }
-    const decoded = parseImportText(text)
-    if (!decoded) {
-      setImportModalOpen(false)
-      showToast('유효하지 않은 편성 코드입니다. 코드를 다시 확인해 주세요.')
-      return
-    }
-    setSquads(decoded)
-    setImportModalOpen(false)
-    showToast('파티 구성을 성공적으로 불러왔습니다!')
   }
 
-  // html-to-image 기반 파티 상태 이미지 저장
-  const handleCapture = async () => {
-    const container = document.getElementById('squads-container')
-    if (!container) {
-      showToast('파티 리스트 영역을 찾을 수 없습니다.')
+  // 파티 배치도 이미지 캡처 모달 열기
+  const handleCapture = () => {
+    const hasAnyChar = squads.some(row => row.some(slot => slot !== null))
+    if (!hasAnyChar) {
+      showToast('배치된 캐릭터가 없습니다.')
       return
     }
-    showToast('파티 캡처 이미지 생성 중...')
-    
-    // 1. 실제 화면(UI)의 덜컥거림을 원천 방지하기 위해 컨테이너를 메모리 상에 임시 복제(Clone)
-    const clone = container.cloneNode(true) as HTMLElement
-    
-    // 2. 복제본을 화면에서 완전히 숨겨진 임시 Wrapper에 담아 배치 (absolute 좌표 오프셋 문제를 피함)
-    const wrapper = document.createElement('div')
-    wrapper.style.position = 'fixed'
-    wrapper.style.top = '0'
-    wrapper.style.left = '0'
-    wrapper.style.width = '0'
-    wrapper.style.height = '0'
-    wrapper.style.overflow = 'hidden'
-    wrapper.style.opacity = '0'
-    wrapper.style.pointerEvents = 'none'
-    
-    clone.style.height = 'auto'
-    clone.style.maxHeight = 'none'
-    clone.style.overflow = 'visible'
-    clone.style.width = container.offsetWidth + 'px' // 원래 요소와 동일한 너비 유지
-    
-    // 3. 복제본 내에서 제외할 컴포넌트([data-capture-exclude="true"])들을 완전히 물리적으로 삭제
-    const excludeElements = clone.querySelectorAll('[data-capture-exclude="true"]')
-    excludeElements.forEach((el) => el.remove())
-
-    // 4. 렌더링을 위해 document body에 wrapper와 복제본을 임시 주입
-    wrapper.appendChild(clone)
-    document.body.appendChild(wrapper)
-
-    try {
-      const { toPng } = await import('html-to-image')
-      const dataUrl = await toPng(clone, {
-        backgroundColor: '#020617', // slate-950
-        pixelRatio: 2,
-        cacheBust: true
-      })
-      const link = document.createElement('a')
-      link.download = `wuwa-matrix-squad-${new Date().toISOString().slice(0, 10)}.png`
-      link.href = dataUrl
-      link.click()
-      showToast('파티 배치도가 이미지(PNG)로 저장되었습니다!')
-    } catch (err) {
-      console.error(err)
-      showToast('이미지 변환 중 오류가 발생했습니다.')
-    } finally {
-      // 5. 사용이 끝난 임시 Wrapper 노드를 깔끔하게 제거(메모리 정리)
-      wrapper.remove()
-    }
+    setImageExportModalOpen(true)
   }
 
   // 0) 파티 행 드래그 정렬 처리
   const handleSortSquadRows = (activeId: string, overId: string) => {
-    const oldIndex = parseInt(activeId.replace('squad-row-', ''), 10)
-    const newIndex = parseInt(overId.replace('squad-row-', ''), 10)
-    if (oldIndex !== newIndex) {
-      setSquads((prev) => arrayMove(prev, oldIndex, newIndex))
+    const oldIndex = squadIds.indexOf(activeId)
+    const newIndex = squadIds.indexOf(overId)
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      setSquadsList(prev => arrayMove(prev, oldIndex, newIndex))
       showToast('파티 순서가 변경되었습니다.')
     }
   }
@@ -305,7 +342,6 @@ export function useSquadState() {
   // 1) 도감에서 끌어오는 경우 (도감 카드 드래그)
   const handleDropFromPool = (char: Character, overId: string) => {
     const isMaxedOut = isMaxed(char.id)
-
     if (isMaxedOut) return
 
     const match = overId.match(/^party-(\d+)-slot-(\d+)$/)
@@ -320,117 +356,100 @@ export function useSquadState() {
   const handleSwapOrMoveSlot = (sourceSquadIdx: number, sourceSlotIdx: number, overId: string) => {
     const targetMatch = overId.match(/^party-(\d+)-slot-(\d+)$/)
     if (!targetMatch) return
+
     const targetSquadIdx = parseInt(targetMatch[1], 10)
     const targetSlotIdx = parseInt(targetMatch[2], 10)
 
     if (sourceSquadIdx === targetSquadIdx && sourceSlotIdx === targetSlotIdx) return
 
-    setSquads((prevSquads) => {
-      const nextSquads = prevSquads.map(s => [...s])
-      const sourceChar = nextSquads[sourceSquadIdx][sourceSlotIdx]
-      const targetChar = nextSquads[targetSquadIdx][targetSlotIdx]
+    setSquadsList(prevList => {
+      const nextList = prevList.map(s => ({
+        ...s,
+        characters: [...s.characters]
+      }))
+      const sourceChar = nextList[sourceSquadIdx]?.characters[sourceSlotIdx]
+      const targetChar = nextList[targetSquadIdx]?.characters[targetSlotIdx]
 
-      // 목적지 스쿼드 내 중복 편성 체크
-      if (sourceChar) {
-        const dupIdx = nextSquads[targetSquadIdx].findIndex(slot => slot && slot.id === sourceChar.id)
-        if (dupIdx !== -1 && dupIdx !== targetSlotIdx) {
-          nextSquads[targetSquadIdx][dupIdx] = null
+      if (!sourceChar) return prevList
+
+      // Case 1: 빈 슬롯으로의 단순 이동
+      if (!targetChar) {
+        if (sourceSquadIdx !== targetSquadIdx) {
+          const isAlreadyInTarget = nextList[targetSquadIdx].characters.some(
+            (c, idx) => idx !== targetSlotIdx && c && c.id === sourceChar.id
+          )
+          if (isAlreadyInTarget) return prevList
         }
+        nextList[targetSquadIdx].characters[targetSlotIdx] = sourceChar
+        nextList[sourceSquadIdx].characters[sourceSlotIdx] = null
+        return nextList
       }
 
-      // 출발지 스쿼드 내 중복 편성 체크
-      if (targetChar) {
-        const dupIdx = nextSquads[sourceSquadIdx].findIndex(slot => slot && slot.id === targetChar.id)
-        if (dupIdx !== -1 && dupIdx !== sourceSlotIdx) {
-          nextSquads[sourceSquadIdx][dupIdx] = null
-        }
+      // Case 2: 다른 캐릭터와의 맞교환 (Swap)
+      if (sourceSquadIdx === targetSquadIdx) {
+        nextList[sourceSquadIdx].characters[sourceSlotIdx] = targetChar
+        nextList[targetSquadIdx].characters[targetSlotIdx] = sourceChar
+        return nextList
       }
 
-      // Swap 실행
-      nextSquads[sourceSquadIdx][sourceSlotIdx] = targetChar
-      nextSquads[targetSquadIdx][targetSlotIdx] = sourceChar
+      const isSourceDup = nextList[targetSquadIdx].characters.some(
+        (c, idx) => idx !== targetSlotIdx && c && c.id === sourceChar.id
+      )
+      const isTargetDup = nextList[sourceSquadIdx].characters.some(
+        (c, idx) => idx !== sourceSlotIdx && c && c.id === targetChar.id
+      )
 
-      return nextSquads
+      if (isSourceDup || isTargetDup) return prevList
+
+      nextList[sourceSquadIdx].characters[sourceSlotIdx] = targetChar
+      nextList[targetSquadIdx].characters[targetSlotIdx] = sourceChar
+      return nextList
     })
-    showToast('파티원 배치가 이동되었습니다.')
   }
 
-  // 드래그 시작 핸들러
+  // dnd-kit DragStart 핸들러
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event
-    const activeId = active.id as string
-    // 도감 카드 드래그 시작 시에만 오버레이 활성화 (squad-row, squad-char 제외)
-    if (!activeId.startsWith('squad-row-') && !activeId.startsWith('squad-char-')) {
-      setActiveDragChar(active.data.current as Character)
+    const activeData = event.active.data.current
+    if (activeData?.char) {
+      setActiveDragChar(activeData.char)
     }
   }
 
-  // 드래그 종료 핸들러
+  // dnd-kit 통합 DragEnd 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveDragChar(null)
     const { active, over } = event
-    const activeId = active.id as string
+    if (!over) return
 
-    // 0) 파티 행 드래그 정렬
-    if (activeId.startsWith('squad-row-')) {
-      if (!over) return
-      const overId = over.id as string
-      if (!overId.startsWith('squad-row-')) return
+    const activeId = String(active.id)
+    const overId = String(over.id)
+
+    if (activeId === overId) return
+
+    // 0) 파티 행 자체의 드래그 정렬
+    if (activeId.startsWith('squad-row-') && overId.startsWith('squad-row-')) {
       handleSortSquadRows(activeId, overId)
       return
     }
 
-    // 1) 도감에서 끌어오는 경우 (도감 카드 드래그)
-    if (!activeId.startsWith('squad-char-')) {
-      if (!over) return
-      const overId = over.id as string
-      const char = active.data.current as Character
-      handleDropFromPool(char, overId)
-    } 
-    // 2) 이미 스쿼드 슬롯에 들어있는 캐릭터를 드래그하는 경우
-    else {
-      const match = activeId.match(/^squad-char-(\d+)-(\d+)$/)
-      if (!match) return
-      const sourceSquadIdx = parseInt(match[1], 10)
-      const sourceSlotIdx = parseInt(match[2], 10)
+    const activeData = active.data.current
 
-      // 바깥 빈 곳(over 없음) 또는 도감 탭(character-pool-droppable)으로 드롭 ➔ 삭제
-      if (!over || over.id === 'character-pool-droppable') {
-        handleRemoveCharacter(sourceSquadIdx, sourceSlotIdx)
-        showToast('슬롯에서 해제되었습니다.')
-        return
-      }
+    // 1) 도감에서 캐릭터를 끌어다 놓는 경우
+    if (activeData?.isPool && activeData?.char) {
+      handleDropFromPool(activeData.char, overId)
+      return
+    }
 
-      const overId = over.id as string
-      handleSwapOrMoveSlot(sourceSquadIdx, sourceSlotIdx, overId)
+    // 2) 스쿼드 슬롯 안의 캐릭터를 다른 슬롯으로 옮기거나 스왑하는 경우
+    if (activeData?.squadIdx !== undefined && activeData?.slotIdx !== undefined) {
+      handleSwapOrMoveSlot(activeData.squadIdx, activeData.slotIdx, overId)
+      return
     }
   }
 
-
-
-  const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
-
-  const sortedCharacters = [...MOCK_CHARACTERS].sort((a, b) => {
-    // 1. 그룹 가중치 판별 (정식 출시: 0, 미래 미출시: 1, 완전히 미정: 2)
-    const getWeight = (c: Character) => {
-      if (c.releaseVersion === 9.9) return 2
-      const limit = showLeakInfo ? 3.75 : 3.65
-      return c.releaseVersion > limit ? 1 : 0
-    }
-    const weightA = getWeight(a)
-    const weightB = getWeight(b)
-
-    if (weightA !== weightB) {
-      return weightA - weightB
-    }
-
-    // 2. 동일 그룹 내 정렬 (등급 내림차순 -> 출시 버전 내림차순 -> 이름 알파벳순)
-    if (a.rarity !== b.rarity) return b.rarity - a.rarity
-    if (a.releaseVersion !== b.releaseVersion) return b.releaseVersion - a.releaseVersion
-    return a.enName.localeCompare(b.enName)
-  })
-
-  const filteredCharacters = sortedCharacters.filter(c => {
+  // 필터링 및 도감 관련 헬퍼 계산
+  const elements = ['All', '기류', '용융', '전도', '응결', '회절', '인멸']
+  const filteredCharacters = MOCK_CHARACTERS.filter(c => {
     if (selectedElement !== 'All' && c.element !== selectedElement) return false
     if (showOnlyOwned && !ownedResonatorIds.includes(c.id)) return false
     if (hideMaxedOut && isMaxed(c.id)) return false
@@ -441,16 +460,35 @@ export function useSquadState() {
     requestRemoveConfirm(
       '모든 파티 편성을 초기화하시겠습니까?',
       () => {
-        setSquads([
-          [null, null, null],
-          [null, null, null],
-          [null, null, null]
+        setSquadsList([
+          {
+            id: `squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`,
+            characters: [null, null, null],
+            circuitBuffId: null
+          },
+          {
+            id: `squad-row-${Date.now()}-1-${Math.random().toString(36).substring(2, 7)}`,
+            characters: [null, null, null],
+            circuitBuffId: null
+          },
+          {
+            id: `squad-row-${Date.now()}-2-${Math.random().toString(36).substring(2, 7)}`,
+            characters: [null, null, null],
+            circuitBuffId: null
+          }
         ])
         showToast('모든 파티 편성이 초기화되었습니다.')
       },
       '모든 파티 슬롯이 즉시 비워지며 되돌릴 수 없습니다.',
       '초기화하기'
     )
+  }
+
+  const handleSelectCircuitBuff = (squadIdx: number, buffId: string | null) => {
+    setSquadsList(prev =>
+      prev.map((s, idx) => (idx === squadIdx ? { ...s, circuitBuffId: buffId } : s))
+    )
+    showToast(buffId ? '회로 버프가 적용되었습니다.' : '회로 버프 선택이 해제되었습니다.')
   }
 
   const handleSaveOwnedResonators = (ids: string[]) => {
@@ -463,14 +501,11 @@ export function useSquadState() {
     const assigned = getAssignedSquadIndices(char.id, squads)
     const maxAllowed = limitOf(char.id)
 
-    // 만약 배치된 횟수가 최대 허용 개수보다 미만일 경우 ➔ 새로운 슬롯에 추가로 배치함
     if (assigned.length < maxAllowed) {
       let targetSquadIdx = -1
       let targetSlotIdx = -1
-      // 첫 번째 파티부터 시작하여 빈 슬롯을 찾아 배치함
       for (let s = 0; s < squads.length; s++) {
         const emptySlot = squads[s].findIndex(slot => slot === null)
-        // 2회 배치 캐릭터는 이미 같은 파티에 있는 상태에서는 중복 추가 방지 (한 파티에는 1개만 가능)
         const isAlreadyInThisSquad = squads[s].some(slot => slot && slot.id === char.id)
         if (emptySlot !== -1 && !isAlreadyInThisSquad) {
           targetSquadIdx = s
@@ -486,33 +521,38 @@ export function useSquadState() {
           subMessage: `새로운 파티를 추가하고 [${char.name}] 공명자를 배치하시겠습니까?`,
           confirmText: '파티 추가 및 배치',
           onConfirm: () => {
-            setSquads((prev) => [...prev, [char, null, null]])
+            const newId = `squad-row-${Date.now()}-${squadsList.length}-${Math.random().toString(36).substring(2, 7)}`
+            setSquadsList(prev => [
+              ...prev,
+              { id: newId, characters: [char, null, null], circuitBuffId: null }
+            ])
             showToast(`새 파티가 추가되고 ${char.name}이 배치되었습니다.`)
           }
         })
         setConfirmModalOpen(true)
       }
-    } 
-    // 이미 최대 배치 허용 개수만큼 가득 차 있는 상태에서 다시 누를 경우 ➔ 토글 오프 (가장 아래 파티에서 제거)
-    else {
+    } else {
       const lastAssignedSquadIdx = assigned[assigned.length - 1]
-      
+
       requestRemoveConfirm(
         `"${char.name}" 공명자를 파티에서 제외하시겠습니까?`,
         () => {
-          setSquads((prev) => prev.map((squad, sIdx) => {
-            if (sIdx === lastAssignedSquadIdx) {
-              let removed = false
-              return squad.map(slot => {
-                if (slot && slot.id === char.id && !removed) {
-                  removed = true
-                  return null
-                }
-                return slot
-              })
-            }
-            return squad
-          }))
+          setSquadsList(prev =>
+            prev.map((squad, sIdx) => {
+              if (sIdx === lastAssignedSquadIdx) {
+                let removed = false
+                const newChars = squad.characters.map(slot => {
+                  if (slot && slot.id === char.id && !removed) {
+                    removed = true
+                    return null
+                  }
+                  return slot
+                })
+                return { ...squad, characters: newChars }
+              }
+              return squad
+            })
+          )
           showToast(`${char.name} 편성을 해제했습니다.`)
         },
         '제외된 캐릭터는 파티 목록에서 즉시 제거됩니다.',
@@ -521,11 +561,12 @@ export function useSquadState() {
     }
   }
 
-  // 파티 행 고유 ID 배열 (SortableContext에 전달)
-  const squadIds = squads.map((_, idx) => `squad-row-${idx}`)
-
   return {
     squads,
+    circuitBuffs,
+    activeCircuitModalSquadIdx,
+    setActiveCircuitModalSquadIdx,
+    handleSelectCircuitBuff,
     selectedElement,
     setSelectedElement,
     toast,
@@ -543,7 +584,7 @@ export function useSquadState() {
     getAssignedSquadIndices: (charId: string) => getAssignedSquadIndices(charId, squads),
     elements,
     filteredCharacters,
-    isCharacterMaxedOut: isMaxed,
+    isCharacterMaxedOut: (charId: string) => isMaxed(charId),
     getMaxDeployment: limitOf,
     squadIds,
     importModalOpen,
@@ -555,6 +596,9 @@ export function useSquadState() {
     setShowOnlyOwned,
     ownedModalOpen,
     setOwnedModalOpen,
+    imageExportModalOpen,
+    setImageExportModalOpen,
+    showToast,
     handleResetSquads,
     handleSaveOwnedResonators,
     confirmModalOpen,

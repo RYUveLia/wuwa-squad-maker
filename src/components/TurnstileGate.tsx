@@ -20,6 +20,9 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const onVerifyRef = useRef(onVerify)
+  onVerifyRef.current = onVerify
+
   useEffect(() => {
     // 1) 이미 스크립트가 존재하는지 검사
     const existingScript = document.getElementById('cf-turnstile-script')
@@ -43,7 +46,7 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
       if (widgetIdRef.current && (window as any).turnstile) {
         try {
           (window as any).turnstile.remove(widgetIdRef.current)
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -65,7 +68,7 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
           sitekey: SITE_KEY,
           callback: (token: string) => {
             // 인증 성공 시 성공 토큰을 부모로 전파
-            onVerify(token)
+            onVerifyRef.current(token)
           },
           'error-callback': () => {
             setError('보안 위젯 검증 중 오류가 발생했습니다. 새로고침 후 다시 시도해 주세요.')
@@ -153,24 +156,24 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
 
 // STYLES (Colocation Style Pattern)
 const GATE_STYLES = {
-  overlay: 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 select-none animate-fade-in',
-  container: 'bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 sm:p-8 w-full max-w-md flex flex-col items-center justify-center shadow-2xl animate-scale-up text-center',
+  overlay: 'fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 select-none animate-fade-in',
+  container: 'bg-[#14141a]/95 border border-[#262630] rounded-2xl p-6 sm:p-8 w-full max-w-md flex flex-col items-center justify-center shadow-2xl animate-scale-up text-center',
   header: 'flex flex-col items-center mb-6',
-  shieldIcon: 'text-4xl mb-3 animate-pulse text-purple-400',
-  title: 'text-lg sm:text-xl font-bold text-slate-100 tracking-tight',
-  description: 'text-[11px] sm:text-xs text-slate-400 mt-2.5 leading-relaxed',
+  shieldIcon: 'text-4xl mb-3 animate-pulse text-amber-400',
+  title: 'text-lg sm:text-xl font-bold text-zinc-100 tracking-tight',
+  description: 'text-[11px] sm:text-xs text-zinc-400 mt-2.5 leading-relaxed',
   widgetArea: 'w-full flex flex-col items-center justify-center min-h-[90px] mb-4',
   loaderArea: 'flex flex-col items-center gap-2',
-  spinner: 'w-7 h-7 border-2 border-purple-500 border-t-transparent rounded-full animate-spin',
-  loaderText: 'text-[11px] text-slate-500 font-semibold',
+  spinner: 'w-7 h-7 border-2 border-amber-400 border-t-transparent rounded-full animate-spin',
+  loaderText: 'text-[11px] text-zinc-500 font-semibold',
   errorBox: 'text-center p-3 bg-rose-950/20 border border-rose-900/40 rounded-xl max-w-sm',
   errorText: 'text-[11px] sm:text-xs text-rose-400 font-medium leading-relaxed',
   retryBtn: 'mt-2.5 px-3 py-1 text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-lg cursor-pointer transition-colors active:scale-95',
-  footer: 'border-t border-slate-800/60 pt-4 w-full text-center flex justify-center',
-  footerText: 'text-[9.5px] font-mono text-slate-600 tracking-wider',
+  footer: 'border-t border-[#262630] pt-4 w-full text-center flex justify-center',
+  footerText: 'text-[9.5px] font-mono text-zinc-600 tracking-wider',
   
   errorBtnArea: 'flex gap-2 justify-center mt-2.5',
-  bypassTestBtn: 'px-3 py-1 text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition-colors active:scale-95',
+  bypassTestBtn: 'px-3 py-1 text-[11px] font-bold text-zinc-300 hover:text-white bg-[#1c1c24] hover:bg-zinc-800 rounded-lg cursor-pointer transition-colors active:scale-95',
   centerCol: 'flex flex-col items-center',
   widgetContainer: 'my-2',
   bypassTimeoutBtn: 'mt-3 text-[10px] text-slate-500 hover:text-slate-300 underline cursor-pointer transition-all',

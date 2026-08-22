@@ -23,7 +23,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  background-color: #020617;
+  background-color: #09090d;
 }
 
 #root {
@@ -33,6 +33,6 @@ body {
 }
 
 @theme {
-  --color-primary: #aa3bff;
-  --color-primary-hover: #902be3;
+  --color-primary: #fbbd23;
+  --color-primary-hover: #ecab1b;
 }
