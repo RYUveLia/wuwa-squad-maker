@@ -176,7 +176,7 @@ export function ImageExportModal({
                             key={slotIdx}
                             className={MODAL_STYLES.slotItem}
                           >
-                            <div className={`${MODAL_STYLES.slotBox} ${char ? getElementBorderClass(char.element) : 'border-dashed border-[#262630]'}`}>
+                            <div className={`${MODAL_STYLES.slotBox} ${char ? `border-2 ${getElementBorderClass(char.element)}` : 'border-dashed border-[#262630]'}`}>
                               {char ? (
                                 <img
                                   src={char.img}
