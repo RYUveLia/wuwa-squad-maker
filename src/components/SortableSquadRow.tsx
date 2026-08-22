@@ -59,21 +59,17 @@ export function SortableSquadRow({
 
       {/* Center: Slots Row + Circuit Buff */}
       <div className={SQUAD_LIST_STYLES.slotsArea}>
-        {squad.map((char, slotIdx) => {
-          const slotName = String(slotIdx + 1)
-          return (
-            <DroppableSquadSlot
-              key={slotIdx}
-              id={`party-${squadIdx}-slot-${slotIdx}`}
-              char={char}
-              slotName={slotName}
-              onRemove={() => handleRemoveCharacter(squadIdx, slotIdx)}
-              squadIdx={squadIdx}
-              slotIdx={slotIdx}
-              onSlotClick={onSlotClick}
-            />
-          )
-        })}
+        {squad.map((char, slotIdx) => (
+          <DroppableSquadSlot
+            key={slotIdx}
+            id={`party-${squadIdx}-slot-${slotIdx}`}
+            char={char}
+            onRemove={() => handleRemoveCharacter(squadIdx, slotIdx)}
+            squadIdx={squadIdx}
+            slotIdx={slotIdx}
+            onSlotClick={onSlotClick}
+          />
+        ))}
 
         {/* Circuit Buff Slot (Always available) */}
         <div className="flex items-center justify-center pl-1 sm:pl-2 border-l border-[#262630]/80">

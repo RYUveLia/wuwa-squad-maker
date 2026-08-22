@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { CIRCUIT_BUFFS, type CircuitBuff } from '../constants/circuitBuffs'
 import { COMMON_STYLES } from '../styles/theme'
 
@@ -14,6 +15,18 @@ export function CircuitBuffSelectModal({
   onSelectBuff,
   onClose
 }: CircuitBuffSelectModalProps) {
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   const handleSelect = (buff: CircuitBuff) => {
     // 이미 선택된 버프를 다시 누르면 토글 해제하거나 다시 선택
     if (selectedBuffId === buff.id) {

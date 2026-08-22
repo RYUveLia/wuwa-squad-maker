@@ -20,6 +20,9 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const onVerifyRef = useRef(onVerify)
+  onVerifyRef.current = onVerify
+
   useEffect(() => {
     // 1) 이미 스크립트가 존재하는지 검사
     const existingScript = document.getElementById('cf-turnstile-script')
@@ -43,7 +46,7 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
       if (widgetIdRef.current && (window as any).turnstile) {
         try {
           (window as any).turnstile.remove(widgetIdRef.current)
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
@@ -65,7 +68,7 @@ export function TurnstileGate({ onVerify }: TurnstileGateProps) {
           sitekey: SITE_KEY,
           callback: (token: string) => {
             // 인증 성공 시 성공 토큰을 부모로 전파
-            onVerify(token)
+            onVerifyRef.current(token)
           },
           'error-callback': () => {
             setError('보안 위젯 검증 중 오류가 발생했습니다. 새로고침 후 다시 시도해 주세요.')
