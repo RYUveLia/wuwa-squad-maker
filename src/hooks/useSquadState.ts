@@ -53,6 +53,7 @@ export function useSquadState() {
   })
   const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
   const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
+  const [imageExportModalOpen, setImageExportModalOpen] = useState<boolean>(false)
 
   const [showLeakInfo, setShowLeakInfo] = useState<boolean>(() => {
     const saved = localStorage.getItem('show-leak-info')
@@ -235,61 +236,9 @@ export function useSquadState() {
     showToast('파티 구성을 성공적으로 불러왔습니다!')
   }
 
-  // html-to-image 기반 파티 상태 이미지 저장
-  const handleCapture = async () => {
-    const container = document.getElementById('squads-container')
-    if (!container) {
-      showToast('파티 리스트 영역을 찾을 수 없습니다.')
-      return
-    }
-    showToast('파티 캡처 이미지 생성 중...')
-    
-    // 1. 실제 화면(UI)의 덜컥거림을 원천 방지하기 위해 컨테이너를 메모리 상에 임시 복제(Clone)
-    const clone = container.cloneNode(true) as HTMLElement
-    
-    // 2. 복제본을 화면에서 완전히 숨겨진 임시 Wrapper에 담아 배치 (absolute 좌표 오프셋 문제를 피함)
-    const wrapper = document.createElement('div')
-    wrapper.style.position = 'fixed'
-    wrapper.style.top = '0'
-    wrapper.style.left = '0'
-    wrapper.style.width = '0'
-    wrapper.style.height = '0'
-    wrapper.style.overflow = 'hidden'
-    wrapper.style.opacity = '0'
-    wrapper.style.pointerEvents = 'none'
-    
-    clone.style.height = 'auto'
-    clone.style.maxHeight = 'none'
-    clone.style.overflow = 'visible'
-    clone.style.width = container.offsetWidth + 'px' // 원래 요소와 동일한 너비 유지
-    
-    // 3. 복제본 내에서 제외할 컴포넌트([data-capture-exclude="true"])들을 완전히 물리적으로 삭제
-    const excludeElements = clone.querySelectorAll('[data-capture-exclude="true"]')
-    excludeElements.forEach((el) => el.remove())
-
-    // 4. 렌더링을 위해 document body에 wrapper와 복제본을 임시 주입
-    wrapper.appendChild(clone)
-    document.body.appendChild(wrapper)
-
-    try {
-      const { toPng } = await import('html-to-image')
-      const dataUrl = await toPng(clone, {
-        backgroundColor: '#020617', // slate-950
-        pixelRatio: 2,
-        cacheBust: true
-      })
-      const link = document.createElement('a')
-      link.download = `wuwa-matrix-squad-${new Date().toISOString().slice(0, 10)}.png`
-      link.href = dataUrl
-      link.click()
-      showToast('파티 배치도가 이미지(PNG)로 저장되었습니다!')
-    } catch (err) {
-      console.error(err)
-      showToast('이미지 변환 중 오류가 발생했습니다.')
-    } finally {
-      // 5. 사용이 끝난 임시 Wrapper 노드를 깔끔하게 제거(메모리 정리)
-      wrapper.remove()
-    }
+  // 파티 상태 이미지 저장 모달 오픈
+  const handleCapture = () => {
+    setImageExportModalOpen(true)
   }
 
   // 0) 파티 행 드래그 정렬 처리
@@ -555,6 +504,9 @@ export function useSquadState() {
     setShowOnlyOwned,
     ownedModalOpen,
     setOwnedModalOpen,
+    imageExportModalOpen,
+    setImageExportModalOpen,
+    showToast,
     handleResetSquads,
     handleSaveOwnedResonators,
     confirmModalOpen,

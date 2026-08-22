@@ -16,6 +16,7 @@ import { ResonatorSelectModal } from './components/ResonatorSelectModal'
 import { OwnedResonatorModal } from './components/OwnedResonatorModal'
 import { TurnstileGate } from './components/TurnstileGate'
 import { ConfirmModal } from './components/ConfirmModal'
+import { ImageExportModal } from './components/ImageExportModal'
 
 // 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -53,6 +54,9 @@ function App() {
     setShowOnlyOwned,
     ownedModalOpen,
     setOwnedModalOpen,
+    imageExportModalOpen,
+    setImageExportModalOpen,
+    showToast,
     handleResetSquads,
     handleSaveOwnedResonators,
     confirmModalOpen,
@@ -321,6 +325,16 @@ function App() {
               setConfirmModalOpen(false)
             }}
             onCancel={() => setConfirmModalOpen(false)}
+          />
+        )}
+
+        {/* Image Export Preview & Download Modal */}
+        {imageExportModalOpen && (
+          <ImageExportModal
+            isOpen={imageExportModalOpen}
+            squads={squads}
+            onClose={() => setImageExportModalOpen(false)}
+            showToast={showToast}
           />
         )}
       </div>
