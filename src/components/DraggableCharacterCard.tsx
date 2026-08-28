@@ -22,8 +22,8 @@ export function DraggableCharacterCard({
   isSeasonBuff = false
 }: DraggableCharacterCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: char.id,
-    data: char,
+    id: `pool-char-${char.id}`,
+    data: { isPool: true, char },
     disabled: isMaxedOut || !isDraggable,
   })
 
