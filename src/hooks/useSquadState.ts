@@ -410,8 +410,9 @@ export function useSquadState() {
   // dnd-kit DragStart 핸들러
   const handleDragStart = (event: DragStartEvent) => {
     const activeData = event.active.data.current
-    if (activeData?.char) {
-      setActiveDragChar(activeData.char)
+    const char = activeData?.char || (activeData?.element ? (activeData as Character) : null)
+    if (char) {
+      setActiveDragChar(char)
     }
   }
 
@@ -435,13 +436,21 @@ export function useSquadState() {
     const activeData = active.data.current
 
     // 1) 도감에서 캐릭터를 끌어다 놓는 경우
-    if (activeData?.isPool && activeData?.char) {
-      handleDropFromPool(activeData.char, overId)
+    const poolChar = (activeData?.isPool && activeData?.char)
+      ? activeData.char
+      : (activeData?.char && activeData?.squadIdx === undefined ? activeData.char : (!activeData?.squadIdx && activeData?.element ? activeData as Character : null))
+
+    if (poolChar) {
+      handleDropFromPool(poolChar, overId)
       return
     }
 
     // 2) 스쿼드 슬롯 안의 캐릭터를 다른 슬롯으로 옮기거나 스왑하는 경우
     if (activeData?.squadIdx !== undefined && activeData?.slotIdx !== undefined) {
+      if (overId === 'character-pool-droppable') {
+        handleRemoveCharacter(activeData.squadIdx, activeData.slotIdx)
+        return
+      }
       handleSwapOrMoveSlot(activeData.squadIdx, activeData.slotIdx, overId)
       return
     }
