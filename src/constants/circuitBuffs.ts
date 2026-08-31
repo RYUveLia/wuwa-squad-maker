@@ -7,7 +7,8 @@ export interface CircuitBuff {
   iconUrl: string
 }
 
-export const CIRCUIT_BUFFS: CircuitBuff[] = [
+// 3.6 버전 특이점 확장 회로 버프 목록
+export const CIRCUIT_BUFFS_3_6: CircuitBuff[] = [
   {
     id: 'T_Iconpropertyredice_UI',
     name: '이상 효과 강화',
@@ -41,3 +42,36 @@ export const CIRCUIT_BUFFS: CircuitBuff[] = [
     iconUrl: '/circuits/T_Iconpropertyredattack_UI.webp'
   }
 ]
+
+// 3.7 유출/신규 버전 특이점 확장 회로 버프 목록 (이미지 및 설명 변경 시 이곳에서 간편하게 수정/확장)
+export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
+  ...CIRCUIT_BUFFS_3_6
+]
+
+// 버전별 회로 버프 맵
+export const CIRCUIT_BUFFS_BY_VERSION: Record<string, CircuitBuff[]> = {
+  '3.6': CIRCUIT_BUFFS_3_6,
+  '3.7': CIRCUIT_BUFFS_3_7
+}
+
+/** 현재 활성화된 설정(유출 여부 등)에 따른 회로 버프 목록 반환 */
+export function getCircuitBuffs(showLeakInfo: boolean = false): CircuitBuff[] {
+  return showLeakInfo ? CIRCUIT_BUFFS_3_7 : CIRCUIT_BUFFS_3_6
+}
+
+/** 특정 버프 ID로 회로 버프 객체 조회 (유출 모드 우선 검색 후 이전 버전 목록 fallback 지원) */
+export function findCircuitBuffById(buffId: string | null | undefined, showLeakInfo: boolean = false): CircuitBuff | null {
+  if (!buffId) return null
+  const currentBuffs = getCircuitBuffs(showLeakInfo)
+  const found = currentBuffs.find(b => b.id === buffId)
+  if (found) return found
+
+  for (const list of Object.values(CIRCUIT_BUFFS_BY_VERSION)) {
+    const fallback = list.find(b => b.id === buffId)
+    if (fallback) return fallback
+  }
+  return null
+}
+
+// 하위 호환용 기본 export
+export const CIRCUIT_BUFFS: CircuitBuff[] = CIRCUIT_BUFFS_3_6

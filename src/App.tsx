@@ -239,6 +239,7 @@ function App() {
                     squadIdx={squadIdx}
                     squad={squad}
                     circuitBuffId={circuitBuffs[squadIdx]}
+                    showLeakInfo={showLeakInfo}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}
                     onSlotClick={(sIdx, _slotIdx) => {
@@ -321,6 +322,7 @@ function App() {
           <CircuitBuffSelectModal
             squadIdx={activeCircuitModalSquadIdx}
             selectedBuffId={circuitBuffs[activeCircuitModalSquadIdx] || null}
+            showLeakInfo={showLeakInfo}
             onSelectBuff={handleSelectCircuitBuff}
             onClose={() => setActiveCircuitModalSquadIdx(null)}
           />
@@ -359,6 +361,7 @@ function App() {
             isOpen={imageExportModalOpen}
             squads={squads}
             circuitBuffs={circuitBuffs}
+            showLeakInfo={showLeakInfo}
             onClose={() => setImageExportModalOpen(false)}
             showToast={showToast}
           />

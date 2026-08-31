@@ -2,13 +2,14 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { DroppableSquadSlot } from './DroppableSquadSlot'
 import type { Character } from '../types'
-import { CIRCUIT_BUFFS } from '../constants/circuitBuffs'
+import { findCircuitBuffById } from '../constants/circuitBuffs'
 
 interface SortableSquadRowProps {
   id: string
   squadIdx: number
   squad: (Character | null)[]
   circuitBuffId?: string | null
+  showLeakInfo?: boolean
   handleRemoveCharacter: (squadIdx: number, slotIdx: number) => void
   handleDeleteSquad: (squadIdx: number) => void
   onSlotClick?: (squadIdx: number, slotIdx: number) => void
@@ -20,6 +21,7 @@ export function SortableSquadRow({
   squadIdx,
   squad,
   circuitBuffId,
+  showLeakInfo = false,
   handleRemoveCharacter,
   handleDeleteSquad,
   onSlotClick,
@@ -33,7 +35,7 @@ export function SortableSquadRow({
     zIndex: isDragging ? 50 : ('auto' as const),
   }
   const numStr = String(squadIdx + 1).padStart(2, '0')
-  const selectedBuff = circuitBuffId ? CIRCUIT_BUFFS.find(b => b.id === circuitBuffId) : null
+  const selectedBuff = findCircuitBuffById(circuitBuffId, showLeakInfo)
 
   return (
     <div
