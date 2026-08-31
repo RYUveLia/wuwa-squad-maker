@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import type { Character } from '../types'
-import { CIRCUIT_BUFFS } from '../constants/circuitBuffs'
+import { findCircuitBuffById } from '../constants/circuitBuffs'
 
 interface ImageExportModalProps {
   isOpen: boolean
   squads: (Character | null)[][]
   circuitBuffs?: (string | null)[]
+  showLeakInfo?: boolean
   onClose: () => void
   showToast: (msg: string) => void
 }
@@ -15,6 +16,7 @@ export function ImageExportModal({
   isOpen,
   squads,
   circuitBuffs,
+  showLeakInfo = false,
   onClose,
   showToast
 }: ImageExportModalProps) {
@@ -225,7 +227,7 @@ export function ImageExportModal({
                   {displaySquads.map(({ squad, idx }) => {
                     const numStr = String(idx + 1).padStart(2, '0')
                     const buffId = circuitBuffs ? circuitBuffs[idx] : null
-                    const buff = buffId ? CIRCUIT_BUFFS.find((b) => b.id === buffId) : null
+                    const buff = findCircuitBuffById(buffId, showLeakInfo)
 
                     return (
                       <div

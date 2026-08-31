@@ -49,28 +49,41 @@ const roverElectro: Character = {
   img: '/characters/rover.png'
 }
 
-// 최종 60명 공명자 리스트 다차원 정렬 (등급 내림차순 → 출시 버전 내림차순 → 이름 오름차순, Unknown 9.9는 끝으로)
-export const MOCK_CHARACTERS: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro].sort((a, b) => {
-  const aIsUnknown = a.releaseVersion === 9.9
-  const bIsUnknown = b.releaseVersion === 9.9
+// 3.7 유출 캐릭터 ID 목록
+export const LEAK_CHARACTER_IDS = ['hsin', 'suoming']
 
-  if (aIsUnknown && bIsUnknown) {
-    if (a.rarity !== b.rarity) return b.rarity - a.rarity
+const rawCharacters: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro]
+
+/** 공명자 리스트 정렬 헬퍼 (showLeakInfo가 true일 때만 3.7 유출 캐릭터를 최신순 맨 앞으로 배치, false일 때는 미정(9.9) 취급하여 맨 뒤로 배치) */
+export const getSortedCharacters = (showLeakInfo: boolean = false): Character[] => {
+  return [...rawCharacters].sort((a, b) => {
+    const aVer = (!showLeakInfo && (a.releaseVersion > 3.69 || LEAK_CHARACTER_IDS.includes(a.id))) ? 9.9 : a.releaseVersion
+    const bVer = (!showLeakInfo && (b.releaseVersion > 3.69 || LEAK_CHARACTER_IDS.includes(b.id))) ? 9.9 : b.releaseVersion
+
+    const aIsUnknown = aVer === 9.9
+    const bIsUnknown = bVer === 9.9
+
+    if (aIsUnknown && bIsUnknown) {
+      if (a.rarity !== b.rarity) return b.rarity - a.rarity
+      return a.enName.localeCompare(b.enName)
+    }
+    if (aIsUnknown) return 1
+    if (bIsUnknown) return -1
+
+    // 1차: 등급 내림차순 (5성 → 4성)
+    if (a.rarity !== b.rarity) {
+      return b.rarity - a.rarity
+    }
+    // 2차: 출시 버전 내림차순 (최신 먼저)
+    if (aVer !== bVer) {
+      return bVer - aVer
+    }
     return a.enName.localeCompare(b.enName)
-  }
-  if (aIsUnknown) return 1
-  if (bIsUnknown) return -1
+  })
+}
 
-  // 1차: 등급 내림차순 (5성 → 4성)
-  if (a.rarity !== b.rarity) {
-    return b.rarity - a.rarity
-  }
-  // 2차: 출시 버전 내림차순 (최신 먼저)
-  if (a.releaseVersion !== b.releaseVersion) {
-    return b.releaseVersion - a.releaseVersion
-  }
-  return a.enName.localeCompare(b.enName)
-})
+// 최종 60명 공명자 리스트 (기본 정렬: showLeakInfo = false 기준)
+export const MOCK_CHARACTERS: Character[] = getSortedCharacters(false)
 
 // 유출 정보 설정에 의존하는 중복 편성 가능 캐릭터 목록 (추후 신규 캐릭터 등장 시 이곳에 ID 추가)
 export const LEAK_DOUBLE_DEPLOYMENT_CHARACTERS: string[] = []
@@ -83,8 +96,9 @@ export interface SeasonBuffInfo {
 /** 현재 활성화된 시즌 버프 정보 반환 (미정인 경우 character: null) */
 export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
   if (showLeakInfo) {
-    // 3.7 시즌 버프 대상 캐릭터 (현재 미정)
-    return { version: '3.7', character: null }
+    // 3.7 시즌 버프 대상 캐릭터 (루실라)
+    const char = MOCK_CHARACTERS.find(c => c.id === 'lucilla') || null
+    return { version: '3.7', character: char }
   }
   // 3.6 시즌 버프 대상 캐릭터 (데니아)
   const char = MOCK_CHARACTERS.find(c => c.id === 'denia') || null

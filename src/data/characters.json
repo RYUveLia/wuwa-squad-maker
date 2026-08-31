@@ -514,9 +514,9 @@
     "name": "여우의 별자리",
     "enName": "Hsin",
     "rarity": 5,
-    "element": "Unknown",
+    "element": "Electro",
     "weapon": "Unknown",
-    "releaseVersion": 9.9,
+    "releaseVersion": 3.71,
     "img": "/characters/hsin.png"
   },
   {
@@ -554,9 +554,9 @@
     "name": "쇄명",
     "enName": "Suoming",
     "rarity": 5,
-    "element": "Unknown",
+    "element": "Electro",
     "weapon": "Unknown",
-    "releaseVersion": 9.9,
+    "releaseVersion": 3.71,
     "img": "/characters/suoming.png"
   },
   {

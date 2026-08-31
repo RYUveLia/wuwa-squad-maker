@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
-import { CIRCUIT_BUFFS, type CircuitBuff } from '../constants/circuitBuffs'
+import { getCircuitBuffs, type CircuitBuff } from '../constants/circuitBuffs'
 import { COMMON_STYLES } from '../styles/theme'
 
 interface CircuitBuffSelectModalProps {
   squadIdx: number
   selectedBuffId: string | null
+  showLeakInfo?: boolean
   onSelectBuff: (squadIdx: number, buffId: string | null) => void
   onClose: () => void
 }
@@ -12,6 +13,7 @@ interface CircuitBuffSelectModalProps {
 export function CircuitBuffSelectModal({
   squadIdx,
   selectedBuffId,
+  showLeakInfo = false,
   onSelectBuff,
   onClose
 }: CircuitBuffSelectModalProps) {
@@ -74,7 +76,7 @@ export function CircuitBuffSelectModal({
 
         {/* Buff Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 my-4 max-h-[60vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
-          {CIRCUIT_BUFFS.map((buff) => {
+          {getCircuitBuffs(showLeakInfo).map((buff) => {
             const isSelected = selectedBuffId === buff.id
 
             return (

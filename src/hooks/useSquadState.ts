@@ -3,7 +3,7 @@ import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent, typ
 import { arrayMove } from '@dnd-kit/sortable'
 
 import type { Character } from '../types'
-import { MOCK_CHARACTERS, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
+import { MOCK_CHARACTERS, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 
 export interface SquadRowData {
@@ -457,8 +457,8 @@ export function useSquadState() {
   }
 
   // 필터링 및 도감 관련 헬퍼 계산
-  const elements = ['All', '기류', '용융', '전도', '응결', '회절', '인멸']
-  const filteredCharacters = MOCK_CHARACTERS.filter(c => {
+  const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
+  const filteredCharacters = getSortedCharacters(showLeakInfo).filter(c => {
     if (selectedElement !== 'All' && c.element !== selectedElement) return false
     if (showOnlyOwned && !ownedResonatorIds.includes(c.id)) return false
     if (hideMaxedOut && isMaxed(c.id)) return false
