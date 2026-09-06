@@ -50,7 +50,7 @@ const roverElectro: Character = {
 }
 
 // 3.7 유출 캐릭터 ID 목록
-export const LEAK_CHARACTER_IDS = ['hsin', 'suoming']
+export const LEAK_CHARACTER_IDS = ['suoming', 'hsin']
 
 const rawCharacters: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro]
 

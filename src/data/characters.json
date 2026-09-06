@@ -515,7 +515,7 @@
     "enName": "Hsin",
     "rarity": 5,
     "element": "Electro",
-    "weapon": "Unknown",
+    "weapon": "Rectifier",
     "releaseVersion": 3.71,
     "img": "/characters/hsin.png"
   },
@@ -555,8 +555,8 @@
     "enName": "Suoming",
     "rarity": 5,
     "element": "Electro",
-    "weapon": "Unknown",
-    "releaseVersion": 3.71,
+    "weapon": "Sword",
+    "releaseVersion": 3.72,
     "img": "/characters/suoming.png"
   },
   {

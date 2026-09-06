@@ -43,9 +43,40 @@ export const CIRCUIT_BUFFS_3_6: CircuitBuff[] = [
   }
 ]
 
-// 3.7 유출/신규 버전 특이점 확장 회로 버프 목록 (이미지 및 설명 변경 시 이곳에서 간편하게 수정/확장)
+// 3.7 유출/신규 버전 특이점 확장 회로 버프 목록 (Tower 16 / S2 단계3)
 export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
-  ...CIRCUIT_BUFFS_3_6
+  {
+    id: 'T_Iconpropertyredmine_UI',
+    name: '이상 효과 강화',
+    nameEn: 'Enhancement: Negative Status',
+    description: '캐릭터가 이상 효과를 추가할 시, 목표가 받는 최종 피해를 25% 증가시키고, 받는 전도 최종 피해를 추가로 30% 증가시키며, 30초간 지속된다',
+    descriptionEn: 'When inflicted with Negative Statuses, the target takes 25% more total DMG and an additional 30% more total Electro DMG for 30s.',
+    iconUrl: '/circuits/T_Iconpropertyredmine_UI.webp'
+  },
+  {
+    id: 'T_Iconpropertyredphysics_UI',
+    name: '기본 피해 강화',
+    nameEn: 'Basic DMG Enhancement',
+    description: '캐릭터가 실드 획득 시, 피해가 최종적으로 25% 증가되고, 2초간 지속된다.\n에코 어빌리티 피해가 최종적으로 40% 증가된다.\n캐릭터가 합일 대응 시, 입히는 피해가 최종적으로 55% 증가되고, 15초간 지속된다',
+    descriptionEn: 'Resonators deal 25% more total DMG for 2s upon obtaining a Shield.\nTotal Echo Skill DMG is increased by 40%.\nWhen a Resonator triggers Unison Response, they deal 55% more total DMG for 15s.',
+    iconUrl: '/circuits/T_Iconpropertyredphysics_UI.webp'
+  },
+  {
+    id: 'T_Iconpropertyredcrit_UI',
+    name: '조화도 파괴 강화',
+    nameEn: 'Enhancement: Tune Break',
+    description: '캐릭터가 조화도 · 이탈 상태를 추가할 시, 파티 전체의 피해가 최종적으로 25% 증가되고 30초간 지속된다.\n캐릭터가 해킹 · 이탈 상태를 추가할 시, 입히는 피해가 최종적으로 30% 증가되고 30초간 지속된다',
+    descriptionEn: 'Inflicting Tunability - Shifting increases the total DMG dealt by all Resonators in the team by 25% for 30s.\nInflicting Hack - Shifting increases the total DMG dealt by the Resonator by 30% for 30s.',
+    iconUrl: '/circuits/T_Iconpropertyredcrit_UI.webp'
+  },
+  {
+    id: 'T_Iconpropertyredattack_UI',
+    name: '공용 강화',
+    nameEn: 'General Enhancement',
+    description: '적군이 받는 피해가 최종적으로 20% 증가되고, 적군이 받는 일반 공격 피해가 최종적으로 20% 증가된다',
+    descriptionEn: 'Enemies take 20% more total DMG. Enemies take 20% more total Basic Attack DMG.',
+    iconUrl: '/circuits/T_Iconpropertyredattack_UI.webp'
+  }
 ]
 
 // 버전별 회로 버프 맵
