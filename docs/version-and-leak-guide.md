@@ -41,8 +41,8 @@
   ```ts
   export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
     if (showLeakInfo) {
-      // 3.7 시즌 버프 대상 캐릭터 (예: 루실라)
-      const char = MOCK_CHARACTERS.find(c => c.id === 'lucilla') || null
+      // 3.7 시즌 버프 대상 캐릭터 (린네)
+      const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
       return { version: '3.7', character: char }
     }
     // 3.6 시즌 버프 대상 캐릭터 (데니아)
@@ -85,16 +85,51 @@ export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
 
 ---
 
-## 3. 작업 및 배포 체크리스트
+## 3. nanoka.cc 기반 시즌 버프 및 변경 사항 감지
 
-1. **빌드 및 린트 검증**:
+명조 데이터베이스 사이트인 [ww.nanoka.cc](https://ww.nanoka.cc)의 정적 JSON 데이터를 활용하여 시즌 버프(추가 피로도 2코스트 공명자) 및 특이점 확장 회로 버프 변경 내역을 빠르게 검증할 수 있습니다.
+
+### 3.1 검증 스크립트 실행
+반복 작업 시 리소스 낭비를 줄이기 위해 자동 검증 스크립트가 구비되어 있습니다.
+
+```bash
+# 최신 버전 데이터 자동 감지 및 검증
+npm run check:buff
+
+# 특정 버전 직접 지정 검증 (예: 3.7.1)
+node scripts/check-nanoka-season-buff.js 3.7.1
+```
+
+**스크립트 동작 내용**:
+1. `ww.nanoka.cc`의 최신 데이터 버전(예: `3.7.1`) 탐지
+2. `newtower.json`에서 최신 **특이점 확장(Singularity Expansion)** 타워 탐색 (예: `ID 16`)
+3. `ko/newtower/<id>.json`의 `roles` 항목에서 **"추가 피로도"** 버프를 보유한 공명자(2코스트 대상) 자동 파싱
+4. 특이점 확장 단계별 회로 버프 목록 및 수치 파라미터 출력
+5. 현재 프로젝트 코드([`src/utils/character.ts`](../src/utils/character.ts))와의 설정 일치 여부 즉시 판별
+
+### 3.2 nanoka.cc 주요 엔드포인트 규칙
+- **기본 경로**: `https://static.nanoka.cc/ww/<version>/`
+- **전체 타워 목록**: `https://static.nanoka.cc/ww/<version>/newtower.json`
+- **타워 상세 정보**: `https://static.nanoka.cc/ww/<version>/ko/newtower/<towerId>.json`
+- **캐릭터 정보**: `https://static.nanoka.cc/ww/<version>/character.json`
+
+---
+
+## 4. 작업 및 배포 체크리스트
+
+1. **데이터 정합성 확인**:
+   ```bash
+   npm run check:buff
+   ```
+2. **빌드 및 린트 검증**:
    ```bash
    npm run build
    npm run lint
    ```
-2. **개인 계정 커밋 수칙 확인**:
+3. **개인 계정 커밋 수칙 확인**:
    - `git config user.email` → `ryul3024@gmail.com`
    - `git config commit.gpgsign` → `false`
    - `git remote -v` → `git@github.com-personal:RYUveLia/...`
-3. **PR 생성**:
+4. **PR 생성**:
    - feature 브랜치 생성 후 작업 ➔ 커밋 & 푸시 ➔ PR 생성
+
