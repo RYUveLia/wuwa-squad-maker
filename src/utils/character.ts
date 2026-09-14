@@ -96,8 +96,8 @@ export interface SeasonBuffInfo {
 /** 현재 활성화된 시즌 버프 정보 반환 (미정인 경우 character: null) */
 export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
   if (showLeakInfo) {
-    // 3.7 시즌 버프 대상 캐릭터 (루실라)
-    const char = MOCK_CHARACTERS.find(c => c.id === 'lucilla') || null
+    // 3.7 시즌 버프 대상 캐릭터 (린네)
+    const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
     return { version: '3.7', character: char }
   }
   // 3.6 시즌 버프 대상 캐릭터 (데니아)
