@@ -57,8 +57,8 @@ export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
     id: 'T_Iconpropertyredphysics_UI',
     name: '기본 피해 강화',
     nameEn: 'Basic DMG Enhancement',
-    description: '캐릭터가 실드 획득 시, 피해가 최종적으로 25% 증가되고, 2초간 지속된다.\n에코 어빌리티 피해가 최종적으로 40% 증가된다.\n캐릭터가 합일 대응 시, 입히는 피해가 최종적으로 55% 증가되고, 15초간 지속된다',
-    descriptionEn: 'Resonators deal 25% more total DMG for 2s upon obtaining a Shield.\nTotal Echo Skill DMG is increased by 40%.\nWhen a Resonator triggers Unison Response, they deal 55% more total DMG for 15s.',
+    description: '에코 어빌리티 피해가 최종적으로 40% 증가된다.\n캐릭터가 합일 대응 시, 입히는 피해가 최종적으로 55% 증가되고, 30초간 지속된다.\n캐릭터가 실드 획득 시, 입히는 최종 피해가 11% 증가되고, 최대 5스택 중첩이 가능하며, 2초간 지속되고, 캐릭터가 퇴장 시 제거된다',
+    descriptionEn: 'Total Echo Skill DMG is increased by 40%.\nWhen a Resonator triggers Unison Response, they deal 55% more total DMG for 30s.\nResonators deal 11% more total DMG upon gaining a Shield for 2s, stacking up to 5 times. The stacks are cleared when the Resonator is switched out.',
     iconUrl: '/circuits/T_Iconpropertyredphysics_UI.webp'
   },
   {
