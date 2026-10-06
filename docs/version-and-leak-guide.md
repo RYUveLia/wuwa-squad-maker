@@ -114,7 +114,31 @@ node scripts/check-nanoka-season-buff.js 3.7.1
 
 ---
 
-## 4. 작업 및 배포 체크리스트
+## 4. 신규 버전 오픈 시 승격(Leak → Live) 절차
+
+새로운 버전이 오픈되어 유출 모드로 등록되어 있던 정보를 기본(Live) 데이터로 전환할 때는 다음 파일들을 순서대로 반영합니다:
+
+1. **[`src/utils/character.ts`](../src/utils/character.ts)**:
+   - `LEAK_CHARACTER_IDS`: 기존 유출 캐릭터 ID 제거(차기 버전 대기 상태로 초기화 `[]`)
+   - `getSortedCharacters`: 미출시 컷오프 버전 상향 (`releaseVersion > N.N9`)
+   - `getSeasonBuffInfo`:
+     - `showLeakInfo: false` → 오픈된 버전(N.N)의 시즌 버프 캐릭터 지정
+     - `showLeakInfo: true` → 차기 버전(N+1, 미정이면 `null`)으로 전환
+2. **[`src/constants/circuitBuffs.ts`](../src/constants/circuitBuffs.ts)**:
+   - `getCircuitBuffs`: 기본(`false`) 반환값을 오픈된 버전의 회로 버프 목록으로 갱신
+   - `CIRCUIT_BUFFS`: 기본 export를 해당 버전 버프로 지정
+3. **[`README.md`](../README.md)**:
+   - 시즌 특별 규칙 안내 문구 최신화
+4. **검증 및 승인 후 PR**:
+   - `npm run lint` 및 `npm run build` 검증
+   - 사용자 승인 후 `feat/version-X-X-live` 브랜치 푸시 및 PR 생성
+
+> [!TIP]
+> 본 프로젝트에는 이 워크플로우를 자동화/표준화한 **[wuwa-version-update 스킬](file:///c:/Users/ryul3/Documents/git/wuwa-squad-maker/.agents/skills/wuwa-version-update/SKILL.md)**이 구비되어 있어 AI 에이전트가 "버전 업데이트" 또는 "유출 정보 기본 반영" 요청 시 선제적으로 활용합니다.
+
+---
+
+## 5. 작업 및 배포 체크리스트
 
 1. **데이터 정합성 확인**:
    ```bash
