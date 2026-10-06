@@ -49,16 +49,16 @@ const roverElectro: Character = {
   img: '/characters/rover.png'
 }
 
-// 3.7 유출 캐릭터 ID 목록
-export const LEAK_CHARACTER_IDS = ['suoming', 'hsin']
+// 차기(3.8) 유출 캐릭터 ID 목록 (현재 미정)
+export const LEAK_CHARACTER_IDS: string[] = []
 
 const rawCharacters: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro]
 
-/** 공명자 리스트 정렬 헬퍼 (showLeakInfo가 true일 때만 3.7 유출 캐릭터를 최신순 맨 앞으로 배치, false일 때는 미정(9.9) 취급하여 맨 뒤로 배치) */
+/** 공명자 리스트 정렬 헬퍼 (showLeakInfo가 true일 때만 차기 유출 캐릭터를 최신순 맨 앞으로 배치, false일 때는 미정(9.9) 취급하여 맨 뒤로 배치) */
 export const getSortedCharacters = (showLeakInfo: boolean = false): Character[] => {
   return [...rawCharacters].sort((a, b) => {
-    const aVer = (!showLeakInfo && (a.releaseVersion > 3.69 || LEAK_CHARACTER_IDS.includes(a.id))) ? 9.9 : a.releaseVersion
-    const bVer = (!showLeakInfo && (b.releaseVersion > 3.69 || LEAK_CHARACTER_IDS.includes(b.id))) ? 9.9 : b.releaseVersion
+    const aVer = (!showLeakInfo && (a.releaseVersion > 3.79 || LEAK_CHARACTER_IDS.includes(a.id))) ? 9.9 : a.releaseVersion
+    const bVer = (!showLeakInfo && (b.releaseVersion > 3.79 || LEAK_CHARACTER_IDS.includes(b.id))) ? 9.9 : b.releaseVersion
 
     const aIsUnknown = aVer === 9.9
     const bIsUnknown = bVer === 9.9
@@ -96,13 +96,12 @@ export interface SeasonBuffInfo {
 /** 현재 활성화된 시즌 버프 정보 반환 (미정인 경우 character: null) */
 export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
   if (showLeakInfo) {
-    // 3.7 시즌 버프 대상 캐릭터 (린네)
-    const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
-    return { version: '3.7', character: char }
+    // 3.8 시즌 버프 대상 캐릭터 (현재 미정)
+    return { version: '3.8', character: null }
   }
-  // 3.6 시즌 버프 대상 캐릭터 (데니아)
-  const char = MOCK_CHARACTERS.find(c => c.id === 'denia') || null
-  return { version: '3.6', character: char }
+  // 3.7 시즌 버프 대상 캐릭터 (린네)
+  const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
+  return { version: '3.7', character: char }
 }
 
 export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {

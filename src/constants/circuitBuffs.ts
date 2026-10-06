@@ -86,8 +86,9 @@ export const CIRCUIT_BUFFS_BY_VERSION: Record<string, CircuitBuff[]> = {
 }
 
 /** 현재 활성화된 설정(유출 여부 등)에 따른 회로 버프 목록 반환 */
-export function getCircuitBuffs(showLeakInfo: boolean = false): CircuitBuff[] {
-  return showLeakInfo ? CIRCUIT_BUFFS_3_7 : CIRCUIT_BUFFS_3_6
+export function getCircuitBuffs(_showLeakInfo: boolean = false): CircuitBuff[] {
+  // 3.7 정식 오픈: 기본 및 유출 모드 모두 3.7 특이점 확장 회로 버프 적용 (차기 버전 유출 버프 확정 시 분기 추가)
+  return CIRCUIT_BUFFS_3_7
 }
 
 /** 특정 버프 ID로 회로 버프 객체 조회 (유출 모드 우선 검색 후 이전 버전 목록 fallback 지원) */
@@ -104,5 +105,5 @@ export function findCircuitBuffById(buffId: string | null | undefined, showLeakI
   return null
 }
 
-// 하위 호환용 기본 export
-export const CIRCUIT_BUFFS: CircuitBuff[] = CIRCUIT_BUFFS_3_6
+// 하위 호환용 기본 export (3.7 기준)
+export const CIRCUIT_BUFFS: CircuitBuff[] = CIRCUIT_BUFFS_3_7
