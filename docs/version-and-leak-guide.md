@@ -30,24 +30,23 @@
 - **파일**: [`src/utils/character.ts`](../src/utils/character.ts)
 - **유출 캐릭터 목록 등록**:
   ```ts
-  export const LEAK_CHARACTER_IDS = ['hsin', 'suoming']
+  export const LEAK_CHARACTER_IDS: string[] = [] // 3.8 유출 캐릭터 ID 목록
   ```
   - `getSortedCharacters(showLeakInfo)` 헬퍼에 의해:
-    - **유출 모드 ON (`showLeakInfo: true`)**: `releaseVersion` 3.71이 적용되어 최신순 도감 최상단에 노출됩니다.
-    - **유출 모드 OFF (`showLeakInfo: false`)**: 미정(`9.9`)으로 처리되어 5성 도감 맨 뒤로 이동합니다.
+    - **유출 모드 ON (`showLeakInfo: true`)**: 신규 유출 캐릭터의 `releaseVersion`이 적용되어 최신순 도감 최상단에 노출됩니다.
+    - **유출 모드 OFF (`showLeakInfo: false`)**: 미정(`9.9`)으로 처리되어 5성 도감 맨 뒤로 이동합니다. (3.7 캐릭터는 기본 공개 버전이므로 항상 정상 노출됩니다.)
 
 ### 1.3 시즌 버프 (임시 2회 출전 공명자) 설정
 - **파일**: [`src/utils/character.ts`](../src/utils/character.ts)의 `getSeasonBuffInfo`
   ```ts
   export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
     if (showLeakInfo) {
-      // 3.7 시즌 버프 대상 캐릭터 (린네)
-      const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
-      return { version: '3.7', character: char }
+      // 3.8 시즌 버프 대상 캐릭터 (현재 미정)
+      return { version: '3.8', character: null }
     }
-    // 3.6 시즌 버프 대상 캐릭터 (데니아)
-    const char = MOCK_CHARACTERS.find(c => c.id === 'denia') || null
-    return { version: '3.6', character: char }
+    // 3.7 시즌 버프 대상 캐릭터 (린네)
+    const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
+    return { version: '3.7', character: char }
   }
   ```
   - 유출 모드 ON/OFF에 따라 상단 배너 안내 문구, 도감의 시즌 버프 뱃지, 최대 2회 출전 한도 로직에 자동 연동됩니다.
