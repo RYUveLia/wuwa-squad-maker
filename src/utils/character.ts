@@ -49,8 +49,8 @@ const roverElectro: Character = {
   img: '/characters/rover.png'
 }
 
-// 차기(3.8) 유출 캐릭터 ID 목록 (현재 미정)
-export const LEAK_CHARACTER_IDS: string[] = []
+// 차기(3.8) 유출 캐릭터 ID 목록
+export const LEAK_CHARACTER_IDS: string[] = ['lily']
 
 const rawCharacters: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro]
 

@@ -30,7 +30,7 @@
 - **파일**: [`src/utils/character.ts`](../src/utils/character.ts)
 - **유출 캐릭터 목록 등록**:
   ```ts
-  export const LEAK_CHARACTER_IDS: string[] = [] // 3.8 유출 캐릭터 ID 목록
+  export const LEAK_CHARACTER_IDS: string[] = ['lily'] // 3.8 유출 캐릭터 ID 목록
   ```
   - `getSortedCharacters(showLeakInfo)` 헬퍼에 의해:
     - **유출 모드 ON (`showLeakInfo: true`)**: 신규 유출 캐릭터의 `releaseVersion`이 적용되어 최신순 도감 최상단에 노출됩니다.
