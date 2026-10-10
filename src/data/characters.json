@@ -568,5 +568,15 @@
     "weapon": "Sword",
     "releaseVersion": 3.51,
     "img": "/characters/yangyang-xuanling.png"
+  },
+  {
+    "id": "lily",
+    "name": "릴리",
+    "enName": "Lily",
+    "rarity": 5,
+    "element": "Spectro",
+    "weapon": "Pistols",
+    "releaseVersion": 3.81,
+    "img": "/characters/lily.png"
   }
 ]
