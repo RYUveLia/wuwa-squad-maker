@@ -153,7 +153,7 @@ export function getDoubleDeploymentNamesText(showLeakInfo: boolean): string {
   const allowedIds = [
     ...DOUBLE_DEPLOYMENT_CHARACTERS,
     ...(showLeakInfo ? LEAK_DOUBLE_DEPLOYMENT_CHARACTERS : [])
-  ]
+  ].filter(id => showLeakInfo || !LEAK_CHARACTER_IDS.includes(id))
   
   const names = allowedIds.map(id => {
     const char = MOCK_CHARACTERS.find(c => c.id === id)

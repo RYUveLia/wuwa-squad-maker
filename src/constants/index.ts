@@ -1,5 +1,5 @@
-// 최대 2회 출전이 가능한 공명자 리스트 (설지, 복링, 벨리나, 파수인, 모니에, 수수)
-export const DOUBLE_DEPLOYMENT_CHARACTERS = ['baizhi', 'buling', 'verina', 'shorekeeper', 'mornye', 'suisui']
+// 최대 2회 출전이 가능한 순수 힐러 공명자 리스트 (설지, 복링, 벨리나, 파수인, 모니에, 수수, 릴리)
+export const DOUBLE_DEPLOYMENT_CHARACTERS = ['baizhi', 'buling', 'verina', 'shorekeeper', 'mornye', 'suisui', 'lily']
 
 // 방랑자 ID 그룹
 export const ROVER_IDS = ['rover-spectro', 'rover-havoc', 'rover-aero', 'rover-electro']
