@@ -41,8 +41,9 @@
   ```ts
   export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
     if (showLeakInfo) {
-      // 3.8 시즌 버프 대상 캐릭터 (현재 미정)
-      return { version: '3.8', character: null }
+      // 3.8 시즌 버프 대상 캐릭터 (루실라)
+      const char = MOCK_CHARACTERS.find(c => c.id === 'lucilla') || null
+      return { version: '3.8', character: char }
     }
     // 3.7 시즌 버프 대상 캐릭터 (린네)
     const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
