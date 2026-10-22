@@ -94,10 +94,11 @@ function App() {
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br className="hidden sm:inline" />
             일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span>
             {seasonBuffInfo.character ? (
-              <> 및 <span className="text-amber-400 font-bold whitespace-nowrap">{seasonBuffInfo.version} 시즌 버프 대상인 {seasonBuffInfo.character.name}</span>는</>
+              <> 및 <span className="text-amber-400 font-bold">{seasonBuffInfo.version} 시즌 버프 대상인 {seasonBuffInfo.character.name}</span>는</>
             ) : (
               '는'
-            )} <br className="hidden sm:inline" /> 최대 2회까지 중복 편성이 허용됩니다.
+            )} <br className="hidden sm:inline" />
+            최대 2회까지 중복 편성이 허용됩니다.
           </p>
         </header>
 
@@ -337,6 +338,7 @@ function App() {
             onSave={handleSaveOwnedResonators}
             showOnlyOwned={showOnlyOwned}
             setShowOnlyOwned={setShowOnlyOwned}
+            showLeakInfo={showLeakInfo}
           />
         )}
         
@@ -394,7 +396,7 @@ const LAYOUT_STYLES = {
 }
 
 const HEADER_STYLES = {
-  container: 'text-center mb-8 max-w-2xl select-none mx-auto',
+  container: 'text-center mb-8 max-w-4xl select-none mx-auto px-2',
   title: 'text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm',
   description: 'text-zinc-400 mt-2 text-sm md:text-base leading-relaxed break-keep'
 }
