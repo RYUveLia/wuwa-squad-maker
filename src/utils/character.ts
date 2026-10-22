@@ -54,36 +54,31 @@ export const LEAK_CHARACTER_IDS: string[] = ['lily']
 
 const rawCharacters: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro]
 
-/** 공명자 리스트 정렬 헬퍼 (showLeakInfo가 true일 때만 차기 유출 캐릭터를 최신순 맨 앞으로 배치, false일 때는 미정(9.9) 취급하여 맨 뒤로 배치) */
+// 전체 등록된 공명자 마스터 리스트 (전체 캐릭터 ID 검색 및 기본 데이터용)
+export const ALL_CHARACTERS: Character[] = [...rawCharacters].sort((a, b) => {
+  // 1차: 등급 내림차순 (5성 → 4성)
+  if (a.rarity !== b.rarity) {
+    return b.rarity - a.rarity
+  }
+  // 2차: 출시 버전 내림차순 (최신 먼저)
+  if (a.releaseVersion !== b.releaseVersion) {
+    return b.releaseVersion - a.releaseVersion
+  }
+  return a.enName.localeCompare(b.enName)
+})
+
+/** 공명자 리스트 정렬 헬퍼 (showLeakInfo가 true일 때만 차기 유출 캐릭터를 최신순 맨 앞으로 배치, false일 때는 목록에서 완전히 제외) */
 export const getSortedCharacters = (showLeakInfo: boolean = false): Character[] => {
-  return [...rawCharacters].sort((a, b) => {
-    const aVer = (!showLeakInfo && (a.releaseVersion > 3.79 || LEAK_CHARACTER_IDS.includes(a.id))) ? 9.9 : a.releaseVersion
-    const bVer = (!showLeakInfo && (b.releaseVersion > 3.79 || LEAK_CHARACTER_IDS.includes(b.id))) ? 9.9 : b.releaseVersion
-
-    const aIsUnknown = aVer === 9.9
-    const bIsUnknown = bVer === 9.9
-
-    if (aIsUnknown && bIsUnknown) {
-      if (a.rarity !== b.rarity) return b.rarity - a.rarity
-      return a.enName.localeCompare(b.enName)
+  return ALL_CHARACTERS.filter(c => {
+    if (!showLeakInfo && (LEAK_CHARACTER_IDS.includes(c.id) || c.releaseVersion > 3.79)) {
+      return false
     }
-    if (aIsUnknown) return 1
-    if (bIsUnknown) return -1
-
-    // 1차: 등급 내림차순 (5성 → 4성)
-    if (a.rarity !== b.rarity) {
-      return b.rarity - a.rarity
-    }
-    // 2차: 출시 버전 내림차순 (최신 먼저)
-    if (aVer !== bVer) {
-      return bVer - aVer
-    }
-    return a.enName.localeCompare(b.enName)
+    return true
   })
 }
 
-// 최종 60명 공명자 리스트 (기본 정렬: showLeakInfo = false 기준)
-export const MOCK_CHARACTERS: Character[] = getSortedCharacters(false)
+// 전체 공명자 리스트 (어디서든 ID로 캐릭터를 찾을 수 있도록 ALL_CHARACTERS 유지)
+export const MOCK_CHARACTERS: Character[] = ALL_CHARACTERS
 
 // 유출 정보 설정에 의존하는 중복 편성 가능 캐릭터 목록 (추후 신규 캐릭터 등장 시 이곳에 ID 추가)
 export const LEAK_DOUBLE_DEPLOYMENT_CHARACTERS: string[] = []

@@ -34,7 +34,7 @@
   ```
   - `getSortedCharacters(showLeakInfo)` 헬퍼에 의해:
     - **유출 모드 ON (`showLeakInfo: true`)**: 신규 유출 캐릭터의 `releaseVersion`이 적용되어 최신순 도감 최상단에 노출됩니다.
-    - **유출 모드 OFF (`showLeakInfo: false`)**: 미정(`9.9`)으로 처리되어 5성 도감 맨 뒤로 이동합니다. (3.7 캐릭터는 기본 공개 버전이므로 항상 정상 노출됩니다.)
+    - **유출 모드 OFF (`showLeakInfo: false`)**: 유출 캐릭터가 도감 및 공명자 선택 목록에서 완전히 제외(숨김) 처리되어 스포일러가 방지됩니다. (3.7 캐릭터는 기본 공개 버전이므로 항상 정상 노출됩니다.)
 
 ### 1.3 시즌 버프 (임시 2회 출전 공명자) 설정
 - **파일**: [`src/utils/character.ts`](../src/utils/character.ts)의 `getSeasonBuffInfo`

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Character } from '../types'
-import { MOCK_CHARACTERS } from '../utils/character'
+import { getSortedCharacters } from '../utils/character'
 import { COMMON_STYLES } from '../styles/theme'
 
 interface OwnedResonatorModalProps {
@@ -10,6 +10,7 @@ interface OwnedResonatorModalProps {
   onSave: (ids: string[]) => void
   showOnlyOwned: boolean
   setShowOnlyOwned: (val: boolean) => void
+  showLeakInfo?: boolean
 }
 
 export function OwnedResonatorModal({
@@ -18,9 +19,11 @@ export function OwnedResonatorModal({
   ownedIds,
   onSave,
   showOnlyOwned,
-  setShowOnlyOwned
+  setShowOnlyOwned,
+  showLeakInfo = false
 }: OwnedResonatorModalProps) {
   const [tempOwnedIds, setTempOwnedIds] = useState<string[]>(ownedIds)
+  const displayCharacters = getSortedCharacters(showLeakInfo)
 
   if (!isOpen) return null
 
@@ -31,7 +34,7 @@ export function OwnedResonatorModal({
   }
 
   const handleSelectAll = () => {
-    setTempOwnedIds(MOCK_CHARACTERS.map((c: Character) => c.id))
+    setTempOwnedIds(displayCharacters.map((c: Character) => c.id))
   }
 
   const handleClearAll = () => {
@@ -75,7 +78,7 @@ export function OwnedResonatorModal({
 
         {/* Characters Grid */}
         <div className={OWNED_MODAL_STYLES.grid}>
-          {MOCK_CHARACTERS.map((char: Character) => {
+          {displayCharacters.map((char: Character) => {
             const isOwned = tempOwnedIds.includes(char.id)
 
             return (
