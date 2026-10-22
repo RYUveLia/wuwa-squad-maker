@@ -28,10 +28,22 @@ async function fetchJson(url) {
 
 async function detectLatestVersion() {
   try {
+    const manifestRes = await fetch('https://static.nanoka.cc/manifest.json', { headers: HEADERS });
+    if (manifestRes.ok) {
+      const manifest = await manifestRes.json();
+      if (manifest?.ww?.latest) {
+        return manifest.ww.latest;
+      }
+    }
+  } catch {
+    // ignore error and check html
+  }
+
+  try {
     const htmlRes = await fetch('https://ww.nanoka.cc/', { headers: HEADERS });
     if (htmlRes.ok) {
       const html = await htmlRes.text();
-      const match = html.match(/https:\/\/static\.nanoka\.cc\/ww\/([0-9]+\.[0-9]+\.[0-9]+)\//);
+      const match = html.match(/https:\/\/static\.nanoka\.cc\/ww\/([0-9]+\.[0-9]+(?:\.[0-9]+)?)\//);
       if (match && match[1]) {
         return match[1];
       }
