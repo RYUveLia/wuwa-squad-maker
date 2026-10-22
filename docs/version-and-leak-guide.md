@@ -69,7 +69,7 @@
 - **파일**: [`src/constants/circuitBuffs.ts`](../src/constants/circuitBuffs.ts)
 
 ### 2.1 버전별 버프 정의
-버전별로 버프 목록(`CIRCUIT_BUFFS_3_6`, `CIRCUIT_BUFFS_3_7`)이 분리되어 있습니다.
+버전별로 버프 목록(`CIRCUIT_BUFFS_3_6`, `CIRCUIT_BUFFS_3_7`, `CIRCUIT_BUFFS_3_8`)이 분리되어 있습니다.
 
 ```ts
 // 3.7 유출/신규 버전 특이점 확장 회로 버프 목록
