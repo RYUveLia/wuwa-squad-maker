@@ -13,7 +13,8 @@ export function Toast({ message }: ToastProps) {
 
 // STYLES
 const TOAST_STYLES = {
-  container: 'fixed bottom-6 right-6 z-50 bg-[#14141a] border border-amber-500/50 text-amber-300 px-4 py-2.5 rounded-xl shadow-2xl animate-fade-in flex items-center gap-2 select-none',
+  // 모달 오버레이(z-50) 위에 표시되도록 z-[60]
+  container: 'fixed bottom-6 right-6 z-[60] bg-[#14141a] border border-amber-500/50 text-amber-300 px-4 py-2.5 rounded-xl shadow-2xl animate-fade-in flex items-center gap-2 select-none',
   pingIcon: 'w-2 h-2 bg-amber-400 rounded-full animate-ping',
   text: 'text-xs md:text-sm font-bold'
 }
