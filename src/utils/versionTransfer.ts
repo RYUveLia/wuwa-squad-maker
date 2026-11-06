@@ -157,6 +157,11 @@ export function sanitizeSquadsForVersion(
   return { rows: result, removedUnavailable, removedOverLimit, clearedCircuits, droppedRows }
 }
 
+/** 정리 결과에 편성된 공명자가 한 명이라도 남는지 (없으면 불러오기/붙여넣기를 막는다) */
+export function hasAnyMember(rows: TransferSquadRow[]): boolean {
+  return rows.some(r => r.characters.some(Boolean))
+}
+
 /** 파티 목록이 비어 있는지 (공명자/회로 모두 없음) */
 export function isBoardEmpty(rows: TransferSquadRow[] | undefined): boolean {
   return !rows || rows.every(r => r.characters.every(c => !c) && !r.circuitBuffId)

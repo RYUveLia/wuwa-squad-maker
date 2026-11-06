@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import type { SquadRowData } from '../hooks/useSquadState'
-import { sanitizeSquadsForVersion } from '../utils/versionTransfer'
+import { hasAnyMember, sanitizeSquadsForVersion } from '../utils/versionTransfer'
 
 interface ImportTargetModalProps {
   codeVersion: string
@@ -46,12 +46,17 @@ export function ImportTargetModal({
   const removedToCode = getRemovedNames(rows, toCode.rows)
   const removedToCurrent = getRemovedNames(rows, toCurrent.rows)
   const circuitCount = rows.filter(r => r.circuitBuffId).length
+  // 넣은 결과 공명자가 한 명도 남지 않으면 선택 불가
+  const blockedToCode = hasAnyMember(rows) && !hasAnyMember(toCode.rows)
+  const blockedToCurrent = hasAnyMember(rows) && !hasAnyMember(toCurrent.rows)
 
   const options = [
     {
       key: 'code' as const,
       title: `${codeVersion} 보드에 넣기`,
       badge: '회로 유지',
+      blocked: blockedToCode,
+      blockedReason: `${codeVersion}에서 편성 가능한 공명자가 없어 넣을 수 없습니다.`,
       notes: [
         `코드가 만들어진 ${codeVersion} 보드로 이동해 그대로 불러옵니다.`,
         removedToCode.length > 0 ? `제외: ${removedToCode.join(', ')}` : '',
@@ -63,6 +68,8 @@ export function ImportTargetModal({
       key: 'current' as const,
       title: `현재 ${currentVersion} 보드에 넣기`,
       badge: '회로 삭제',
+      blocked: blockedToCurrent,
+      blockedReason: `${currentVersion}에서 편성 가능한 공명자가 없어 넣을 수 없습니다. (모두 미출시 또는 출전 한도 초과)`,
       notes: [
         `회로 버프${circuitCount > 0 ? ` ${circuitCount}개` : ''}를 지우고 ${currentVersion} 규칙에 맞게 넣습니다.`,
         removedToCurrent.length > 0
@@ -87,8 +94,9 @@ export function ImportTargetModal({
             <button
               key={opt.key}
               type="button"
+              disabled={opt.blocked}
               onClick={() => onSelect(opt.key)}
-              className="text-left p-3 rounded-xl border border-[#262630] bg-[#14141a] hover:border-amber-400/70 hover:bg-amber-950/10 transition-colors cursor-pointer group"
+              className="text-left p-3 rounded-xl border border-[#262630] bg-[#14141a] enabled:hover:border-amber-400/70 enabled:hover:bg-amber-950/10 transition-colors enabled:cursor-pointer group disabled:opacity-45 disabled:cursor-not-allowed"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-bold text-zinc-100 group-hover:text-amber-300">{opt.title}</span>
@@ -103,8 +111,8 @@ export function ImportTargetModal({
                 </span>
               </div>
               <ul className="mt-1.5 flex flex-col gap-0.5">
-                {opt.notes.filter(Boolean).map((note, i) => (
-                  <li key={i} className="text-[11px] text-zinc-400 leading-snug break-keep">
+                {(opt.blocked ? [opt.blockedReason] : opt.notes.filter(Boolean)).map((note, i) => (
+                  <li key={i} className={`text-[11px] leading-snug break-keep ${opt.blocked ? 'text-rose-400 font-semibold' : 'text-zinc-400'}`}>
                     · {note}
                   </li>
                 ))}

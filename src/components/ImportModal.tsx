@@ -7,6 +7,7 @@ interface ImportModalProps {
   currentVersion: string
   versions: string[]
   getVersionPartyCount: (version: string) => number
+  canLoadFromVersion: (version: string) => boolean
   onLoadFromVersion: (version: string) => void
 }
 
@@ -16,6 +17,7 @@ export function ImportModal({
   currentVersion,
   versions,
   getVersionPartyCount,
+  canLoadFromVersion,
   onLoadFromVersion
 }: ImportModalProps) {
   const otherVersions = versions.filter(v => v !== currentVersion)
@@ -49,15 +51,17 @@ export function ImportModal({
           <div className="flex flex-wrap gap-1.5 mt-2">
             {otherVersions.map(v => {
               const count = getVersionPartyCount(v)
+              const loadable = count > 0 && canLoadFromVersion(v)
               return (
                 <button
                   key={v}
                   type="button"
-                  disabled={count === 0}
+                  disabled={!loadable}
+                  title={count > 0 && !loadable ? `${currentVersion}에서 편성 가능한 공명자가 없습니다` : undefined}
                   onClick={() => onLoadFromVersion(v)}
                   className={IMPORT_STYLES.versionBtn}
                 >
-                  {v} <span className="text-zinc-500 font-semibold">({count === 0 ? '비어 있음' : `${count}개 파티`})</span>
+                  {v} <span className="text-zinc-500 font-semibold">({count === 0 ? '비어 있음' : loadable ? `${count}개 파티` : '불러올 공명자 없음'})</span>
                 </button>
               )
             })}

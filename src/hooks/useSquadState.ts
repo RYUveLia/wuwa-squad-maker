@@ -6,7 +6,7 @@ import type { Character } from '../types'
 import { MOCK_CHARACTERS, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 import { GAME_VERSIONS, LIVE_VERSION } from '../constants/versions'
-import { isBoardEmpty, sanitizeSquadsForVersion } from '../utils/versionTransfer'
+import { hasAnyMember, isBoardEmpty, sanitizeSquadsForVersion } from '../utils/versionTransfer'
 
 export interface SquadRowData {
   id: string
@@ -404,6 +404,10 @@ export function useSquadState() {
   /** 편성 코드 파티를 대상 버전 보드에 적용하고 그 보드로 이동 */
   const applyImport = (rows: SquadRowData[], targetVersion: string, resetCircuits: boolean) => {
     const result = sanitizeSquadsForVersion(rows, targetVersion, { resetCircuits })
+    if (hasAnyMember(rows) && !hasAnyMember(result.rows)) {
+      showToast(`${targetVersion}에서 편성 가능한 공명자가 없어 불러오지 않았습니다.`)
+      return
+    }
     setSquadsByVersion(prev => ({ ...prev, [targetVersion]: result.rows }))
     setCurrentVersion(targetVersion)
     localStorage.setItem(SELECTED_VERSION_KEY, targetVersion)
@@ -628,9 +632,19 @@ export function useSquadState() {
   }
 
   /** 다른 버전 보드의 파티를 현재 보드로 불러오기 (회로는 초기화, 현재 버전 규칙에 맞지 않는 공명자 제외) */
+  /** 다른 버전 보드를 현재 보드로 불러왔을 때 공명자가 한 명이라도 남는지 */
+  const canLoadFromVersion = (sourceVersion: string) => {
+    const sourceRows = squadsByVersion[sourceVersion] ?? []
+    return hasAnyMember(sanitizeSquadsForVersion(sourceRows, currentVersion, { resetCircuits: true }).rows)
+  }
+
   const handleLoadFromVersion = (sourceVersion: string) => {
     const sourceRows = squadsByVersion[sourceVersion]
     if (isBoardEmpty(sourceRows)) return
+    if (!canLoadFromVersion(sourceVersion)) {
+      showToast(`${sourceVersion} 파티에는 ${currentVersion}에서 편성 가능한 공명자가 없어 불러올 수 없습니다.`)
+      return
+    }
 
     const apply = () => {
       setImportModalOpen(false)
@@ -787,6 +801,7 @@ export function useSquadState() {
     handleResolveImport,
     cancelPendingImport: () => setPendingImport(null),
     isVersionBoardEmpty: (version: string) => isBoardEmpty(squadsByVersion[version]),
+    canLoadFromVersion,
     getVersionPartyCount: (version: string) =>
       (squadsByVersion[version] ?? []).filter(r => r.characters.some(Boolean) || r.circuitBuffId).length,
     handleDismissMigration,

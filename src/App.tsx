@@ -83,6 +83,7 @@ function App() {
     cancelPendingImport,
     isVersionBoardEmpty,
     getVersionPartyCount,
+    canLoadFromVersion,
     handleDismissMigration,
     handleLoadFromVersion
   } = useSquadState()
@@ -317,6 +318,7 @@ function App() {
             currentVersion={currentVersion}
             versions={selectableVersions}
             getVersionPartyCount={getVersionPartyCount}
+            canLoadFromVersion={canLoadFromVersion}
             onLoadFromVersion={handleLoadFromVersion}
             onClose={() => setImportModalOpen(false)}
           />
