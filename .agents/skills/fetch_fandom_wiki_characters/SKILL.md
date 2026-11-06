@@ -26,11 +26,11 @@ description: Parse Fandom Wiki character list tables to extract names, rarity, e
 
 #### 실행 명령어
 ```bash
-node scripts/fetch-characters.js
+node scripts/fetch-characters.js <1단계에서 저장한 HTML 파일 경로>
 ```
 
 ### 3단계: 추출 결과 데이터 형식 (JSON)
-추출이 완료되면 [src/data/characters.json](file:///Users/er.hyun/personal/wuwa-squad-maker/src/data/characters.json) 파일에 다음과 같은 형식으로 저장됩니다.
+추출이 완료되면 [src/data/characters.json](../../../src/data/characters.json) 파일에 다음과 같은 형식으로 저장됩니다.
 
 ```json
 [

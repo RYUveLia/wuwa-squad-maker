@@ -1,5 +1,7 @@
 # wuwa-squad-maker 작업 규칙
 
+> 개인 repo 공통 지시사항(커밋 계정·remote·서명 규칙)은 [`personal-common.md`](personal-common.md)를 먼저 따른다.
+
 ## 커밋 및 브랜치 규칙
 
 - **커밋 전에 반드시 변경 결과(코드/동작)를 유저에게 먼저 보여주고 확인을 거칠 것.**
@@ -39,5 +41,5 @@
 
 ### `fetch_fandom_wiki_characters` — Fandom Wiki 캐릭터 일괄 수집
 - 상세 절차: [`.agents/skills/fetch_fandom_wiki_characters/SKILL.md`](skills/fetch_fandom_wiki_characters/SKILL.md)
-- 실행: `node scripts/fetch-characters.js` (repo의 `scripts/` 버전이 실사용본)
+- 실행: `node scripts/fetch-characters.js <저장한 HTML 파일 경로>` (repo의 `scripts/` 버전이 실사용본)
 - **주의**: 결과를 `src/data/characters.json`에 통째로 덮어쓰므로, 실행 후 반드시 diff로 수동 수정분(유출 캐릭터, `releaseVersion` 등)이 유실되지 않았는지 확인할 것
