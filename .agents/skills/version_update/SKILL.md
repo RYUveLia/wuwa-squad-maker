@@ -40,6 +40,21 @@ description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이
    - 대량 수집은 [`fetch_fandom_wiki_characters`](../fetch_fandom_wiki_characters/SKILL.md) (characters.json을 통째로 덮어쓰므로 diff 확인 필수)
 6. **README.md** 시즌 버프 대상 목록에 새 버전 추가
 
+### 초상화가 아직 없을 때 (유출 초기)
+유출 단계에서는 이미지가 늦게 나오는 경우가 많다. **파일이 아예 없으면 깨진 이미지 아이콘이 보이므로**(코드에 `onError` 대체 처리 없음) 임시 이미지를 넣는다.
+
+- **릴리 사례**: #28에서 `public/characters/lily.png`에 1×1 투명 PNG(69바이트)를 넣어 출시 → 카드에는 이름·속성 배지만 보임 → #32에서 같은 파일명으로 실제 초상화를 덮어써서 교체 (코드 변경 없음)
+- `characters.json`의 `img`는 **처음부터 최종 경로**(`/characters/<id>.png`)로 두고, 파일만 나중에 바꾼다
+- 임시 이미지 만들기:
+  ```bash
+  echo 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAABAElFTkSuQmCC' | base64 -d > public/characters/<id>.png
+  ```
+- **실제 초상화 규격** (기존 57장 기준)
+  - 256×256 정사각형, 얼굴이 가운데 오도록 크롭
+  - 배경 투명 (카드 배경색과 어울리게. 머리카락 사이 배경까지 제거 — 릴리 #32 "hair gap background" 수정 참고)
+  - 파일명은 `<id>.png` 유지. 내용은 WebP여도 됨 (기존 대부분이 확장자 `.png`인 WebP, 브라우저가 내용으로 판별)
+- 교체 후 도감 카드·파티 슬롯·이미지 저장 결과에서 잘림·배경 확인
+
 ## B. 유출 버전 → 라이브 전환 (예: 3.8 출시)
 
 1. `versions.ts`: `LIVE_VERSION = '3.8'`, `LEAK_VERSIONS`에서 `'3.8'` 제거
