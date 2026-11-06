@@ -120,3 +120,6 @@ export function useSquadState() {
     handleCapture
   }
 }
+
+/** 앱 전체 상태 (패널/모달 컴포넌트에 그대로 전달) */
+export type SquadState = ReturnType<typeof useSquadState>

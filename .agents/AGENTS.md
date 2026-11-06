@@ -23,6 +23,29 @@
   - 코드를 수정한 뒤 빌드가 정상적으로 완료되었더라도, **"변경 사항을 이대로 커밋할까요?"** 또는 **"이대로 푸시 및 PR을 진행할까요?"** 와 같이 사용자에게 명시적인 승인 여부를 먼저 물어보아야 합니다.
   - 사용자가 사전에 직접 "커밋하고 푸시/PR 올려줘"라고 먼저 지시하지 않은 한, 소스 코드 수정 후에는 반드시 확인 질문을 남기고 사용자의 최종 승인 확답을 얻은 뒤에만 커밋/푸시 단계를 밟아야 합니다.
 
+## 코드 구조
+
+| 위치 | 역할 |
+|---|---|
+| `src/constants/` | 데이터·설정: `versions.ts`(지원 버전·라이브·유출·시즌 버프), `circuitBuffs.ts`(버전별 회로), `index.ts`(순수 힐러·방랑자 ID·속성명) |
+| `src/utils/` | **순수 함수** (React 무관, 단위 테스트 대상) |
+| ├ `character.ts` | 공명자 목록·조회(`getCharacterById`), 버전별 노출, 시즌 버프, 출전 한도 |
+| ├ `squadRow.ts` / `squadEditing.ts` | 파티 행 생성 / 배치·이동·교환·해제 등 편성 편집 |
+| ├ `versionTransfer.ts` | 버전 규칙 정리(`sanitizeSquadsForVersion`), 세트 단위 버전 추정 |
+| ├ `squadCode.ts` | 편성 코드 v1~v3 인코딩·디코딩 |
+| └ `squadStorage.ts` | localStorage 영속화 (키, 버전별 보드, 레거시 이관, 설정) |
+| `src/hooks/` | 상태 훅. `useSquadState`가 아래 훅을 조합하고 모달 열림 상태만 관리 |
+| ├ `useVersionBoards` | 현재 버전·버전별 보드·저장 |
+| ├ `useSquadEditor` / `useSquadDnd` | 편성 편집(확인·토스트 포함) / 드래그 앤 드롭 |
+| ├ `useSquadTransfer` | 레거시 이관, 편성 코드 내보내기·불러오기, 다른 버전 보드 불러오기 |
+| └ `useResonatorPool`, `useToast`, `useConfirm` | 도감 필터 / 토스트 / 확인 모달 |
+| `src/components/layout/` | 화면 골격: `AppHeader`, `ResonatorPoolPanel`, `SquadBoardPanel`, `AppModals`, `DragPreview` |
+| `src/components/` | 개별 UI 컴포넌트·모달 |
+
+- 규칙·변환 로직은 `utils`에 순수 함수로 두고 테스트를 함께 작성한다. 훅은 상태 연결과 사용자 안내(토스트·확인)만 담당한다.
+- 테스트: `npm test` (vitest). 픽스처: `src/test/fixtures.ts`의 `char()`, `row()`, `summarize()`
+- 변경 후 확인: `npm test && npm run lint && npm run build`
+
 ## 신규 버전 및 유출 데이터(공명자 & 회로 버프) 관리 가이드
 
 상세 가이드는 [`docs/version-and-leak-guide.md`](../docs/version-and-leak-guide.md)에 정리되어 있습니다.
