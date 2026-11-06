@@ -21,7 +21,6 @@ dist-ssr
 *.sw?
 
 # Agent rules and IDE specific configs
-.agents
 .claude
 .antigravity-ide
 final_project_review.md
