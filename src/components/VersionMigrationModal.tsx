@@ -5,8 +5,8 @@ import { resolveCircuitBuff } from '../constants/circuitBuffs'
 import type { MigrationAssignment, SquadRowData } from '../hooks/useSquadState'
 import {
   getAllowedVersions,
-  getCircuitVersions,
   getRequiredVersionLabel,
+  inferSetVersion,
   pickPreferred,
   suggestVersion
 } from '../utils/versionTransfer'
@@ -17,34 +17,33 @@ interface VersionMigrationModalProps {
   onDismiss: () => void
 }
 
-/** circuit: 회로 버전에 넣기(회로 유지) / free: 회로 삭제 후 원하는 버전에 넣기 */
-type MoveMode = 'circuit' | 'free'
-
 interface RowChoice {
   include: boolean
-  mode: MoveMode
   version: string
 }
 
-/** 버전 구분 이전에 저장된 파티를 어느 버전 보드로 보낼지 고르는 모달 */
+/**
+ * 버전 구분 이전에 저장된 파티를 어느 버전 보드로 보낼지 고르는 모달.
+ *
+ * 이전 데이터의 회로는 아이콘 ID로만 저장되어 있고, 같은 아이콘이 버전마다 다른 효과로 재사용된다.
+ * 그래서 회로는 "세트 전체가 손실 없이 맞는 버전(세트 추천 버전)"으로 옮길 때만 유지하고,
+ * 그 외 버전으로 옮기거나 세트 추천이 없으면 회로를 삭제한다.
+ */
 export function VersionMigrationModal({ rows, onConfirm, onDismiss }: VersionMigrationModalProps) {
+  const setSuggestion = inferSetVersion(rows)
+  const setVersion = setSuggestion?.version ?? null
   const suggestions = rows.map(row => suggestVersion(row))
-  // 공명자가 모두 출시된 버전 (원하는 버전 모드의 선택지)
+  // 공명자가 모두 출시된 버전만 선택 가능
   const allowedByRow = rows.map(row => getAllowedVersions(row.characters))
-  // 회로가 존재하면서 공명자도 출시된 버전 (회로 버전 모드의 선택지)
-  const circuitByRow = rows.map((row, i) =>
-    getCircuitVersions(row.circuitBuffId).filter(v => allowedByRow[i].includes(v))
-  )
-  const optionsOf = (i: number, mode: MoveMode) => (mode === 'circuit' ? circuitByRow[i] : allowedByRow[i])
 
   const initialChoices = (): RowChoice[] =>
     rows.map((_, i) => {
-      const mode: MoveMode = circuitByRow[i].length > 0 ? 'circuit' : 'free'
-      const options = optionsOf(i, mode)
+      if (setVersion) return { include: true, version: setVersion }
+      const options = allowedByRow[i]
       const version = options.includes(suggestions[i].version)
         ? suggestions[i].version
         : pickPreferred(options) ?? suggestions[i].version
-      return { include: true, mode, version }
+      return { include: true, version }
     })
 
   const [choices, setChoices] = useState<RowChoice[]>(initialChoices)
@@ -52,28 +51,12 @@ export function VersionMigrationModal({ rows, onConfirm, onDismiss }: VersionMig
   const setChoice = (idx: number, patch: Partial<RowChoice>) =>
     setChoices(prev => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)))
 
-  const setMode = (idx: number, mode: MoveMode) =>
-    setChoices(prev =>
-      prev.map((c, i) => {
-        if (i !== idx) return c
-        const options = optionsOf(i, mode)
-        return { ...c, mode, version: options.includes(c.version) ? c.version : pickPreferred(options) ?? c.version }
-      })
-    )
+  // 일괄 지정: 공명자가 모두 출시된 파티에만 적용
+  const applyAll = (version: string) =>
+    setChoices(prev => prev.map((c, i) => (allowedByRow[i].includes(version) ? { ...c, version } : c)))
 
-  // 일괄: 회로가 있는 파티는 모두 회로 버전으로
-  const applyAllCircuit = () =>
-    setChoices(prev =>
-      prev.map((c, i) =>
-        circuitByRow[i].length > 0
-          ? { ...c, mode: 'circuit', version: circuitByRow[i].includes(c.version) ? c.version : pickPreferred(circuitByRow[i])! }
-          : c
-      )
-    )
-
-  // 일괄: 회로 삭제 후 지정 버전으로 (공명자가 모두 출시된 파티에만 적용)
-  const applyAllFree = (version: string) =>
-    setChoices(prev => prev.map((c, i) => (allowedByRow[i].includes(version) ? { ...c, mode: 'free', version } : c)))
+  /** 회로 유지 여부: 세트 추천 버전으로 옮길 때만 */
+  const keepsCircuit = (version: string) => !!setVersion && version === setVersion
 
   const includedCount = choices.filter(c => c.include).length
 
@@ -82,18 +65,9 @@ export function VersionMigrationModal({ rows, onConfirm, onDismiss }: VersionMig
       rows
         .map((row, i) => ({ row, choice: choices[i] }))
         .filter(({ choice }) => choice.include)
-        .map(({ row, choice }) => ({ row, version: choice.version, resetCircuit: choice.mode === 'free' }))
+        .map(({ row, choice }) => ({ row, version: choice.version, resetCircuit: !keepsCircuit(choice.version) }))
     )
   }
-
-  const modeBtn = (active: boolean, disabled = false) =>
-    `px-2 py-0.5 rounded-md text-[10.5px] sm:text-[11px] font-bold border transition-colors select-none whitespace-nowrap ${
-      active
-        ? 'bg-zinc-100 text-zinc-950 border-zinc-100'
-        : disabled
-          ? 'text-zinc-700 border-[#1c1c24] cursor-not-allowed'
-          : 'bg-[#09090d] text-zinc-400 border-[#262630] hover:text-zinc-200 cursor-pointer'
-    }`
 
   return (
     <div className={COMMON_STYLES.modalOverlay}>
@@ -105,32 +79,40 @@ export function VersionMigrationModal({ rows, onConfirm, onDismiss }: VersionMig
         <div className="pb-3 border-b border-[#262630]">
           <h2 className="text-base sm:text-xl font-black tracking-tight">기존 파티를 버전별로 정리해 주세요</h2>
           <p className="text-[11px] sm:text-xs text-zinc-400 mt-1 leading-relaxed break-keep">
-            이제 버전마다 파티가 따로 저장됩니다. 저장돼 있던 파티 {rows.length}개를
-            <b className="text-zinc-200"> 회로 버전에 넣을지</b>, <b className="text-zinc-200">회로를 삭제하고 원하는 버전에 넣을지</b> 골라 주세요.
-            회로를 고르지 않은 파티는 최신 버전으로 안내합니다.
+            이제 버전마다 파티가 따로 저장됩니다. 저장돼 있던 파티 {rows.length}개를 보낼 버전을 골라 주세요.
+            이전 데이터의 회로는 아이콘만 저장되어 버전마다 효과가 달라질 수 있어,
+            <b className="text-zinc-200"> 세트 추천 버전으로 옮길 때만 회로를 유지</b>하고 그 외에는 회로를 삭제합니다.
           </p>
         </div>
 
+        {/* Set-level suggestion */}
+        <div
+          className={`mt-3 px-3 py-2 rounded-lg border text-[11px] sm:text-xs leading-relaxed break-keep ${
+            setSuggestion ? 'border-emerald-800/50 bg-emerald-950/20 text-emerald-300' : 'border-[#262630] bg-[#14141a] text-zinc-400'
+          }`}
+        >
+          {setSuggestion ? (
+            <>
+              <b>세트 추천: 전체 {setSuggestion.version}</b> · 모든 파티의 회로·공명자·출전 횟수가 그대로 맞는 버전입니다. 이 버전으로 옮기면 회로가 유지됩니다.
+              {setSuggestion.candidates.length > 1 && ` (가능: ${setSuggestion.candidates.join(', ')})`}
+            </>
+          ) : (
+            <>세트 전체가 그대로 맞는 버전이 없어 파티별로 추천했습니다. 회로는 모두 삭제되니 옮긴 뒤 다시 골라 주세요.</>
+          )}
+        </div>
+
         {/* Bulk actions */}
-        <div className="flex flex-col gap-1.5 mt-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] sm:text-xs font-bold text-zinc-400 w-16">일괄 지정</span>
-            <button type="button" onClick={() => setChoices(initialChoices())} className={COMMON_STYLES.subBtn}>
-              추천대로
+        <div className="flex flex-wrap items-center gap-1.5 mt-3">
+          <span className="text-[11px] sm:text-xs font-bold text-zinc-400 mr-1">일괄 지정</span>
+          <button type="button" onClick={() => setChoices(initialChoices())} className={COMMON_STYLES.subBtn}>
+            추천대로
+          </button>
+          {GAME_VERSIONS.map(v => (
+            <button key={v} type="button" onClick={() => applyAll(v)} className={COMMON_STYLES.subBtn}>
+              전체 {v}
+              {LEAK_VERSIONS.includes(v) && <span className="text-amber-500/80 text-[9px]">유출</span>}
             </button>
-            <button type="button" onClick={applyAllCircuit} className={COMMON_STYLES.subBtn}>
-              전체 회로 버전으로
-            </button>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] sm:text-xs font-bold text-zinc-400 w-16">회로 삭제</span>
-            {GAME_VERSIONS.map(v => (
-              <button key={v} type="button" onClick={() => applyAllFree(v)} className={COMMON_STYLES.subBtn}>
-                전체 {v}
-                {LEAK_VERSIONS.includes(v) && <span className="text-amber-500/80 text-[9px]">유출</span>}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
 
         {/* Rows */}
@@ -138,8 +120,8 @@ export function VersionMigrationModal({ rows, onConfirm, onDismiss }: VersionMig
           {rows.map((row, i) => {
             const choice = choices[i]
             const resolved = resolveCircuitBuff(row.circuitBuffId)
-            const hasCircuitOption = circuitByRow[i].length > 0
-            const options = optionsOf(i, choice.mode)
+            const circuitKept = !!resolved && keepsCircuit(choice.version)
+            const circuitDropped = !!resolved && !circuitKept
             const required = getRequiredVersionLabel(row.characters)
 
             return (
@@ -167,83 +149,63 @@ export function VersionMigrationModal({ rows, onConfirm, onDismiss }: VersionMig
                       </div>
                     ))}
                     <div
-                      className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#09090d] border border-[#262630] p-1 flex items-center justify-center ${
-                        choice.mode === 'free' && resolved ? 'opacity-30' : ''
-                      }`}
+                      className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#09090d] border border-[#262630] p-1 flex items-center justify-center"
                       title={resolved ? resolved.buff.name : '회로 미선택'}
                     >
                       {resolved ? (
-                        <img src={resolved.buff.iconUrl} alt={resolved.buff.name} className="w-full h-full object-contain" />
+                        <img
+                          src={resolved.buff.iconUrl}
+                          alt={resolved.buff.name}
+                          className={`w-full h-full object-contain ${circuitDropped && choice.include ? 'opacity-30' : ''}`}
+                        />
                       ) : (
                         <span className="text-[8px] text-zinc-600 font-bold">회로 X</span>
                       )}
-                      {choice.mode === 'free' && resolved && (
+                      {circuitDropped && choice.include && (
                         <span className="absolute inset-0 flex items-center justify-center text-rose-400 text-lg font-black">✕</span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1 w-full sm:w-auto sm:ml-auto items-end">
-                    {/* Move mode */}
-                    {resolved && (
-                      <div role="radiogroup" aria-label={`${i + 1}번 파티 이동 방식`} className="flex gap-1">
+                  {/* Version choices */}
+                  <div role="radiogroup" aria-label={`${i + 1}번 파티 버전`} className="flex flex-nowrap gap-1 w-full sm:w-auto sm:ml-auto justify-end">
+                    {GAME_VERSIONS.map(v => {
+                      const disabled = !allowedByRow[i].includes(v) || !choice.include
+                      const active = choice.version === v
+                      return (
                         <button
+                          key={v}
                           type="button"
                           role="radio"
-                          aria-checked={choice.mode === 'circuit'}
-                          disabled={!hasCircuitOption || !choice.include}
-                          onClick={() => setMode(i, 'circuit')}
-                          className={modeBtn(choice.mode === 'circuit', !hasCircuitOption)}
+                          aria-checked={active}
+                          disabled={disabled}
+                          onClick={() => setChoice(i, { version: v })}
+                          className={`relative px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-bold border transition-colors select-none ${
+                            active
+                              ? 'bg-amber-400 text-zinc-950 border-amber-400'
+                              : disabled
+                                ? 'bg-transparent text-zinc-700 border-[#1c1c24] cursor-not-allowed line-through'
+                                : 'bg-[#09090d] text-zinc-400 border-[#262630] hover:text-zinc-200 cursor-pointer'
+                          }`}
                         >
-                          회로 버전에 넣기
+                          {v}
+                          {v === setVersion && (
+                            <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-emerald-400" aria-label="세트 추천 버전" />
+                          )}
                         </button>
-                        <button
-                          type="button"
-                          role="radio"
-                          aria-checked={choice.mode === 'free'}
-                          disabled={!choice.include}
-                          onClick={() => setMode(i, 'free')}
-                          className={modeBtn(choice.mode === 'free')}
-                        >
-                          회로 삭제 후 원하는 버전
-                        </button>
-                      </div>
-                    )}
-                    {/* Version choices */}
-                    <div role="radiogroup" aria-label={`${i + 1}번 파티 버전`} className="flex flex-nowrap gap-1">
-                      {GAME_VERSIONS.map(v => {
-                        const disabled = !options.includes(v) || !choice.include
-                        const active = choice.version === v
-                        return (
-                          <button
-                            key={v}
-                            type="button"
-                            role="radio"
-                            aria-checked={active}
-                            disabled={disabled}
-                            onClick={() => setChoice(i, { version: v })}
-                            className={`px-2 py-0.5 rounded-md text-[11px] sm:text-xs font-bold border transition-colors select-none ${
-                              active
-                                ? 'bg-amber-400 text-zinc-950 border-amber-400'
-                                : disabled
-                                  ? 'bg-transparent text-zinc-700 border-[#1c1c24] cursor-not-allowed line-through'
-                                  : 'bg-[#09090d] text-zinc-400 border-[#262630] hover:text-zinc-200 cursor-pointer'
-                            }`}
-                          >
-                            {v}
-                          </button>
-                        )
-                      })}
-                    </div>
+                      )
+                    })}
                   </div>
                 </div>
 
                 <p className="mt-1.5 text-[10px] sm:text-[11px] text-zinc-500 leading-snug break-keep pl-6">
-                  추천 {suggestions[i].version} · {suggestions[i].reason}
+                  {setVersion ? `세트 추천 ${setVersion}` : `추천 ${suggestions[i].version} · ${suggestions[i].reason}`}
                   {required && ` · 공명자 ${required}+`}
-                  {resolved && !hasCircuitOption && ' · 공명자 출시 버전에 이 회로가 없어 회로 삭제만 가능'}
-                  {choice.include && choice.mode === 'free' && resolved && (
-                    <span className="text-rose-400 font-semibold"> · 회로 삭제 후 {choice.version}에 넣습니다</span>
+                  {choice.include && circuitKept && <span className="text-emerald-400 font-semibold"> · 회로 유지</span>}
+                  {choice.include && circuitDropped && (
+                    <span className="text-rose-400 font-semibold">
+                      {' '}· 회로 삭제{setVersion ? ` (세트 추천 ${setVersion}이 아니라 효과가 달라질 수 있음)` : ''}
+                    </span>
                   )}
                 </p>
               </div>

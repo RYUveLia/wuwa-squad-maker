@@ -6,7 +6,7 @@ import type { Character } from '../types'
 import { MOCK_CHARACTERS, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 import { GAME_VERSIONS, LIVE_VERSION } from '../constants/versions'
-import { hasAnyMember, isBoardEmpty, sanitizeSquadsForVersion } from '../utils/versionTransfer'
+import { hasAnyMember, inferSetVersion, isBoardEmpty, sanitizeSquadsForVersion } from '../utils/versionTransfer'
 
 export interface SquadRowData {
   id: string
@@ -98,7 +98,7 @@ const loadPendingMigration = (): SquadRowData[] | null => {
 export interface MigrationAssignment {
   row: SquadRowData
   version: string
-  /** true: 회로 삭제 후 원하는 버전에 넣기 / false: 회로 버전에 넣기(회로 유지) */
+  /** true: 회로 삭제 / false: 회로 유지 (세트 추천 버전으로 옮길 때만 유지) */
   resetCircuit: boolean
 }
 
@@ -106,6 +106,13 @@ export interface MigrationAssignment {
 export interface PendingImport {
   codeVersion: string
   rows: SquadRowData[]
+  /**
+   * 코드 버전을 어떻게 정했는지
+   * - null: 코드에 버전이 담겨 있음
+   * - 'inferred': 버전 없는 이전 코드 → 회로·공명자·출전 횟수로 추정
+   * - 'live': 버전 없는 이전 코드 → 추정 불가해 라이브 버전으로 가정
+   */
+  assumedVersion: 'inferred' | 'live' | null
 }
 
 /** 저장된 선택 버전 (없거나 지원하지 않는 버전이면 라이브 버전) */
@@ -443,24 +450,32 @@ export function useSquadState() {
       characters: item.characters,
       circuitBuffId: item.circuitBuffId
     }))
-    const codeVersion = parsed.version && GAME_VERSIONS.includes(parsed.version) ? parsed.version : null
+    // 버전 정보가 없는 이전 코드는 세트 전체가 그대로 맞는 버전으로 추정, 추정 불가면 라이브 버전으로 가정
+    const hasVersion = !!parsed.version && GAME_VERSIONS.includes(parsed.version)
+    const inferred = hasVersion ? null : inferSetVersion(rows)
+    const codeVersion = hasVersion ? parsed.version! : inferred?.version ?? LIVE_VERSION
+    const assumedVersion: PendingImport['assumedVersion'] = hasVersion ? null : inferred ? 'inferred' : 'live'
 
-    if (codeVersion && codeVersion !== currentVersion) {
+    if (codeVersion !== currentVersion) {
       setImportModalOpen(false)
-      setPendingImport({ codeVersion, rows })
+      setPendingImport({ codeVersion, rows, assumedVersion })
       return
     }
 
+    // 버전을 추정하지 못한 이전 코드의 회로는 아이콘만으로는 효과를 알 수 없어 삭제
+    const resetLegacyCircuits = assumedVersion === 'live'
     if (isBoardEmpty(squadsList)) {
-      applyImport(rows, currentVersion, false)
+      applyImport(rows, currentVersion, resetLegacyCircuits)
       return
     }
     requestRemoveConfirm(
       `편성 코드로 현재 ${currentVersion} 파티를 덮어쓰시겠습니까?`,
-      () => applyImport(rows, currentVersion, false),
-      codeVersion
+      () => applyImport(rows, currentVersion, resetLegacyCircuits),
+      hasVersion
         ? `현재 ${currentVersion} 보드의 기존 파티가 대체됩니다.`
-        : `버전 정보가 없는 이전 코드라 현재 ${currentVersion} 보드에 적용되며, ${currentVersion}에 없는 회로는 초기화됩니다.`,
+        : assumedVersion === 'inferred'
+          ? `버전 정보가 없는 이전 코드지만 ${currentVersion} 코드로 추정되어 현재 보드에 적용합니다.`
+          : `버전 정보가 없고 버전을 추정할 수 없는 이전 코드라 회로를 삭제하고 현재 보드에 적용합니다.`,
       '불러오기'
     )
   }
@@ -468,7 +483,10 @@ export function useSquadState() {
   /** 다른 버전 코드 붙여넣기 선택 처리 */
   const handleResolveImport = (target: 'code' | 'current') => {
     if (!pendingImport) return
-    if (target === 'code') applyImport(pendingImport.rows, pendingImport.codeVersion, false)
+    if (target === 'code') {
+      // 추정하지 못하고 라이브 버전으로 가정한 이전 코드는 회로 삭제
+      applyImport(pendingImport.rows, pendingImport.codeVersion, pendingImport.assumedVersion === 'live')
+    }
     else applyImport(pendingImport.rows, currentVersion, true)
     setPendingImport(null)
   }

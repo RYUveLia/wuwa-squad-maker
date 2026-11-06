@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
+import { LIVE_VERSION } from '../constants/versions'
 
 interface ImportModalProps {
   onImport: (code: string) => void
@@ -32,7 +33,8 @@ export function ImportModal({
         <h3 className={IMPORT_STYLES.title}>편성 코드 불러오기</h3>
         <p className={IMPORT_STYLES.subMessage}>
           내보내기로 복사한 편성 코드(Base64)를 붙여넣어 주세요.<br />
-          코드에 담긴 <span className="text-amber-400">버전 보드</span>로 불러오며, 버전 정보가 없는 이전 코드는 현재 <span className="text-amber-400">{currentVersion}</span> 보드로 불러옵니다.<br />
+          현재 <span className="text-amber-400">{currentVersion}</span> 보드와 다른 버전의 코드면 어느 보드에 넣을지 고를 수 있습니다.
+          (버전 정보가 없는 이전 코드는 회로·공명자로 버전을 추정하고, 추정할 수 없으면 <span className="text-amber-400">{LIVE_VERSION}</span> 코드로 봅니다)<br />
           해당 버전에 없는 공명자·회로는 제외됩니다.
         </p>
         <textarea

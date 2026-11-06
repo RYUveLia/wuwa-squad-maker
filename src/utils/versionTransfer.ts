@@ -157,6 +157,28 @@ export function sanitizeSquadsForVersion(
   return { rows: result, removedUnavailable, removedOverLimit, clearedCircuits, droppedRows }
 }
 
+export interface SetVersionSuggestion {
+  version: string
+  /** 세트 전체가 손실 없이 들어가는 버전 목록 */
+  candidates: string[]
+}
+
+/**
+ * 파티 세트 전체를 한 버전으로 추천.
+ * 버전별로 규칙 정리를 돌려 아무것도 빠지지 않는(미출시 공명자·출전 한도 초과·회로 초기화가 없는) 버전만 후보로 삼는다.
+ * (예: 3.6 전용 회로 + 데니아 2회 출전이 섞인 세트 → 3.6)
+ */
+export function inferSetVersion(rows: TransferSquadRow[]): SetVersionSuggestion | null {
+  const meaningful = rows.filter(r => r.characters.some(Boolean) || r.circuitBuffId)
+  if (meaningful.length === 0) return null
+  const candidates = GAME_VERSIONS.filter(v => {
+    const result = sanitizeSquadsForVersion(meaningful, v, { resetCircuits: false })
+    return result.removedUnavailable === 0 && result.removedOverLimit === 0 && result.clearedCircuits === 0
+  })
+  const version = pickPreferred(candidates)
+  return version ? { version, candidates } : null
+}
+
 /** 정리 결과에 편성된 공명자가 한 명이라도 남는지 (없으면 불러오기/붙여넣기를 막는다) */
 export function hasAnyMember(rows: TransferSquadRow[]): boolean {
   return rows.some(r => r.characters.some(Boolean))

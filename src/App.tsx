@@ -291,6 +291,7 @@ function App() {
         {pendingImport && (
           <ImportTargetModal
             codeVersion={pendingImport.codeVersion}
+            assumedVersion={pendingImport.assumedVersion}
             currentVersion={currentVersion}
             rows={pendingImport.rows}
             isVersionBoardEmpty={isVersionBoardEmpty}
