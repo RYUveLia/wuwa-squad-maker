@@ -7,117 +7,60 @@ import { useSquadTransfer } from './useSquadTransfer'
 import { useToast } from './useToast'
 import { useVersionBoards } from './useVersionBoards'
 
-export type { MigrationAssignment, PendingImport } from './useSquadTransfer'
-
 /**
  * 앱 전체 상태 조합 훅.
- * 세부 로직은 역할별 훅에 있고, 여기서는 조합과 모달 열림 상태만 관리한다.
- * - useVersionBoards: 버전별 보드 / useSquadEditor: 편성 편집 / useSquadDnd: 드래그 앤 드롭
- * - useSquadTransfer: 이관·불러오기·내보내기 / useResonatorPool: 도감 필터 / useToast, useConfirm
+ * 역할별 훅을 만들어 묶어서 돌려준다 (이름을 바꿔 다시 내보내지 않는다).
+ * - boards: 버전별 보드 / editor: 편성 편집 / dnd: 드래그 앤 드롭
+ * - transfer: 이관·불러오기·내보내기 / pool: 도감 필터 / toast, confirm / ui: 모달·시트 열림 상태
  */
 export function useSquadState() {
-  const { toast, showToast } = useToast()
+  const toast = useToast()
   const confirm = useConfirm()
   const boards = useVersionBoards()
-  const editor = useSquadEditor({ boards, showToast, confirm })
+  const editor = useSquadEditor({ boards, showToast: toast.showToast, confirm })
   const dnd = useSquadDnd(editor)
-  const pool = useResonatorPool({ currentVersion: boards.currentVersion, isMaxed: editor.isMaxed, showToast })
+  const pool = useResonatorPool({ currentVersion: boards.currentVersion, isMaxed: editor.isMaxed, showToast: toast.showToast })
+  const ui = useModalState()
+  const transfer = useSquadTransfer({
+    boards,
+    showToast: toast.showToast,
+    requestConfirm: confirm.requestConfirm,
+    closeImportModal: () => ui.setImportModalOpen(false)
+  })
 
-  // 모달 / 시트 열림 상태
-  const [activeSquadIdxForMobile, setActiveSquadIdxForMobile] = useState<number | null>(null)
-  const [activeCircuitModalSquadIdx, setActiveCircuitModalSquadIdx] = useState<number | null>(null)
+  /** 파티 배치도 이미지 저장 모달 열기 (배치된 공명자가 없으면 안내) */
+  const openImageExport = () => {
+    if (!boards.squads.some(row => row.some(Boolean))) {
+      toast.showToast('배치된 캐릭터가 없습니다.')
+      return
+    }
+    ui.setImageExportModalOpen(true)
+  }
+
+  return { boards, editor, dnd, pool, transfer, toast, confirm, ui: { ...ui, openImageExport } }
+}
+
+/** 모달 / 시트 열림 상태 */
+function useModalState() {
+  const [mobileSquadIdx, setMobileSquadIdx] = useState<number | null>(null)
+  const [circuitModalSquadIdx, setCircuitModalSquadIdx] = useState<number | null>(null)
   const [ownedModalOpen, setOwnedModalOpen] = useState(false)
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [imageExportModalOpen, setImageExportModalOpen] = useState(false)
 
-  const transfer = useSquadTransfer({
-    boards,
-    showToast,
-    requestConfirm: confirm.requestConfirm,
-    closeImportModal: () => setImportModalOpen(false)
-  })
-
-  /** 파티 배치도 이미지 저장 모달 열기 (배치된 공명자가 없으면 안내) */
-  const handleCapture = () => {
-    if (!editor.squads.some(row => row.some(Boolean))) {
-      showToast('배치된 캐릭터가 없습니다.')
-      return
-    }
-    setImageExportModalOpen(true)
-  }
-
   return {
-    // 버전 보드
-    currentVersion: boards.currentVersion,
-    setCurrentVersion: boards.switchVersion,
-    selectableVersions: boards.versions,
-    squads: editor.squads,
-    circuitBuffs: boards.squadsList.map(s => s.circuitBuffId),
-    squadIds: boards.squadsList.map(s => s.id),
-
-    // 편성 편집
-    handleAddSquad: editor.addSquad,
-    handleDeleteSquad: editor.requestDeleteSquad,
-    handleSelectCharacter: editor.selectCharacter,
-    handleToggleCharacter: editor.toggleCharacter,
-    handleRemoveCharacter: editor.requestRemoveCharacter,
-    handleSelectCircuitBuff: editor.selectCircuitBuff,
-    handleResetSquads: editor.requestResetSquads,
-    getAssignedSquadIndices: editor.assignedSquadIndicesOf,
-    isCharacterMaxedOut: editor.isMaxed,
-    getMaxDeployment: editor.limitOf,
-
-    // 드래그 앤 드롭
-    sensors: dnd.sensors,
-    activeDragChar: dnd.activeDragChar,
-    handleDragStart: dnd.handleDragStart,
-    handleDragEnd: dnd.handleDragEnd,
-
-    // 도감
-    elements: pool.elements,
-    selectedElement: pool.selectedElement,
-    setSelectedElement: pool.setSelectedElement,
-    filteredCharacters: pool.filteredCharacters,
-    ownedResonatorIds: pool.ownedResonatorIds,
-    handleSaveOwnedResonators: pool.saveOwnedResonators,
-    showOnlyOwned: pool.showOnlyOwned,
-    setShowOnlyOwned: pool.setShowOnlyOwned,
-    hideMaxedOut: pool.hideMaxedOut,
-    setHideMaxedOut: pool.setHideMaxedOut,
-
-    // 이관 / 불러오기 / 내보내기
-    pendingMigration: transfer.pendingMigration,
-    handleConfirmMigration: transfer.confirmMigration,
-    handleDismissMigration: transfer.dismissMigration,
-    handleExport: transfer.exportCurrentBoard,
-    handleImport: transfer.importCode,
-    pendingImport: transfer.pendingImport,
-    handleResolveImport: transfer.resolveImport,
-    cancelPendingImport: transfer.cancelPendingImport,
-    canLoadFromVersion: transfer.canLoadFromVersion,
-    handleLoadFromVersion: transfer.loadFromVersion,
-    isVersionBoardEmpty: transfer.isVersionBoardEmpty,
-    getVersionPartyCount: transfer.getVersionPartyCount,
-
-    // 토스트 / 확인 모달
-    toast,
-    showToast,
-    confirmModalOpen: confirm.confirmModalOpen,
-    setConfirmModalOpen: confirm.setConfirmModalOpen,
-    confirmAction: confirm.confirmAction,
-
-    // 모달 / 시트
-    activeSquadIdxForMobile,
-    setActiveSquadIdxForMobile,
-    activeCircuitModalSquadIdx,
-    setActiveCircuitModalSquadIdx,
+    /** 모바일 공명자 선택 시트가 열린 파티 (null이면 닫힘) */
+    mobileSquadIdx,
+    setMobileSquadIdx,
+    /** 회로 선택 모달이 열린 파티 (null이면 닫힘) */
+    circuitModalSquadIdx,
+    setCircuitModalSquadIdx,
     ownedModalOpen,
     setOwnedModalOpen,
     importModalOpen,
     setImportModalOpen,
     imageExportModalOpen,
-    setImageExportModalOpen,
-    handleCapture
+    setImageExportModalOpen
   }
 }
 

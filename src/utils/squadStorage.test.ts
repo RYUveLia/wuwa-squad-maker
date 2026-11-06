@@ -41,6 +41,22 @@ describe('버전별 보드 저장/로드', () => {
     expect(loadSquadsByVersion()).toEqual({})
   })
 
+  it('JSON은 맞지만 모양이 다른 행은 건너뛰고 앱이 멈추지 않는다', () => {
+    localStorage.setItem(
+      STORAGE_KEYS.squadsByVersion,
+      JSON.stringify({
+        '3.7': [null, 'oops', { characters: 'abc' }, { characters: ['verina', 123, 'no-such-id', 'extra'], circuitBuffId: 7 }],
+        '3.6': [null],
+        '3.5': 'not-an-array'
+      })
+    )
+    const boards = loadSquadsByVersion()
+    expect(summarize(boards['3.7'])).toEqual(['|-', 'verina|-'])
+    expect(boards['3.7'][1].characters).toHaveLength(3)
+    expect(boards['3.6']).toBeUndefined()
+    expect(boards['3.5']).toBeUndefined()
+  })
+
   it('선택 버전: 지원하지 않는 값이면 라이브 버전', () => {
     expect(loadSelectedVersion()).toBe('3.7')
     localStorage.setItem(STORAGE_KEYS.selectedVersion, '3.5')
@@ -73,6 +89,14 @@ describe('레거시 데이터 이관', () => {
     expect(summarize(loadPendingMigration()!)).toEqual(['verina|-'])
     markVersionMigrated()
     expect(loadPendingMigration()).toBeNull()
+  })
+
+  it('레거시 데이터에 이상한 행이 섞여 있어도 멈추지 않는다', () => {
+    localStorage.setItem(STORAGE_KEYS.legacySquadsData, JSON.stringify([null, { characters: 'abc' }, { characters: ['denia'] }]))
+    expect(summarize(loadPendingMigration()!)).toEqual(['denia|-'])
+    localStorage.removeItem(STORAGE_KEYS.legacySquadsData)
+    localStorage.setItem(STORAGE_KEYS.legacySquads, JSON.stringify([null, 'x', ['verina']]))
+    expect(summarize(loadPendingMigration()!)).toEqual(['verina|-'])
   })
 
   it('레거시 데이터가 없거나 비어 있으면 null', () => {

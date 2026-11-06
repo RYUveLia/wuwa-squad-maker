@@ -7,13 +7,14 @@ import { DroppableCharacterPool } from '../DroppableCharacterPool'
 
 /** 왼쪽 공명자 도감 패널 (데스크톱 전용, 모바일은 ResonatorSelectModal 사용) */
 export function ResonatorPoolPanel({ state, className }: { state: SquadState; className: string }) {
-  const seasonBuffInfo = getSeasonBuffInfo(state.currentVersion)
+  const { boards, editor, pool, ui } = state
+  const seasonBuffInfo = getSeasonBuffInfo(boards.currentVersion)
 
   return (
     <section className={`${className} hidden lg:flex`}>
       <div className={POOL_STYLES.header}>
         <div className={POOL_STYLES.titleArea}>
-          <h3 className={POOL_STYLES.title}>공명자 도감 ({state.filteredCharacters.length})</h3>
+          <h3 className={POOL_STYLES.title}>공명자 도감 ({pool.filteredCharacters.length})</h3>
           <span className={POOL_STYLES.subtitle}>
             최신순 정렬
             {seasonBuffInfo.character ? ` (${seasonBuffInfo.character.name}는 ${seasonBuffInfo.version} 시즌 임시 2회 적용)` : ''}
@@ -22,11 +23,11 @@ export function ResonatorPoolPanel({ state, className }: { state: SquadState; cl
 
         {/* Element Filter */}
         <div className={POOL_STYLES.filterBar}>
-          {state.elements.map((elem) => (
+          {pool.elements.map((elem) => (
             <button
               key={elem}
-              onClick={() => state.setSelectedElement(elem)}
-              className={POOL_STYLES.filterButton(state.selectedElement === elem)}
+              onClick={() => pool.setSelectedElement(elem)}
+              className={POOL_STYLES.filterButton(pool.selectedElement === elem)}
             >
               {ELEMENT_KR_MAP[elem] || elem}
             </button>
@@ -35,15 +36,15 @@ export function ResonatorPoolPanel({ state, className }: { state: SquadState; cl
 
         {/* Owned Resonators Filtering bar */}
         <div className={POOL_STYLES.ownedFilterBar}>
-          <button onClick={() => state.setOwnedModalOpen(true)} className={POOL_STYLES.ownedSettingsBtn}>
+          <button onClick={() => ui.setOwnedModalOpen(true)} className={POOL_STYLES.ownedSettingsBtn}>
             ⚙️ 보유 공명자 설정
           </button>
           <div className="flex items-center gap-3.5">
             <label className={POOL_STYLES.ownedFilterLabel}>
               <input
                 type="checkbox"
-                checked={state.hideMaxedOut}
-                onChange={(e) => state.setHideMaxedOut(e.target.checked)}
+                checked={pool.hideMaxedOut}
+                onChange={(e) => pool.setHideMaxedOut(e.target.checked)}
                 className={POOL_STYLES.ownedCheckbox}
               />
               배치 완료 숨기기
@@ -53,14 +54,14 @@ export function ResonatorPoolPanel({ state, className }: { state: SquadState; cl
       </div>
 
       <DroppableCharacterPool>
-        {state.filteredCharacters.map((char) => (
+        {pool.filteredCharacters.map((char) => (
           <DraggableCharacterCard
             key={char.id}
             char={char}
-            assignedSquadIndices={state.getAssignedSquadIndices(char.id)}
-            isMaxedOut={state.isCharacterMaxedOut(char.id)}
-            maxAllowed={state.getMaxDeployment(char.id)}
-            onClick={() => state.handleToggleCharacter(char)}
+            assignedSquadIndices={editor.assignedSquadIndicesOf(char.id)}
+            isMaxedOut={editor.isMaxed(char.id)}
+            maxAllowed={editor.limitOf(char.id)}
+            onClick={() => editor.toggleCharacter(char)}
             isSeasonBuff={seasonBuffInfo.character?.id === char.id}
           />
         ))}

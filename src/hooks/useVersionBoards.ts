@@ -19,8 +19,11 @@ export function useVersionBoards() {
     saveSquadsByVersion(squadsByVersion)
   }, [squadsByVersion])
 
-  /** 현재 보드의 파티 목록 */
+  /** 현재 보드의 파티 목록과 화면용 파생값 (한 곳에서만 계산) */
   const squadsList: SquadRow[] = squadsByVersion[currentVersion] ?? []
+  const squads = squadsList.map(s => s.characters)
+  const circuitBuffs = squadsList.map(s => s.circuitBuffId)
+  const squadIds = squadsList.map(s => s.id)
 
   /** 현재 보드만 갱신 */
   const updateCurrentBoard = (updater: BoardUpdater) => {
@@ -51,6 +54,9 @@ export function useVersionBoards() {
     currentVersion,
     squadsByVersion,
     squadsList,
+    squads,
+    circuitBuffs,
+    squadIds,
     updateCurrentBoard,
     replaceBoard,
     replaceAllBoards,

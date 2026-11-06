@@ -18,12 +18,12 @@ function App() {
   }
 
   return (
-    <DndContext sensors={state.sensors} onDragStart={state.handleDragStart} onDragEnd={state.handleDragEnd}>
+    <DndContext sensors={state.dnd.sensors} onDragStart={state.dnd.handleDragStart} onDragEnd={state.dnd.handleDragEnd}>
       <div className={LAYOUT_STYLES.wrapper}>
         <AppHeader
-          currentVersion={state.currentVersion}
-          versions={state.selectableVersions}
-          onSelectVersion={state.setCurrentVersion}
+          currentVersion={state.boards.currentVersion}
+          versions={state.boards.versions}
+          onSelectVersion={state.boards.switchVersion}
         />
 
         <div className={LAYOUT_STYLES.splitGrid}>
@@ -35,7 +35,7 @@ function App() {
       </div>
 
       <DragOverlay dropAnimation={null}>
-        {state.activeDragChar ? <DragPreview char={state.activeDragChar} /> : null}
+        {state.dnd.activeDragChar ? <DragPreview char={state.dnd.activeDragChar} /> : null}
       </DragOverlay>
     </DndContext>
   )

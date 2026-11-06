@@ -24,8 +24,7 @@ interface Deps {
 
 /** 현재 보드의 파티 편성 편집 (현재 버전의 출전 한도 규칙 적용) */
 export function useSquadEditor({ boards, showToast, confirm }: Deps) {
-  const { currentVersion, squadsList, updateCurrentBoard } = boards
-  const squads = squadsList.map(s => s.characters)
+  const { currentVersion, squadsList, squads, squadIds, updateCurrentBoard } = boards
 
   const limitOf = (charId: string) => getMaxDeployment(charId, currentVersion)
   const isMaxed = (charId: string) => checkCharacterMaxedOut(charId, squads, currentVersion)
@@ -99,9 +98,8 @@ export function useSquadEditor({ boards, showToast, confirm }: Deps) {
 
   /** 파티 행 드래그 정렬 */
   const reorderSquads = (activeRowId: string, overRowId: string) => {
-    const ids = squadsList.map(s => s.id)
-    const oldIndex = ids.indexOf(activeRowId)
-    const newIndex = ids.indexOf(overRowId)
+    const oldIndex = squadIds.indexOf(activeRowId)
+    const newIndex = squadIds.indexOf(overRowId)
     if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return
     updateCurrentBoard(prev => arrayMove(prev, oldIndex, newIndex))
     showToast('파티 순서가 변경되었습니다.')
@@ -124,7 +122,6 @@ export function useSquadEditor({ boards, showToast, confirm }: Deps) {
     )
 
   return {
-    squads,
     limitOf,
     isMaxed,
     assignedSquadIndicesOf,

@@ -57,12 +57,24 @@ interface StoredSquadRow {
   circuitBuffId?: string | null
 }
 
-function hydrateSquads(rows: StoredSquadRow[]): SquadRow[] {
-  return rows.map((item, i) => ({
-    id: item.id || createSquadRowId(i),
-    characters: (item.characters || [null, null, null]).map(id => getCharacterById(id)),
-    circuitBuffId: item.circuitBuffId || null
-  }))
+/**
+ * 저장값 → 파티 행. JSON 문법은 맞지만 모양이 다른 값(null 행, 배열이 아닌 characters 등)은
+ * 앱이 멈추지 않도록 건너뛰거나 빈 칸으로 보정한다. 공명자는 항상 3칸으로 맞춘다.
+ */
+function hydrateSquads(rows: unknown[]): SquadRow[] {
+  return rows.flatMap((item, i) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return []
+    const row = item as StoredSquadRow
+    const ids: unknown[] = Array.isArray(row.characters) ? row.characters : []
+    return [{
+      id: typeof row.id === 'string' && row.id ? row.id : createSquadRowId(i),
+      characters: [0, 1, 2].map(slot => {
+        const id = ids[slot]
+        return typeof id === 'string' ? getCharacterById(id) : null
+      }),
+      circuitBuffId: typeof row.circuitBuffId === 'string' && row.circuitBuffId ? row.circuitBuffId : null
+    }]
+  })
 }
 
 function serializeSquads(rows: SquadRow[]): StoredSquadRow[] {
@@ -81,7 +93,9 @@ export function loadSquadsByVersion(): Record<string, SquadRow[]> {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
   const result: Record<string, SquadRow[]> = {}
   for (const [version, rows] of Object.entries(parsed)) {
-    if (Array.isArray(rows) && rows.length > 0) result[version] = hydrateSquads(rows as StoredSquadRow[])
+    if (!Array.isArray(rows)) continue
+    const hydrated = hydrateSquads(rows)
+    if (hydrated.length > 0) result[version] = hydrated
   }
   return result
 }
@@ -107,16 +121,14 @@ export function saveSelectedVersion(version: string): void {
 export function loadLegacySquads(): SquadRow[] | null {
   // 1) 통합 포맷
   const data = readJson(STORAGE_KEYS.legacySquadsData)
-  if (Array.isArray(data) && data.length > 0) return hydrateSquads(data as StoredSquadRow[])
+  if (Array.isArray(data) && data.length > 0) return hydrateSquads(data)
 
   // 2) 더 이전 포맷 (공명자 / 회로 버프 분리 저장)
   const ids = readJson(STORAGE_KEYS.legacySquads)
   if (!Array.isArray(ids) || ids.length === 0) return null
   const buffsRaw = readJson(STORAGE_KEYS.legacyCircuitBuffs)
   const buffs: (string | null)[] = Array.isArray(buffsRaw) ? buffsRaw : []
-  return hydrateSquads(
-    (ids as (string | null)[][]).map((row, i) => ({ characters: Array.isArray(row) ? row : [], circuitBuffId: buffs[i] || null }))
-  )
+  return hydrateSquads(ids.map((row, i) => ({ characters: Array.isArray(row) ? row : [], circuitBuffId: buffs[i] || null })))
 }
 
 /** 아직 버전 보드로 이관하지 않은 레거시 파티 (빈 행 제외, 없거나 이관 완료면 null) */

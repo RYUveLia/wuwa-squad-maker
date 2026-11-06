@@ -18,5 +18,5 @@ export function row(ids: (string | null)[], circuitBuffId: string | null = null)
 
 /** 파티 행을 "a+b|circuit" 문자열로 요약 (비교용) */
 export function summarize(rows: { characters: (Character | null)[]; circuitBuffId: string | null }[]) {
-  return rows.map(r => `${r.characters.filter(Boolean).map(c => c!.id).join('+')}|${r.circuitBuffId ?? '-'}`)
+  return rows.map(r => `${r.characters.filter((c): c is Character => !!c).map(c => c.id).join('+')}|${r.circuitBuffId ?? '-'}`)
 }

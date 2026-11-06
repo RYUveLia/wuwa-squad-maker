@@ -33,8 +33,9 @@
 | ├ `squadRow.ts` / `squadEditing.ts` | 파티 행 생성 / 배치·이동·교환·해제 등 편성 편집 |
 | ├ `versionTransfer.ts` | 버전 규칙 정리(`sanitizeSquadsForVersion`), 세트 단위 버전 추정 |
 | ├ `squadCode.ts` | 편성 코드 v1~v3 인코딩·디코딩 |
+| ├ `dragData.ts` | 드래그 데이터 해석, 드롭/행 ID 상수 |
 | └ `squadStorage.ts` | localStorage 영속화 (키, 버전별 보드, 레거시 이관, 설정) |
-| `src/hooks/` | 상태 훅. `useSquadState`가 아래 훅을 조합하고 모달 열림 상태만 관리 |
+| `src/hooks/` | 상태 훅. `useSquadState`가 아래 훅을 만들어 `{ boards, editor, dnd, pool, transfer, toast, confirm, ui }`로 묶어 반환 (이름을 바꿔 재노출하지 않음) |
 | ├ `useVersionBoards` | 현재 버전·버전별 보드·저장 |
 | ├ `useSquadEditor` / `useSquadDnd` | 편성 편집(확인·토스트 포함) / 드래그 앤 드롭 |
 | ├ `useSquadTransfer` | 레거시 이관, 편성 코드 내보내기·불러오기, 다른 버전 보드 불러오기 |

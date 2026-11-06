@@ -7,23 +7,24 @@ const MOBILE_BREAKPOINT_PX = 1024
 
 /** 오른쪽 파티 편성 패널: 툴바(초기화·이미지·내보내기·불러오기) + 파티 목록 + 파티 추가 */
 export function SquadBoardPanel({ state, className }: { state: SquadState; className: string }) {
-  const { squads, squadIds, circuitBuffs, currentVersion } = state
+  const { boards, editor, transfer, ui } = state
+  const { squads, squadIds, circuitBuffs, currentVersion } = boards
 
   return (
     <main className={className}>
       <div className={BOARD_STYLES.toolbar}>
         <span className={BOARD_STYLES.toolbarTitle}>{currentVersion} 파티 편성 현황</span>
         <div className={BOARD_STYLES.toolbarBtnArea}>
-          <button onClick={state.handleResetSquads} className={BOARD_STYLES.resetBtn}>
+          <button onClick={editor.requestResetSquads} className={BOARD_STYLES.resetBtn}>
             초기화
           </button>
-          <button onClick={state.handleCapture} className={BOARD_STYLES.toolbarBtn}>
+          <button onClick={ui.openImageExport} className={BOARD_STYLES.toolbarBtn}>
             이미지로 저장
           </button>
-          <button onClick={state.handleExport} className={BOARD_STYLES.toolbarBtn}>
+          <button onClick={transfer.exportCurrentBoard} className={BOARD_STYLES.toolbarBtn}>
             내보내기
           </button>
-          <button onClick={() => state.setImportModalOpen(true)} className={BOARD_STYLES.toolbarBtn}>
+          <button onClick={() => ui.setImportModalOpen(true)} className={BOARD_STYLES.toolbarBtn}>
             불러오기
           </button>
         </div>
@@ -39,17 +40,17 @@ export function SquadBoardPanel({ state, className }: { state: SquadState; class
               squad={squad}
               circuitBuffId={circuitBuffs[squadIdx]}
               version={currentVersion}
-              handleRemoveCharacter={state.handleRemoveCharacter}
-              handleDeleteSquad={state.handleDeleteSquad}
+              handleRemoveCharacter={editor.requestRemoveCharacter}
+              handleDeleteSquad={editor.requestDeleteSquad}
               onSlotClick={(sIdx) => {
-                if (window.innerWidth < MOBILE_BREAKPOINT_PX) state.setActiveSquadIdxForMobile(sIdx)
+                if (window.innerWidth < MOBILE_BREAKPOINT_PX) ui.setMobileSquadIdx(sIdx)
               }}
-              onCircuitBuffClick={(idx) => state.setActiveCircuitModalSquadIdx(idx)}
+              onCircuitBuffClick={(idx) => ui.setCircuitModalSquadIdx(idx)}
             />
           ))}
         </SortableContext>
 
-        <div onClick={state.handleAddSquad} className={BOARD_STYLES.addSquadBar} data-capture-exclude="true">
+        <div onClick={editor.addSquad} className={BOARD_STYLES.addSquadBar} data-capture-exclude="true">
           <span className={BOARD_STYLES.addSquadPlus}>＋</span>
           <span className={BOARD_STYLES.addSquadText}>새로운 파티 추가</span>
         </div>

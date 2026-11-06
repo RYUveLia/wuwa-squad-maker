@@ -1,3 +1,4 @@
+import { POOL_DROPPABLE_ID } from '../utils/dragData'
 import { useDroppable } from '@dnd-kit/core'
 
 interface DroppableCharacterPoolProps {
@@ -6,7 +7,7 @@ interface DroppableCharacterPoolProps {
 
 export function DroppableCharacterPool({ children }: DroppableCharacterPoolProps) {
   const { setNodeRef } = useDroppable({
-    id: 'character-pool-droppable'
+    id: POOL_DROPPABLE_ID
   })
 
   return (
