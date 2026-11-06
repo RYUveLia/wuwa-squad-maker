@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import { GAME_VERSIONS, LEAK_VERSIONS } from '../constants/versions'
 import { resolveCircuitBuff } from '../constants/circuitBuffs'
-import type { MigrationAssignment, SquadRowData } from '../hooks/useSquadState'
+import type { SquadRow } from '../types'
+import type { MigrationAssignment } from '../hooks/useSquadState'
 import {
   getAllowedVersions,
   getRequiredVersionLabel,
@@ -12,7 +13,7 @@ import {
 } from '../utils/versionTransfer'
 
 interface VersionMigrationModalProps {
-  rows: SquadRowData[]
+  rows: SquadRow[]
   onConfirm: (assignments: MigrationAssignment[]) => void
   onDismiss: () => void
 }

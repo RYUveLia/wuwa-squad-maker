@@ -1,9 +1,9 @@
 import type { Character } from '../types'
-import { MOCK_CHARACTERS } from '../utils/character'
+import { getCharacterById } from '../utils/character'
 
 /** 공명자 ID로 Character 조회 (테스트 전용, 없으면 에러) */
 export function char(id: string): Character {
-  const found = MOCK_CHARACTERS.find(c => c.id === id)
+  const found = getCharacterById(id)
   if (!found) throw new Error(`unknown character id: ${id}`)
   return found
 }

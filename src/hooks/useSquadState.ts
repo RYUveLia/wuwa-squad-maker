@@ -2,40 +2,32 @@ import { useState, useEffect, useRef } from 'react'
 import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 
-import type { Character } from '../types'
-import { MOCK_CHARACTERS, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
+import type { Character, SquadRow } from '../types'
+import { createEmptySquadRow, createEmptySquads, createSquadRowId } from '../utils/squadRow'
+import { ALL_CHARACTERS, getCharacterById, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 import { GAME_VERSIONS, LIVE_VERSION } from '../constants/versions'
 import { hasAnyMember, inferSetVersion, isBoardEmpty, sanitizeSquadsForVersion } from '../utils/versionTransfer'
 
-export interface SquadRowData {
-  id: string
-  characters: (Character | null)[]
-  circuitBuffId: string | null
-}
 
 const SQUADS_BY_VERSION_KEY = 'wuwa-squads-by-version'
 const SELECTED_VERSION_KEY = 'selected-version'
 const VERSION_MIGRATED_KEY = 'squads-version-migrated'
 
-const createSquadRowId = (i: number) => `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`
-
-const createEmptySquads = (count: number = 3): SquadRowData[] =>
-  Array.from({ length: count }, (_, i) => ({ id: createSquadRowId(i), characters: [null, null, null], circuitBuffId: null }))
 
 type StoredSquadRow = { id?: string; characters?: (string | null)[]; circuitBuffId?: string | null }
 
-const hydrateSquads = (rows: StoredSquadRow[]): SquadRowData[] =>
+const hydrateSquads = (rows: StoredSquadRow[]): SquadRow[] =>
   rows.map((item, i) => ({
     id: item.id || createSquadRowId(i),
     characters: (item.characters || [null, null, null]).map((id: string | null) =>
-      id ? MOCK_CHARACTERS.find(c => c.id === id) || null : null
+      getCharacterById(id)
     ),
     circuitBuffId: item.circuitBuffId || null
   }))
 
 /** 버전 구분 도입 이전에 저장된 파티 목록 로드 (없으면 null) */
-const loadLegacySquads = (): SquadRowData[] | null => {
+const loadLegacySquads = (): SquadRow[] | null => {
   // 1) 통합 포맷
   const savedData = localStorage.getItem('wuwa-squads-data')
   if (savedData) {
@@ -67,13 +59,13 @@ const loadLegacySquads = (): SquadRowData[] | null => {
 }
 
 /** 버전별 파티 목록 로드 (기존 버전 없는 저장 파티는 마이그레이션 모달에서 사용자가 버전을 골라 이관) */
-const loadSquadsByVersion = (): Record<string, SquadRowData[]> => {
+const loadSquadsByVersion = (): Record<string, SquadRow[]> => {
   const saved = localStorage.getItem(SQUADS_BY_VERSION_KEY)
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const result: Record<string, SquadRowData[]> = {}
+        const result: Record<string, SquadRow[]> = {}
         for (const [version, rows] of Object.entries(parsed)) {
           if (Array.isArray(rows) && rows.length > 0) result[version] = hydrateSquads(rows as StoredSquadRow[])
         }
@@ -87,7 +79,7 @@ const loadSquadsByVersion = (): Record<string, SquadRowData[]> => {
 }
 
 /** 아직 버전으로 이관하지 않은 기존 저장 파티 (없거나 이미 이관했으면 null) */
-const loadPendingMigration = (): SquadRowData[] | null => {
+const loadPendingMigration = (): SquadRow[] | null => {
   if (localStorage.getItem(VERSION_MIGRATED_KEY) === 'true') return null
   const legacy = loadLegacySquads()
   if (!legacy || isBoardEmpty(legacy)) return null
@@ -96,7 +88,7 @@ const loadPendingMigration = (): SquadRowData[] | null => {
 }
 
 export interface MigrationAssignment {
-  row: SquadRowData
+  row: SquadRow
   version: string
   /** true: 회로 삭제 / false: 회로 유지 (세트 추천 버전으로 옮길 때만 유지) */
   resetCircuit: boolean
@@ -105,7 +97,7 @@ export interface MigrationAssignment {
 /** 현재 보드와 다른 버전의 편성 코드를 붙여넣었을 때 사용자 선택 대기 상태 */
 export interface PendingImport {
   codeVersion: string
-  rows: SquadRowData[]
+  rows: SquadRow[]
   /**
    * 코드 버전을 어떻게 정했는지
    * - null: 코드에 버전이 담겨 있음
@@ -128,16 +120,16 @@ export function useSquadState() {
   const [currentVersion, setCurrentVersion] = useState<string>(getInitialVersion)
 
   // 버전별 파티 목록 (characters, circuitBuffId, 고유 ID 원자적 관리)
-  const [squadsByVersion, setSquadsByVersion] = useState<Record<string, SquadRowData[]>>(() => {
+  const [squadsByVersion, setSquadsByVersion] = useState<Record<string, SquadRow[]>>(() => {
     const loaded = loadSquadsByVersion()
     const initialVersion = getInitialVersion()
     return loaded[initialVersion] ? loaded : { ...loaded, [initialVersion]: createEmptySquads() }
   })
 
-  const squadsList: SquadRowData[] = squadsByVersion[currentVersion] ?? []
+  const squadsList: SquadRow[] = squadsByVersion[currentVersion] ?? []
 
   // 현재 버전의 파티 목록만 갱신하는 setter (기존 setSquadsList 호출부와 동일한 인터페이스)
-  const setSquadsList = (updater: SquadRowData[] | ((prev: SquadRowData[]) => SquadRowData[])) => {
+  const setSquadsList = (updater: SquadRow[] | ((prev: SquadRow[]) => SquadRow[])) => {
     setSquadsByVersion(prev => {
       const current = prev[currentVersion] ?? createEmptySquads()
       const next = typeof updater === 'function' ? updater(current) : updater
@@ -167,11 +159,11 @@ export function useSquadState() {
   }
 
   // 기존(버전 없는) 저장 파티 이관 대기 목록
-  const [pendingMigration, setPendingMigration] = useState<SquadRowData[] | null>(loadPendingMigration)
+  const [pendingMigration, setPendingMigration] = useState<SquadRow[] | null>(loadPendingMigration)
 
   /** 선택한 버전으로 기존 파티 이관 (대상 보드가 비어 있으면 대체, 아니면 뒤에 추가) */
   const handleConfirmMigration = (assignments: MigrationAssignment[]) => {
-    const byVersion = new Map<string, SquadRowData[]>()
+    const byVersion = new Map<string, SquadRow[]>()
     assignments.forEach(({ row, version, resetCircuit }) => {
       const moved = resetCircuit ? { ...row, circuitBuffId: null } : row
       byVersion.set(version, [...(byVersion.get(version) ?? []), moved])
@@ -228,7 +220,7 @@ export function useSquadState() {
         // empty
       }
     }
-    return MOCK_CHARACTERS.map(c => c.id)
+    return ALL_CHARACTERS.map(c => c.id)
   })
   const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
   const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
@@ -294,8 +286,7 @@ export function useSquadState() {
 
   // 1) 스쿼드 동적 추가
   const handleAddSquad = () => {
-    const newId = `squad-row-${Date.now()}-${squadsList.length}-${Math.random().toString(36).substring(2, 7)}`
-    setSquadsList(prev => [...prev, { id: newId, characters: [null, null, null], circuitBuffId: null }])
+    setSquadsList(prev => [...prev, createEmptySquadRow(prev.length)])
   }
 
   // 2) 스쿼드 동적 삭제 (원자적으로 해당 파티 행, 캐릭터, 회로 버프 동시 제거)
@@ -307,13 +298,7 @@ export function useSquadState() {
           if (prev.length > 1) {
             return prev.filter((_, idx) => idx !== squadIdx)
           } else {
-            return [
-              {
-                id: `squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`,
-                characters: [null, null, null],
-                circuitBuffId: null
-              }
-            ]
+            return [createEmptySquadRow()]
           }
         })
         showToast(`${squadIdx + 1}번 파티가 삭제되었습니다.`)
@@ -409,7 +394,7 @@ export function useSquadState() {
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
 
   /** 편성 코드 파티를 대상 버전 보드에 적용하고 그 보드로 이동 */
-  const applyImport = (rows: SquadRowData[], targetVersion: string, resetCircuits: boolean) => {
+  const applyImport = (rows: SquadRow[], targetVersion: string, resetCircuits: boolean) => {
     const result = sanitizeSquadsForVersion(rows, targetVersion, { resetCircuits })
     if (hasAnyMember(rows) && !hasAnyMember(result.rows)) {
       showToast(`${targetVersion}에서 편성 가능한 공명자가 없어 불러오지 않았습니다.`)
@@ -445,7 +430,7 @@ export function useSquadState() {
       return
     }
 
-    const rows: SquadRowData[] = parsed.squads.map((item, i) => ({
+    const rows: SquadRow[] = parsed.squads.map((item, i) => ({
       id: createSquadRowId(i),
       characters: item.characters,
       circuitBuffId: item.circuitBuffId
@@ -726,11 +711,7 @@ export function useSquadState() {
           subMessage: `새로운 파티를 추가하고 [${char.name}] 공명자를 배치하시겠습니까?`,
           confirmText: '파티 추가 및 배치',
           onConfirm: () => {
-            const newId = `squad-row-${Date.now()}-${squadsList.length}-${Math.random().toString(36).substring(2, 7)}`
-            setSquadsList(prev => [
-              ...prev,
-              { id: newId, characters: [char, null, null], circuitBuffId: null }
-            ])
+            setSquadsList(prev => [...prev, { ...createEmptySquadRow(prev.length), characters: [char, null, null] }])
             showToast(`새 파티가 추가되고 ${char.name}이 배치되었습니다.`)
           }
         })

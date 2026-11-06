@@ -1,6 +1,6 @@
 import characterData from '../data/characters.json'
 import type { Character } from '../types'
-import { DOUBLE_DEPLOYMENT_CHARACTERS } from '../constants'
+import { DOUBLE_DEPLOYMENT_CHARACTERS, ROVER_IDS } from '../constants'
 import { LEAK_VERSIONS, SEASON_BUFF_CHARACTER_BY_VERSION, versionToNumber } from '../constants/versions'
 
 const baseCharacters = characterData as Character[]
@@ -80,8 +80,11 @@ export const getSortedCharacters = (version: string): Character[] => {
   return ALL_CHARACTERS.filter(c => isAvailableInVersion(c, version))
 }
 
-// 전체 공명자 리스트 (어디서든 ID로 캐릭터를 찾을 수 있도록 ALL_CHARACTERS 유지)
-export const MOCK_CHARACTERS: Character[] = ALL_CHARACTERS
+const CHARACTER_BY_ID = new Map(ALL_CHARACTERS.map(c => [c.id, c]))
+
+/** 공명자 ID로 조회 (없으면 null) */
+export const getCharacterById = (id: string | null | undefined): Character | null =>
+  (id ? CHARACTER_BY_ID.get(id) : undefined) ?? null
 
 export interface SeasonBuffInfo {
   version: string
@@ -91,7 +94,7 @@ export interface SeasonBuffInfo {
 /** 버전별 2회 출전 시즌 버프 정보 반환 (미정인 경우 character: null) */
 export const getSeasonBuffInfo = (version: string): SeasonBuffInfo => {
   const charId = SEASON_BUFF_CHARACTER_BY_VERSION[version] ?? null
-  const character = charId ? MOCK_CHARACTERS.find(c => c.id === charId) || null : null
+  const character = getCharacterById(charId)
   return { version, character }
 }
 
@@ -117,13 +120,12 @@ export function getAssignedSquadIndices(charId: string, squads: (Character | nul
 
 /** 특정 공명자가 출전 횟수 한도에 다다랐는지 검증 (방랑자 상호 잠금 규칙 포함) */
 export function checkCharacterMaxedOut(charId: string, squads: (Character | null)[][], version: string): boolean {
-  const ROVER_IDS = ['rover-spectro', 'rover-havoc', 'rover-aero', 'rover-electro']
   const isRover = ROVER_IDS.includes(charId)
   
   const assignedIndices = getAssignedSquadIndices(charId, squads)
   const isThisRoverDeployed = assignedIndices.length > 0
   
-  const isAnyOtherRoverDeployed = MOCK_CHARACTERS.some(c => 
+  const isAnyOtherRoverDeployed = ALL_CHARACTERS.some(c => 
     ROVER_IDS.includes(c.id) && 
     c.id !== charId && 
     getAssignedSquadIndices(c.id, squads).length > 0
@@ -138,7 +140,7 @@ export function checkCharacterMaxedOut(charId: string, squads: (Character | null
 /** 해당 버전에서 기본 2회 출전이 가능한 순수 힐러들의 한글 이름 목록 괄호 포맷 텍스트 반환 */
 export function getDoubleDeploymentNamesText(version: string): string {
   const names = DOUBLE_DEPLOYMENT_CHARACTERS
-    .map(id => MOCK_CHARACTERS.find(c => c.id === id))
+    .map(id => getCharacterById(id))
     .filter((char): char is Character => !!char && isAvailableInVersion(char, version))
     .map(char => char.name)
 
