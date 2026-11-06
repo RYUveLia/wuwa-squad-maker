@@ -4,88 +4,23 @@ import { arrayMove } from '@dnd-kit/sortable'
 
 import type { Character, SquadRow } from '../types'
 import { createEmptySquadRow, createEmptySquads, createSquadRowId } from '../utils/squadRow'
-import { ALL_CHARACTERS, getCharacterById, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
+import { ALL_CHARACTERS, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
 import { GAME_VERSIONS, LIVE_VERSION } from '../constants/versions'
+import {
+  loadHideMaxedOut,
+  loadOwnedResonatorIds,
+  loadPendingMigration,
+  loadSelectedVersion,
+  loadSquadsByVersion,
+  markVersionMigrated,
+  saveHideMaxedOut,
+  saveOwnedResonatorIds,
+  saveSelectedVersion,
+  saveSquadsByVersion
+} from '../utils/squadStorage'
 import { hasAnyMember, inferSetVersion, isBoardEmpty, sanitizeSquadsForVersion } from '../utils/versionTransfer'
 
-
-const SQUADS_BY_VERSION_KEY = 'wuwa-squads-by-version'
-const SELECTED_VERSION_KEY = 'selected-version'
-const VERSION_MIGRATED_KEY = 'squads-version-migrated'
-
-
-type StoredSquadRow = { id?: string; characters?: (string | null)[]; circuitBuffId?: string | null }
-
-const hydrateSquads = (rows: StoredSquadRow[]): SquadRow[] =>
-  rows.map((item, i) => ({
-    id: item.id || createSquadRowId(i),
-    characters: (item.characters || [null, null, null]).map((id: string | null) =>
-      getCharacterById(id)
-    ),
-    circuitBuffId: item.circuitBuffId || null
-  }))
-
-/** 버전 구분 도입 이전에 저장된 파티 목록 로드 (없으면 null) */
-const loadLegacySquads = (): SquadRow[] | null => {
-  // 1) 통합 포맷
-  const savedData = localStorage.getItem('wuwa-squads-data')
-  if (savedData) {
-    try {
-      const parsed = JSON.parse(savedData)
-      if (Array.isArray(parsed) && parsed.length > 0) return hydrateSquads(parsed)
-    } catch {
-      // empty
-    }
-  }
-
-  // 2) 더 이전 포맷 (공명자 / 회로 버프 분리 저장)
-  const savedSquads = localStorage.getItem('wuwa-squads')
-  if (!savedSquads) return null
-  try {
-    const parsedIds = JSON.parse(savedSquads) as (string | null)[][]
-    if (!Array.isArray(parsedIds) || parsedIds.length === 0) return null
-    let buffs: (string | null)[] = []
-    try {
-      const parsedBuffs = JSON.parse(localStorage.getItem('wuwa-squad-circuit-buffs') || '[]')
-      if (Array.isArray(parsedBuffs)) buffs = parsedBuffs
-    } catch {
-      // empty
-    }
-    return hydrateSquads(parsedIds.map((row, i) => ({ characters: row, circuitBuffId: buffs[i] || null })))
-  } catch {
-    return null
-  }
-}
-
-/** 버전별 파티 목록 로드 (기존 버전 없는 저장 파티는 마이그레이션 모달에서 사용자가 버전을 골라 이관) */
-const loadSquadsByVersion = (): Record<string, SquadRow[]> => {
-  const saved = localStorage.getItem(SQUADS_BY_VERSION_KEY)
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved)
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const result: Record<string, SquadRow[]> = {}
-        for (const [version, rows] of Object.entries(parsed)) {
-          if (Array.isArray(rows) && rows.length > 0) result[version] = hydrateSquads(rows as StoredSquadRow[])
-        }
-        return result
-      }
-    } catch {
-      // empty
-    }
-  }
-  return {}
-}
-
-/** 아직 버전으로 이관하지 않은 기존 저장 파티 (없거나 이미 이관했으면 null) */
-const loadPendingMigration = (): SquadRow[] | null => {
-  if (localStorage.getItem(VERSION_MIGRATED_KEY) === 'true') return null
-  const legacy = loadLegacySquads()
-  if (!legacy || isBoardEmpty(legacy)) return null
-  // 빈 파티 행은 이관 대상에서 제외
-  return legacy.filter(row => row.characters.some(Boolean) || row.circuitBuffId)
-}
 
 export interface MigrationAssignment {
   row: SquadRow
@@ -107,22 +42,16 @@ export interface PendingImport {
   assumedVersion: 'inferred' | 'live' | null
 }
 
-/** 저장된 선택 버전 (없거나 지원하지 않는 버전이면 라이브 버전) */
-const getInitialVersion = (): string => {
-  const saved = localStorage.getItem(SELECTED_VERSION_KEY)
-  return saved && GAME_VERSIONS.includes(saved) ? saved : LIVE_VERSION
-}
-
 export function useSquadState() {
   const selectableVersions = GAME_VERSIONS
 
   // 현재 선택된 게임 버전 (파티 목록 · 도감 · 시즌 버프 · 회로 버프 기준)
-  const [currentVersion, setCurrentVersion] = useState<string>(getInitialVersion)
+  const [currentVersion, setCurrentVersion] = useState<string>(loadSelectedVersion)
 
   // 버전별 파티 목록 (characters, circuitBuffId, 고유 ID 원자적 관리)
   const [squadsByVersion, setSquadsByVersion] = useState<Record<string, SquadRow[]>>(() => {
     const loaded = loadSquadsByVersion()
-    const initialVersion = getInitialVersion()
+    const initialVersion = loadSelectedVersion()
     return loaded[initialVersion] ? loaded : { ...loaded, [initialVersion]: createEmptySquads() }
   })
 
@@ -139,23 +68,13 @@ export function useSquadState() {
 
   // 버전별 파티 목록 영구 보존
   useEffect(() => {
-    const dataToSave = Object.fromEntries(
-      Object.entries(squadsByVersion).map(([version, rows]) => [
-        version,
-        rows.map(s => ({
-          id: s.id,
-          characters: s.characters.map(c => (c ? c.id : null)),
-          circuitBuffId: s.circuitBuffId
-        }))
-      ])
-    )
-    localStorage.setItem(SQUADS_BY_VERSION_KEY, JSON.stringify(dataToSave))
+    saveSquadsByVersion(squadsByVersion)
   }, [squadsByVersion])
 
   const handleSetVersion = (version: string) => {
     setSquadsByVersion(prev => (prev[version] ? prev : { ...prev, [version]: createEmptySquads() }))
     setCurrentVersion(version)
-    localStorage.setItem(SELECTED_VERSION_KEY, version)
+    saveSelectedVersion(version)
   }
 
   // 기존(버전 없는) 저장 파티 이관 대기 목록
@@ -181,7 +100,7 @@ export function useSquadState() {
     })
     setSquadsByVersion(next)
 
-    localStorage.setItem(VERSION_MIGRATED_KEY, 'true')
+    markVersionMigrated()
     setPendingMigration(null)
     const summary = [...byVersion.entries()].map(([v, rows]) => `${v}: ${rows.length}개`).join(', ')
     if (assignments.length > 0) {
@@ -211,30 +130,19 @@ export function useSquadState() {
   const [activeCircuitModalSquadIdx, setActiveCircuitModalSquadIdx] = useState<number | null>(null)
   const [activeDragChar, setActiveDragChar] = useState<Character | null>(null)
 
-  const [ownedResonatorIds, setOwnedResonatorIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem('owned-resonators')
-    if (saved) {
-      try {
-        return JSON.parse(saved)
-      } catch {
-        // empty
-      }
-    }
-    return ALL_CHARACTERS.map(c => c.id)
-  })
+  const [ownedResonatorIds, setOwnedResonatorIds] = useState<string[]>(() =>
+    loadOwnedResonatorIds(ALL_CHARACTERS.map(c => c.id))
+  )
   const [showOnlyOwned, setShowOnlyOwned] = useState<boolean>(false)
   const [ownedModalOpen, setOwnedModalOpen] = useState<boolean>(false)
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false)
   const [imageExportModalOpen, setImageExportModalOpen] = useState<boolean>(false)
 
-  const [hideMaxedOut, setHideMaxedOut] = useState<boolean>(() => {
-    const saved = localStorage.getItem('hide-maxed-out')
-    return saved === 'true'
-  })
+  const [hideMaxedOut, setHideMaxedOut] = useState<boolean>(loadHideMaxedOut)
 
   const handleSetHideMaxedOut = (val: boolean) => {
     setHideMaxedOut(val)
-    localStorage.setItem('hide-maxed-out', String(val))
+    saveHideMaxedOut(val)
   }
 
   // 훅 내부 간소화 헬퍼 정의
@@ -402,7 +310,7 @@ export function useSquadState() {
     }
     setSquadsByVersion(prev => ({ ...prev, [targetVersion]: result.rows }))
     setCurrentVersion(targetVersion)
-    localStorage.setItem(SELECTED_VERSION_KEY, targetVersion)
+    saveSelectedVersion(targetVersion)
     setImportModalOpen(false)
     const removed = result.removedUnavailable + result.removedOverLimit
     const notes = [
@@ -683,7 +591,7 @@ export function useSquadState() {
 
   const handleSaveOwnedResonators = (ids: string[]) => {
     setOwnedResonatorIds(ids)
-    localStorage.setItem('owned-resonators', JSON.stringify(ids))
+    saveOwnedResonatorIds(ids)
     showToast('보유 공명자 현황이 저장되었습니다.')
   }
 
