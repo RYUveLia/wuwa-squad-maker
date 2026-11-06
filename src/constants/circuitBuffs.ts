@@ -1,3 +1,5 @@
+import { GAME_VERSIONS, LIVE_VERSION } from './versions'
+
 export interface CircuitBuff {
   id: string
   name: string
@@ -7,7 +9,43 @@ export interface CircuitBuff {
   iconUrl: string
 }
 
-// 3.6 버전 특이점 확장 회로 버프 목록
+// 3.5 특이점 확장 회로 버프 목록 (Tower 12 / S2 단계1)
+export const CIRCUIT_BUFFS_3_5: CircuitBuff[] = [
+  {
+    id: 'T_Iconpropertyreddark_UI',
+    name: '이상 효과 강화',
+    nameEn: 'Enhancement: Negative Status',
+    description: '캐릭터가 이상 효과 추가 시, 목표가 받는 피해가 최종적으로 25% 증가되고, 30초간 지속된다.\n캐릭터가 암흑 효과 추가 시, 자신이 입히는 피해가 최종적으로 30% 증가되고, 15초간 지속된다',
+    descriptionEn: 'When affected by Negative Statuses, the target\'s total DMG taken is increased by 25% for 30s.\nInflicting Havoc Bane increases Resonators\' total DMG dealt by 30% for 15s.',
+    iconUrl: '/circuits/T_Iconpropertyreddark_UI.webp'
+  },
+  {
+    id: 'T_IconpropertyLuokekeBuff1_UI',
+    name: '에코 어빌리티 강화',
+    nameEn: 'Enhancement: Echo Skill',
+    description: '아군의 에코 어빌리티가 입히는 피해가 최종적으로 30% 증가되고, 용융 피해가 최종적으로 20% 증가되며, 강공격 피해가 최종적으로 20% 증가된다',
+    descriptionEn: 'Echo Skill Total DMG is increased by 30%, Fusion Total DMG by 20%, and Heavy Attack Total DMG by 20%.',
+    iconUrl: '/circuits/T_IconpropertyLuokekeBuff1_UI.webp'
+  },
+  {
+    id: 'T_Iconpropertyredcrit_UI',
+    name: '조화도 파괴 강화',
+    nameEn: 'Enhancement: Tune Break',
+    description: '캐릭터의 조화 파동 피해가 최종적으로 150% 증가된다.\n캐릭터가 조화도 · 이탈 상태 추가 시, 피해가 최종적으로 25% 증가되고, 30초간 지속된다',
+    descriptionEn: 'Resonators\' total Tune Rupture DMG is increased by 150%.\nInflicting Tunability - Shifting increases total DMG by 25% for 30s.',
+    iconUrl: '/circuits/T_Iconpropertyredcrit_UI.webp'
+  },
+  {
+    id: 'T_Iconpropertyredattack_UI',
+    name: '공용 강화',
+    nameEn: 'General Enhancement',
+    description: '적군이 받는 피해가 최종적으로 20% 증가되고, 적군이 받는 공명 스킬 피해가 최종적으로 20% 증가된다',
+    descriptionEn: 'Enemies take 20% more total DMG. Enemies take 20% more total Resonance Skill DMG.',
+    iconUrl: '/circuits/T_Iconpropertyredattack_UI.webp'
+  }
+]
+
+// 3.6 특이점 확장 회로 버프 목록 (Tower 14 / S2 단계2)
 export const CIRCUIT_BUFFS_3_6: CircuitBuff[] = [
   {
     id: 'T_Iconpropertyredice_UI',
@@ -43,7 +81,7 @@ export const CIRCUIT_BUFFS_3_6: CircuitBuff[] = [
   }
 ]
 
-// 3.7 유출/신규 버전 특이점 확장 회로 버프 목록 (Tower 16 / S2 단계3)
+// 3.7 특이점 확장 회로 버프 목록 (Tower 16 / S2 단계3)
 export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
   {
     id: 'T_Iconpropertyredmine_UI',
@@ -79,7 +117,7 @@ export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
   }
 ]
 
-// 버전별 회로 버프 맵
+// 3.8 특이점 확장 회로 버프 목록 (Tower 18 / S2 단계4)
 export const CIRCUIT_BUFFS_3_8: CircuitBuff[] = [
   {
     id: 'T_Iconpropertyredice_UI',
@@ -115,32 +153,50 @@ export const CIRCUIT_BUFFS_3_8: CircuitBuff[] = [
   }
 ]
 
-// 버전별 회로 버프 맵
+// 버전별 회로 버프 맵 (게임 버전 ↔ 특이점 확장 Tower: 3.5=12, 3.6=14, 3.7=16, 3.8=18)
 export const CIRCUIT_BUFFS_BY_VERSION: Record<string, CircuitBuff[]> = {
+  '3.5': CIRCUIT_BUFFS_3_5,
   '3.6': CIRCUIT_BUFFS_3_6,
   '3.7': CIRCUIT_BUFFS_3_7,
   '3.8': CIRCUIT_BUFFS_3_8
 }
 
-/** 현재 활성화된 설정(유출 여부 등)에 따른 회로 버프 목록 반환 */
-export function getCircuitBuffs(showLeakInfo: boolean = false): CircuitBuff[] {
-  // 3.8 유출 모드 ON 시 3.8 회로 버프(Tower 18), 기본(OFF) 시 3.7 회로 버프 적용
-  return showLeakInfo ? CIRCUIT_BUFFS_3_8 : CIRCUIT_BUFFS_3_7
+export interface ResolvedCircuitBuff {
+  version: string
+  buff: CircuitBuff
 }
 
-/** 특정 버프 ID로 회로 버프 객체 조회 (유출 모드 우선 검색 후 이전 버전 목록 fallback 지원) */
-export function findCircuitBuffById(buffId: string | null | undefined, showLeakInfo: boolean = false): CircuitBuff | null {
-  if (!buffId) return null
-  const currentBuffs = getCircuitBuffs(showLeakInfo)
-  const found = currentBuffs.find(b => b.id === buffId)
-  if (found) return found
+/** 저장 키 생성: `${version}:${buffId}` (같은 아이콘 ID를 버전마다 재사용하므로 버전을 함께 저장) */
+export function toCircuitBuffKey(version: string, buffId: string): string {
+  return `${version}:${buffId}`
+}
 
-  for (const list of Object.values(CIRCUIT_BUFFS_BY_VERSION)) {
-    const fallback = list.find(b => b.id === buffId)
-    if (fallback) return fallback
+/**
+ * 저장 키로 회로 버프 조회.
+ * - `${version}:${buffId}` 형식: 해당 버전에서만 조회
+ * - 버전 없는 레거시 ID: 라이브 버전(LIVE_VERSION) → 이전 버전(최신순) → 이후(유출) 버전 순으로 조회
+ *   (레거시 저장 파티는 라이브 버전 보드로 이관되므로, 유출 버전 데이터는 마지막에 찾는다)
+ */
+export function resolveCircuitBuff(key: string | null | undefined): ResolvedCircuitBuff | null {
+  if (!key) return null
+
+  const sepIdx = key.indexOf(':')
+  if (sepIdx !== -1) {
+    const version = key.slice(0, sepIdx)
+    const buffId = key.slice(sepIdx + 1)
+    const buff = CIRCUIT_BUFFS_BY_VERSION[version]?.find(b => b.id === buffId)
+    return buff ? { version, buff } : null
+  }
+
+  const liveIdx = GAME_VERSIONS.indexOf(LIVE_VERSION)
+  const searchOrder = [
+    LIVE_VERSION,
+    ...GAME_VERSIONS.slice(0, liveIdx).reverse(),
+    ...GAME_VERSIONS.slice(liveIdx + 1)
+  ]
+  for (const version of searchOrder) {
+    const buff = CIRCUIT_BUFFS_BY_VERSION[version]?.find(b => b.id === key)
+    if (buff) return { version, buff }
   }
   return null
 }
-
-// 하위 호환용 기본 export (3.7 기준)
-export const CIRCUIT_BUFFS: CircuitBuff[] = CIRCUIT_BUFFS_3_7

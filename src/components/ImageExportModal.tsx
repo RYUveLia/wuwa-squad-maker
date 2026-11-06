@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import type { Character } from '../types'
-import { findCircuitBuffById } from '../constants/circuitBuffs'
+import { resolveCircuitBuff } from '../constants/circuitBuffs'
 
 interface ImageExportModalProps {
   isOpen: boolean
   squads: (Character | null)[][]
   circuitBuffs?: (string | null)[]
-  showLeakInfo?: boolean
+  version: string
   onClose: () => void
   showToast: (msg: string) => void
 }
@@ -16,7 +16,7 @@ export function ImageExportModal({
   isOpen,
   squads,
   circuitBuffs,
-  showLeakInfo = false,
+  version,
   onClose,
   showToast
 }: ImageExportModalProps) {
@@ -218,7 +218,7 @@ export function ImageExportModal({
                     </p>
                   </div>
                   <div className={MODAL_STYLES.boardDateBadge}>
-                    {currentDateStr}
+                    {version} · {currentDateStr}
                   </div>
                 </div>
 
@@ -227,7 +227,8 @@ export function ImageExportModal({
                   {displaySquads.map(({ squad, idx }) => {
                     const numStr = String(idx + 1).padStart(2, '0')
                     const buffId = circuitBuffs ? circuitBuffs[idx] : null
-                    const buff = findCircuitBuffById(buffId, showLeakInfo)
+                    const resolvedBuff = resolveCircuitBuff(buffId)
+                    const buff = resolvedBuff?.buff ?? null
 
                     return (
                       <div
@@ -285,7 +286,7 @@ export function ImageExportModal({
                                     />
                                   </div>
                                   <span className={MODAL_STYLES.circuitNameText}>
-                                    {buff.name.replace(' 강화', '')}
+                                    {resolvedBuff && resolvedBuff.version !== version ? `${resolvedBuff.version} ` : ''}{buff.name.replace(' 강화', '')}
                                   </span>
                                 </>
                               ) : (

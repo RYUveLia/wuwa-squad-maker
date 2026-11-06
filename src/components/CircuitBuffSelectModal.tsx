@@ -1,11 +1,16 @@
 import { useEffect } from 'react'
-import { getCircuitBuffs, type CircuitBuff } from '../constants/circuitBuffs'
+import {
+  CIRCUIT_BUFFS_BY_VERSION,
+  resolveCircuitBuff,
+  toCircuitBuffKey,
+  type CircuitBuff
+} from '../constants/circuitBuffs'
 import { COMMON_STYLES } from '../styles/theme'
 
 interface CircuitBuffSelectModalProps {
   squadIdx: number
   selectedBuffId: string | null
-  showLeakInfo?: boolean
+  version: string
   onSelectBuff: (squadIdx: number, buffId: string | null) => void
   onClose: () => void
 }
@@ -13,7 +18,7 @@ interface CircuitBuffSelectModalProps {
 export function CircuitBuffSelectModal({
   squadIdx,
   selectedBuffId,
-  showLeakInfo = false,
+  version,
   onSelectBuff,
   onClose
 }: CircuitBuffSelectModalProps) {
@@ -29,13 +34,14 @@ export function CircuitBuffSelectModal({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  // 선택된 버전 보드의 회로 버프만 노출
+  const selected = resolveCircuitBuff(selectedBuffId)
+  const buffsOfVersion = CIRCUIT_BUFFS_BY_VERSION[version] ?? []
+
   const handleSelect = (buff: CircuitBuff) => {
-    // 이미 선택된 버프를 다시 누르면 토글 해제하거나 다시 선택
-    if (selectedBuffId === buff.id) {
-      onSelectBuff(squadIdx, null)
-    } else {
-      onSelectBuff(squadIdx, buff.id)
-    }
+    // 이미 선택된 버프를 다시 누르면 선택 해제
+    const isSame = selected?.version === version && selected.buff.id === buff.id
+    onSelectBuff(squadIdx, isSame ? null : toCircuitBuffKey(version, buff.id))
     onClose()
   }
 
@@ -58,11 +64,11 @@ export function CircuitBuffSelectModal({
                 {squadIdx + 1}번 파티
               </span>
               <h2 className="text-base sm:text-xl font-black text-zinc-100 tracking-tight">
-                특이점 확장 회로 버프 선택
+                {version} 특이점 확장 회로 버프
               </h2>
             </div>
             <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
-              파티에 적용할 특이점 확장 시즌 회로 버프를 선택해 주세요.
+              파티에 적용할 {version} 시즌 회로 버프를 선택해 주세요.
             </p>
           </div>
           <button
@@ -76,8 +82,8 @@ export function CircuitBuffSelectModal({
 
         {/* Buff Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 my-4 max-h-[60vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
-          {getCircuitBuffs(showLeakInfo).map((buff) => {
-            const isSelected = selectedBuffId === buff.id
+          {buffsOfVersion.map((buff) => {
+            const isSelected = selected?.version === version && selected.buff.id === buff.id
 
             return (
               <button

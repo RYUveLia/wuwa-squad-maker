@@ -22,6 +22,7 @@ import { CircuitBuffSelectModal } from './components/CircuitBuffSelectModal'
 // 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
 import { getDoubleDeploymentNamesText, getSeasonBuffInfo } from './utils/character'
+import { LEAK_VERSIONS } from './constants/versions'
 
 function App() {
   const {
@@ -71,11 +72,14 @@ function App() {
     showLeakInfo,
     setShowLeakInfo,
     hideMaxedOut,
-    setHideMaxedOut
+    setHideMaxedOut,
+    currentVersion,
+    setCurrentVersion,
+    selectableVersions
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
-  const seasonBuffInfo = getSeasonBuffInfo(showLeakInfo)
+  const seasonBuffInfo = getSeasonBuffInfo(currentVersion)
 
   if (!isVerified) {
     return <TurnstileGate onVerify={() => setIsVerified(true)} />
@@ -92,7 +96,7 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br className="hidden sm:inline" />
-            일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span>
+            일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(currentVersion)}</span>
             {seasonBuffInfo.character ? (
               <> 및 <span className="text-amber-400 font-bold">{seasonBuffInfo.version} 시즌 버프 대상인 {seasonBuffInfo.character.name}</span>는</>
             ) : (
@@ -100,6 +104,28 @@ function App() {
             )} <br className="hidden sm:inline" />
             최대 2회까지 중복 편성이 허용됩니다.
           </p>
+
+          {/* Version Selector: 버전별로 파티 목록 · 도감 · 시즌 버프 · 회로 버프가 분리됨 */}
+          <div role="tablist" aria-label="게임 버전 선택" className={HEADER_STYLES.versionBar}>
+            {selectableVersions.map((version) => {
+              const isActive = version === currentVersion
+              return (
+                <button
+                  key={version}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setCurrentVersion(version)}
+                  className={HEADER_STYLES.versionBtn(isActive)}
+                >
+                  {version}
+                  {LEAK_VERSIONS.includes(version) && (
+                    <span className={HEADER_STYLES.versionLeakTag(isActive)}>유출</span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </header>
 
         {/* 2-Column Split Layout */}
@@ -198,7 +224,7 @@ function App() {
             
             {/* Top Toolbar */}
             <div className={SQUAD_LIST_STYLES.toolbar}>
-              <span className={SQUAD_LIST_STYLES.toolbarTitle}>파티 편성 현황</span>
+              <span className={SQUAD_LIST_STYLES.toolbarTitle}>{currentVersion} 파티 편성 현황</span>
               <div className={SQUAD_LIST_STYLES.toolbarBtnArea}>
                 <button
                   onClick={handleResetSquads}
@@ -240,7 +266,7 @@ function App() {
                     squadIdx={squadIdx}
                     squad={squad}
                     circuitBuffId={circuitBuffs[squadIdx]}
-                    showLeakInfo={showLeakInfo}
+                    version={currentVersion}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}
                     onSlotClick={(sIdx, _slotIdx) => {
@@ -312,6 +338,7 @@ function App() {
             onRemoveSlot={(slotIdx) => handleRemoveCharacter(activeSquadIdxForMobile, slotIdx)}
             onOpenOwnedSettings={() => setOwnedModalOpen(true)}
             showLeakInfo={showLeakInfo}
+            version={currentVersion}
             setShowLeakInfo={setShowLeakInfo}
             hideMaxedOut={hideMaxedOut}
             setHideMaxedOut={setHideMaxedOut}
@@ -323,7 +350,7 @@ function App() {
           <CircuitBuffSelectModal
             squadIdx={activeCircuitModalSquadIdx}
             selectedBuffId={circuitBuffs[activeCircuitModalSquadIdx] || null}
-            showLeakInfo={showLeakInfo}
+            version={currentVersion}
             onSelectBuff={handleSelectCircuitBuff}
             onClose={() => setActiveCircuitModalSquadIdx(null)}
           />
@@ -338,7 +365,7 @@ function App() {
             onSave={handleSaveOwnedResonators}
             showOnlyOwned={showOnlyOwned}
             setShowOnlyOwned={setShowOnlyOwned}
-            showLeakInfo={showLeakInfo}
+            version={selectableVersions[selectableVersions.length - 1]}
           />
         )}
         
@@ -363,7 +390,7 @@ function App() {
             isOpen={imageExportModalOpen}
             squads={squads}
             circuitBuffs={circuitBuffs}
-            showLeakInfo={showLeakInfo}
+            version={currentVersion}
             onClose={() => setImageExportModalOpen(false)}
             showToast={showToast}
           />
@@ -396,6 +423,15 @@ const LAYOUT_STYLES = {
 }
 
 const HEADER_STYLES = {
+  versionBar: 'mt-3 flex flex-wrap items-center justify-center gap-1.5',
+  versionBtn: (active: boolean) =>
+    `px-3 py-1 rounded-lg text-xs sm:text-sm font-bold border transition-colors cursor-pointer select-none ${
+      active
+        ? 'bg-amber-400 text-zinc-950 border-amber-400 shadow-[0_0_10px_rgba(251,189,35,0.3)]'
+        : 'bg-[#14141a] text-zinc-400 border-[#262630] hover:text-zinc-200 hover:border-zinc-600'
+    }`,
+  versionLeakTag: (active: boolean) =>
+    `ml-1 text-[9px] sm:text-[10px] font-extrabold ${active ? 'text-zinc-800' : 'text-amber-500/80'}`,
   container: 'text-center mb-8 max-w-4xl select-none mx-auto px-2',
   title: 'text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm',
   description: 'text-zinc-400 mt-2 text-sm md:text-base leading-relaxed break-keep'

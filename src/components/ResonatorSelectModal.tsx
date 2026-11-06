@@ -25,6 +25,7 @@ interface ResonatorSelectModalProps {
 
   // Leak Info states
   showLeakInfo: boolean
+  version: string
   setShowLeakInfo: (val: boolean) => void
 
   // Hide Maxed Out states
@@ -47,6 +48,7 @@ export function ResonatorSelectModal({
   onRemoveSlot,
   onOpenOwnedSettings,
   showLeakInfo,
+  version,
   setShowLeakInfo,
   hideMaxedOut,
   setHideMaxedOut
@@ -169,7 +171,7 @@ export function ResonatorSelectModal({
                 maxAllowed={maxAllowed}
                 onClick={() => onSelect(char)}
                 isDraggable={false}
-                isSeasonBuff={getSeasonBuffInfo(showLeakInfo).character?.id === char.id}
+                isSeasonBuff={getSeasonBuffInfo(version).character?.id === char.id}
               />
             )
           })}

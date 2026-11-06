@@ -166,15 +166,18 @@ async function main() {
 
   // 6. 현재 프로젝트 소스코드(character.ts)와 비교 점검
   try {
-    const charTsPath = path.join(process.cwd(), 'src/utils/character.ts');
-    const charTsContent = fs.readFileSync(charTsPath, 'utf8');
-    const seasonBuffMatch = charTsContent.match(/c\.id === '([^']+)'/);
-    const configuredChar = seasonBuffMatch ? seasonBuffMatch[1] : 'unknown';
+    // 버전별 시즌 버프 맵(SEASON_BUFF_CHARACTER_BY_VERSION)에서 가장 최신 버전 항목과 비교
+    const versionsTsPath = path.join(process.cwd(), 'src/constants/versions.ts');
+    const versionsTsContent = fs.readFileSync(versionsTsPath, 'utf8');
+    const mapBlock = versionsTsContent.match(/SEASON_BUFF_CHARACTER_BY_VERSION[^{]*\{([\s\S]*?)\}/);
+    const entries = mapBlock ? [...mapBlock[1].matchAll(/'(\d+\.\d+)':\s*'([^']+)'/g)] : [];
+    const latestEntry = entries[entries.length - 1];
+    const configuredChar = latestEntry ? latestEntry[2] : 'unknown';
 
     console.log('\n========================================');
     console.log('📋 프로젝트 코드 반영 상태 체크');
     console.log('========================================');
-    console.log(`   • src/utils/character.ts 현재 설정: '${configuredChar}'`);
+    console.log(`   • src/constants/versions.ts 최신 버전(${latestEntry ? latestEntry[1] : '?'}) 시즌 버프 설정: '${configuredChar}'`);
 
     const matchesConfig = fatigueResonators.some(r => r.nameEn.toLowerCase() === configuredChar.toLowerCase());
     if (matchesConfig) {

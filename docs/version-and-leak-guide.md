@@ -4,6 +4,30 @@
 
 ---
 
+## 0. 버전별 편성 보드 구조
+
+- **파일**: [`src/constants/versions.ts`](../src/constants/versions.ts)
+- 화면 상단의 버전 선택(3.5~3.8)에 따라 **파티 목록이 버전별로 분리 저장**됩니다. (3.5에서 만든 파티는 3.6 보드에 보이지 않음)
+- 선택된 버전이 결정하는 것:
+  - 파티 목록 (localStorage `wuwa-squads-by-version`, 선택 버전은 `selected-version`)
+  - 공명자 도감: `releaseVersion`이 선택 버전 이하인 공명자만 노출 (`isAvailableInVersion`)
+  - 2회 출전 시즌 버프 대상 (`SEASON_BUFF_CHARACTER_BY_VERSION`)
+  - 회로 버프 목록 (`CIRCUIT_BUFFS_BY_VERSION`)
+- `LEAK_VERSIONS`에 포함된 버전은 **유출 정보 OFF 시 버전 선택에서 숨겨지며**, 유출 버전 보드를 보던 중 OFF하면 `LIVE_VERSION` 보드로 전환됩니다.
+- 버전 구분 도입 이전에 저장된 파티(`wuwa-squads-data` 등)는 최초 로드 시 `LIVE_VERSION` 보드로 이관됩니다.
+- 공유 코드 불러오기는 현재 선택된 버전 보드에 적용됩니다.
+
+```ts
+export const GAME_VERSIONS: string[] = ['3.5', '3.6', '3.7', '3.8']
+export const LIVE_VERSION = '3.7'
+export const LEAK_VERSIONS: string[] = ['3.8']
+export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
+  '3.5': 'chisa', '3.6': 'denia', '3.7': 'lynae', '3.8': 'lucilla'
+}
+```
+
+---
+
 ## 1. 공명자(캐릭터) 데이터 관리
 
 ### 1.1 캐릭터 기본 정보 등록 및 속성 수정
@@ -24,33 +48,22 @@
 - **속성(`element`)**: `'Spectro'`(회절), `'Aero'`(기류), `'Electro'`(전도), `'Fusion'`(용융), `'Glacio'`(응결), `'Havoc'`(인멸), `'Unknown'`(미정) 중 지정합니다.
 - **버전(`releaseVersion`)**:
   - 정식 출시 또는 유출 버전 번호를 소수점 형식(예: 3.7 버전 전반 `3.71`, 후반 `3.72`)으로 지정합니다.
+  - 버전 보드의 도감 노출 기준이므로 정확히 입력합니다. (예: `3.62`는 3.6 보드부터 노출)
   - 아직 버전이 완전히 불명인 경우 `9.9`로 지정합니다.
 
-### 1.2 유출 캐릭터 정렬 및 버전별 제어
+### 1.2 유출 캐릭터 및 버전별 노출
 - **파일**: [`src/utils/character.ts`](../src/utils/character.ts)
-- **유출 캐릭터 목록 등록**:
   ```ts
   export const LEAK_CHARACTER_IDS: string[] = ['lily'] // 3.8 유출 캐릭터 ID 목록
   ```
-  - `getSortedCharacters(showLeakInfo)` 헬퍼에 의해:
-    - **유출 모드 ON (`showLeakInfo: true`)**: 신규 유출 캐릭터의 `releaseVersion`이 적용되어 최신순 도감 최상단에 노출됩니다.
-    - **유출 모드 OFF (`showLeakInfo: false`)**: 유출 캐릭터가 도감 및 공명자 선택 목록에서 완전히 제외(숨김) 처리되어 스포일러가 방지됩니다. (3.7 캐릭터는 기본 공개 버전이므로 항상 정상 노출됩니다.)
+  - `getSortedCharacters(version)`은 `releaseVersion`이 선택 버전 이하인 공명자만 반환합니다.
+  - `LEAK_CHARACTER_IDS`에 등록된 캐릭터는 출시 버전이 미정(`9.9`)이어도 유출 버전 보드에서 노출됩니다.
+  - 유출 정보 OFF 시에는 유출 버전 보드 자체를 선택할 수 없으므로 유출 캐릭터가 노출되지 않습니다.
 
 ### 1.3 시즌 버프 (임시 2회 출전 공명자) 설정
-- **파일**: [`src/utils/character.ts`](../src/utils/character.ts)의 `getSeasonBuffInfo`
-  ```ts
-  export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
-    if (showLeakInfo) {
-      // 3.8 시즌 버프 대상 캐릭터 (루실라)
-      const char = MOCK_CHARACTERS.find(c => c.id === 'lucilla') || null
-      return { version: '3.8', character: char }
-    }
-    // 3.7 시즌 버프 대상 캐릭터 (린네)
-    const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
-    return { version: '3.7', character: char }
-  }
-  ```
-  - 유출 모드 ON/OFF에 따라 상단 배너 안내 문구, 도감의 시즌 버프 뱃지, 최대 2회 출전 한도 로직에 자동 연동됩니다.
+- **파일**: [`src/constants/versions.ts`](../src/constants/versions.ts)의 `SEASON_BUFF_CHARACTER_BY_VERSION`
+  - 버전별로 대상 공명자 ID를 지정합니다. 미정이면 `null`.
+  - `getSeasonBuffInfo(version)`을 통해 상단 안내 문구, 도감의 `2회 (시즌)` 뱃지, 최대 2회 출전 한도 로직에 자동 연동됩니다.
 
 ### 1.4 순수 힐러(기본 2회 출전) 공명자 관리
 - **파일**: [`src/constants/index.ts`](../src/constants/index.ts)의 `DOUBLE_DEPLOYMENT_CHARACTERS`
@@ -60,7 +73,7 @@
   ```
   - **순수 힐러 영구 2회 규칙**: 명조 종말 매트릭스 시스템상 '순수 힐러' 공명자는 특정 버전의 한시적인 시즌 버프와 무관하게 **버전이 지나도 영구적으로 2회 출전이 가능**합니다.
   - 신규 공명자(유출 단계 포함)가 순수 힐러로 확인된 경우(예: 3.8 릴리), 한시적 예외가 아닌 순수 힐러 영구 목록인 `DOUBLE_DEPLOYMENT_CHARACTERS`에 바로 등록합니다.
-  - 유출 모드 ON 시 상단 배너 명단에 포함되고 도감/모달에 기본 '2회' 뱃지가 표기되며, 유출 모드 OFF 시에는 스포일러 방지를 위해 상단 헤더 텍스트에서만 이름이 숨겨집니다.
+  - 상단 안내 문구의 순수 힐러 명단은 선택 버전에 출시된 공명자만 표시합니다.
 
 ---
 
@@ -69,7 +82,14 @@
 - **파일**: [`src/constants/circuitBuffs.ts`](../src/constants/circuitBuffs.ts)
 
 ### 2.1 버전별 버프 정의
-버전별로 버프 목록(`CIRCUIT_BUFFS_3_6`, `CIRCUIT_BUFFS_3_7`, `CIRCUIT_BUFFS_3_8`)이 분리되어 있습니다.
+버전별로 버프 목록(`CIRCUIT_BUFFS_3_5` ~ `CIRCUIT_BUFFS_3_8`)이 분리되어 있고, `CIRCUIT_BUFFS_BY_VERSION`에 버전 키로 등록합니다. 회로 모달은 현재 보드 버전의 목록만 노출합니다.
+
+| 버전 | 특이점 확장 Tower (nanoka) | 시즌 단계 |
+|---|---|---|
+| 3.5 | 12 | S2 단계1 |
+| 3.6 | 14 | S2 단계2 |
+| 3.7 | 16 | S2 단계3 |
+| 3.8 | 18 | S2 단계4 |
 
 ```ts
 // 3.7 유출/신규 버전 특이점 확장 회로 버프 목록
@@ -88,10 +108,12 @@ export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
 
 ### 2.2 이미지/아이콘 추가
 - 신규 회로 버프 이미지는 [`public/circuits/`](../public/circuits/) 경로에 추가하고, `iconUrl`에 `'/circuits/파일명.webp'` 형태로 경로를 지정합니다.
+- 아이콘 원본: `https://static.nanoka.cc/assets/ww/UIResources/Common/Image/IconAttribute/<아이콘명>.webp` (`newtower/<id>.json`의 `buffs[].icon` 경로 끝 파일명)
 
 ### 2.3 동작 및 하위 호환 구조
-- **`getCircuitBuffs(showLeakInfo)`**: 모달 및 뷰에서 현재 유출 설정에 맞는 회로 버프 배열을 반환합니다.
-- **`findCircuitBuffById(buffId, showLeakInfo)`**: 현재 활성화된 버전을 우선 검색하고, 이전 버전의 버프 ID인 경우 fallback 검색하여 기존 저장된 스쿼드 및 이미지 내보내기와의 하위 호환성을 유지합니다.
+- **저장 키**: 게임이 같은 아이콘 ID(`redcrit`, `redattack` 등)를 버전마다 재사용하므로, 선택값은 `${version}:${id}` 형식(예: `3.8:T_Iconpropertyredcrit_UI`)으로 localStorage와 공유 코드에 저장됩니다. (`toCircuitBuffKey`)
+- **`resolveCircuitBuff(key)`**: 저장 키로 `{ version, buff }`를 반환합니다. 버전 없는 레거시 ID는 `LIVE_VERSION` → 이전 버전(최신순) → 유출 버전 순으로 검색하여 기존 저장 스쿼드·공유 코드와의 하위 호환성을 유지합니다.
+- 보드 버전과 다른 버전의 회로(레거시 저장값 등)는 파티 슬롯과 이미지 내보내기에 버전이 함께 표시됩니다.
 
 ---
 
@@ -115,7 +137,8 @@ node scripts/check-nanoka-season-buff.js 3.7.1
 2. `newtower.json`에서 최신 **특이점 확장(Singularity Expansion)** 타워 탐색 (예: `ID 16`)
 3. `ko/newtower/<id>.json`의 `roles` 항목에서 **"추가 피로도"** 버프를 보유한 공명자(2코스트 대상) 자동 파싱
 4. 특이점 확장 단계별 회로 버프 목록 및 수치 파라미터 출력
-5. 현재 프로젝트 코드([`src/utils/character.ts`](../src/utils/character.ts))와의 설정 일치 여부 즉시 판별
+5. 현재 프로젝트 코드([`src/constants/versions.ts`](../src/constants/versions.ts)의 최신 버전 시즌 버프)와의 설정 일치 여부 즉시 판별
+6. 과거 버전 시즌 버프는 해당 버전 스냅샷(`/ww/<version>/`)에서 확인해야 합니다. (최신 스냅샷은 모든 타워의 `roles`가 최신 값으로 덮여 있음)
 
 ### 3.2 nanoka.cc 주요 엔드포인트 규칙
 - **기본 경로**: `https://static.nanoka.cc/ww/<version>/`
@@ -129,15 +152,13 @@ node scripts/check-nanoka-season-buff.js 3.7.1
 
 새로운 버전이 오픈되어 유출 모드로 등록되어 있던 정보를 기본(Live) 데이터로 전환할 때는 다음 파일들을 순서대로 반영합니다:
 
-1. **[`src/utils/character.ts`](../src/utils/character.ts)**:
-   - `LEAK_CHARACTER_IDS`: 기존 유출 캐릭터 ID 제거(차기 버전 대기 상태로 초기화 `[]`)
-   - `getSortedCharacters`: 미출시 컷오프 버전 상향 (`releaseVersion > N.N9`)
-   - `getSeasonBuffInfo`:
-     - `showLeakInfo: false` → 오픈된 버전(N.N)의 시즌 버프 캐릭터 지정
-     - `showLeakInfo: true` → 차기 버전(N+1, 미정이면 `null`)으로 전환
-2. **[`src/constants/circuitBuffs.ts`](../src/constants/circuitBuffs.ts)**:
-   - `getCircuitBuffs`: 기본(`false`) 반환값을 오픈된 버전의 회로 버프 목록으로 갱신
-   - `CIRCUIT_BUFFS`: 기본 export를 해당 버전 버프로 지정
+1. **[`src/constants/versions.ts`](../src/constants/versions.ts)**:
+   - `LIVE_VERSION`: 오픈된 버전으로 갱신
+   - `LEAK_VERSIONS`: 오픈된 버전 제거, 차기 유출 버전이 있으면 추가 (`GAME_VERSIONS`에도 추가)
+   - `SEASON_BUFF_CHARACTER_BY_VERSION`: 차기 버전 항목 추가 (미정이면 `null`)
+2. **[`src/constants/circuitBuffs.ts`](../src/constants/circuitBuffs.ts)** / **[`src/utils/character.ts`](../src/utils/character.ts)**:
+   - 차기 버전 회로 배열 추가 후 `CIRCUIT_BUFFS_BY_VERSION` 등록
+   - `LEAK_CHARACTER_IDS`: 출시된 캐릭터 ID 제거
 3. **[`README.md`](../README.md)**:
    - 시즌 특별 규칙 안내 문구 최신화
 4. **검증 및 승인 후 PR**:

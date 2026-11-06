@@ -2,14 +2,14 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { DroppableSquadSlot } from './DroppableSquadSlot'
 import type { Character } from '../types'
-import { findCircuitBuffById } from '../constants/circuitBuffs'
+import { resolveCircuitBuff } from '../constants/circuitBuffs'
 
 interface SortableSquadRowProps {
   id: string
   squadIdx: number
   squad: (Character | null)[]
   circuitBuffId?: string | null
-  showLeakInfo?: boolean
+  version: string
   handleRemoveCharacter: (squadIdx: number, slotIdx: number) => void
   handleDeleteSquad: (squadIdx: number) => void
   onSlotClick?: (squadIdx: number, slotIdx: number) => void
@@ -21,7 +21,7 @@ export function SortableSquadRow({
   squadIdx,
   squad,
   circuitBuffId,
-  showLeakInfo = false,
+  version,
   handleRemoveCharacter,
   handleDeleteSquad,
   onSlotClick,
@@ -35,7 +35,10 @@ export function SortableSquadRow({
     zIndex: isDragging ? 50 : ('auto' as const),
   }
   const numStr = String(squadIdx + 1).padStart(2, '0')
-  const selectedBuff = findCircuitBuffById(circuitBuffId, showLeakInfo)
+  const resolvedBuff = resolveCircuitBuff(circuitBuffId)
+  const selectedBuff = resolvedBuff?.buff ?? null
+  // 보드 버전과 다른 버전의 회로(레거시 저장값 등)일 때만 버전 배지 표시
+  const isOtherVersionBuff = !!resolvedBuff && resolvedBuff.version !== version
 
   return (
     <div
@@ -83,15 +86,20 @@ export function SortableSquadRow({
                 ? 'border border-solid border-[#262630] hover:border-zinc-500' 
                 : 'border border-dashed border-[#262630] hover:border-zinc-500'
             }`}
-            title={selectedBuff ? `특이점 확장 회로 버프: ${selectedBuff.name}` : '회로 버프 선택'}
+            title={resolvedBuff ? `특이점 확장 회로 버프 (${resolvedBuff.version}): ${resolvedBuff.buff.name}` : '회로 버프 선택'}
           >
-            {selectedBuff ? (
+            {resolvedBuff && selectedBuff ? (
               <div className="w-full h-full flex items-center justify-center p-0.5 sm:p-1">
                 <img
                   src={selectedBuff.iconUrl}
                   alt={selectedBuff.name}
                   className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200"
                 />
+                {isOtherVersionBuff && (
+                <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 px-1 rounded bg-zinc-950/85 border border-[#262630] text-[7.5px] sm:text-[9px] lg:text-[10px] font-extrabold font-mono text-amber-400 leading-tight select-none">
+                  {resolvedBuff.version}
+                </span>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-amber-400 transition-colors select-none gap-0.5 sm:gap-1">

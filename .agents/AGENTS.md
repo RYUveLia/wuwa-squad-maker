@@ -27,15 +27,30 @@
 
 상세 가이드는 [`docs/version-and-leak-guide.md`](../docs/version-and-leak-guide.md)에 정리되어 있습니다.
 
+### 0. 버전별 편성 보드 (`src/constants/versions.ts`)
+- 상단 버전 선택(3.5~3.8)에 따라 **파티 목록이 버전별로 분리**된다. 3.5에서 만든 파티는 3.6 보드에 보이지 않는다.
+- 선택 버전이 결정하는 것: 파티 목록, 공명자 도감(`releaseVersion` ≤ 선택 버전), 2회 출전 시즌 버프 대상, 회로 버프 목록
+- `GAME_VERSIONS`(지원 버전), `LIVE_VERSION`(현재 라이브), `LEAK_VERSIONS`(유출 정보 OFF 시 선택 숨김), `SEASON_BUFF_CHARACTER_BY_VERSION`(버전별 시즌 버프 대상)
+- 저장: localStorage `wuwa-squads-by-version`(버전 → 파티 목록), `selected-version`. 버전 도입 이전의 `wuwa-squads-data`는 최초 로드 시 `LIVE_VERSION` 보드로 이관
+- 유출 정보 OFF 전환 시 유출 버전 보드를 보고 있었다면 `LIVE_VERSION` 보드로 자동 전환
+
 ### 1. 공명자(캐릭터) 데이터 (`src/data/characters.json`, `src/utils/character.ts`)
-- **기본 데이터**: `characters.json`에서 `id`, `name`, `enName`, `rarity`, `element`, `weapon`, `releaseVersion`, `img` 관리
-- **유출 캐릭터 목록**: `character.ts`의 `LEAK_CHARACTER_IDS`에 등록 (유출 모드 ON 시 최신순 상단, OFF 시 맨 뒤 정렬)
-- **시즌 버프(임시 2회 출전)**: `character.ts`의 `getSeasonBuffInfo`에서 버전별 대상 캐릭터 지정 (`3.7` 린네, `3.8` 루실라 등)
+- **기본 데이터**: `characters.json`에서 `id`, `name`, `enName`, `rarity`, `element`, `weapon`, `releaseVersion`, `img` 관리. `releaseVersion`이 버전 보드 노출 기준이므로 정확히 입력 (예: 3.6 전반 `3.61`)
+- **유출 캐릭터 목록**: `character.ts`의 `LEAK_CHARACTER_IDS`. 출시 버전 미정(`9.9`)이어도 유출 버전 보드에서는 노출
+- **시즌 버프(임시 2회 출전)**: `versions.ts`의 `SEASON_BUFF_CHARACTER_BY_VERSION`에 버전별로 지정 (3.5 치사, 3.6 데니아, 3.7 린네, 3.8 루실라)
 
 ### 2. 특이점 확장 회로 버프 (`src/constants/circuitBuffs.ts`)
-- **버전별 버프 배열**: `CIRCUIT_BUFFS_3_6`, `CIRCUIT_BUFFS_3_7` 등으로 분리 관리
+- **버전별 버프 배열**: `CIRCUIT_BUFFS_3_5` ~ `CIRCUIT_BUFFS_3_8`로 분리하고 `CIRCUIT_BUFFS_BY_VERSION`에 등록 (S2 시즌: 3.5=Tower 12, 3.6=14, 3.7=16, 3.8=18)
 - **버프 내용 수정**: 이미지(`iconUrl`), 한/영 이름(`name`, `nameEn`), 한/영 설명(`description`, `descriptionEn`)을 해당 버전 배열에서 수정
-- **헬퍼 함수**: `getCircuitBuffs(showLeakInfo)`, `findCircuitBuffById(buffId, showLeakInfo)`가 유출 모드 동적 연동 및 이전 버전 fallback(하위 호환)을 자동 처리함
+- **회로 모달**: 현재 보드 버전의 회로만 노출
+- **저장 키**: 같은 아이콘 ID를 버전마다 재사용하므로 선택값은 `${version}:${id}`(예: `3.8:T_Iconpropertyredcrit_UI`)로 저장. `resolveCircuitBuff(key)`가 조회하며, 버전 없는 레거시 ID는 `LIVE_VERSION` → 이전 버전 → 유출 버전 순으로 해석. 보드 버전과 다른 버전의 회로면 파티 칸에 버전 배지 표시
+- **아이콘**: `https://static.nanoka.cc/assets/ww/UIResources/Common/Image/IconAttribute/<아이콘명>.webp`에서 받아 `public/circuits/`에 저장
+
+### 3. 신규 버전 추가 / 라이브 전환 체크리스트
+1. `versions.ts`: `GAME_VERSIONS`에 추가, `LEAK_VERSIONS` 갱신, `SEASON_BUFF_CHARACTER_BY_VERSION` 등록 (라이브 전환 시 `LIVE_VERSION` 변경 + `LEAK_VERSIONS`에서 제거)
+2. `circuitBuffs.ts`: `CIRCUIT_BUFFS_X_Y` 추가 후 `CIRCUIT_BUFFS_BY_VERSION` 등록
+3. `characters.json`: 신규 캐릭터 `releaseVersion` 입력, 필요 시 `LEAK_CHARACTER_IDS` 갱신
+4. `npm run check:buff`로 nanoka.cc와 대조 → `npm run build` / `npm run lint`
 
 ## 스킬 (`.agents/skills/`)
 

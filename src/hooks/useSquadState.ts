@@ -5,6 +5,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import type { Character } from '../types'
 import { MOCK_CHARACTERS, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
+import { LIVE_VERSION, getSelectableVersions } from '../constants/versions'
 
 export interface SquadRowData {
   id: string
@@ -12,84 +13,143 @@ export interface SquadRowData {
   circuitBuffId: string | null
 }
 
+const SQUADS_BY_VERSION_KEY = 'wuwa-squads-by-version'
+const SELECTED_VERSION_KEY = 'selected-version'
+
+const createSquadRowId = (i: number) => `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`
+
+const createEmptySquads = (count: number = 3): SquadRowData[] =>
+  Array.from({ length: count }, (_, i) => ({ id: createSquadRowId(i), characters: [null, null, null], circuitBuffId: null }))
+
+type StoredSquadRow = { id?: string; characters?: (string | null)[]; circuitBuffId?: string | null }
+
+const hydrateSquads = (rows: StoredSquadRow[]): SquadRowData[] =>
+  rows.map((item, i) => ({
+    id: item.id || createSquadRowId(i),
+    characters: (item.characters || [null, null, null]).map((id: string | null) =>
+      id ? MOCK_CHARACTERS.find(c => c.id === id) || null : null
+    ),
+    circuitBuffId: item.circuitBuffId || null
+  }))
+
+/** 버전 구분 도입 이전에 저장된 파티 목록 로드 (없으면 null) */
+const loadLegacySquads = (): SquadRowData[] | null => {
+  // 1) 통합 포맷
+  const savedData = localStorage.getItem('wuwa-squads-data')
+  if (savedData) {
+    try {
+      const parsed = JSON.parse(savedData)
+      if (Array.isArray(parsed) && parsed.length > 0) return hydrateSquads(parsed)
+    } catch {
+      // empty
+    }
+  }
+
+  // 2) 더 이전 포맷 (공명자 / 회로 버프 분리 저장)
+  const savedSquads = localStorage.getItem('wuwa-squads')
+  if (!savedSquads) return null
+  try {
+    const parsedIds = JSON.parse(savedSquads) as (string | null)[][]
+    if (!Array.isArray(parsedIds) || parsedIds.length === 0) return null
+    let buffs: (string | null)[] = []
+    try {
+      const parsedBuffs = JSON.parse(localStorage.getItem('wuwa-squad-circuit-buffs') || '[]')
+      if (Array.isArray(parsedBuffs)) buffs = parsedBuffs
+    } catch {
+      // empty
+    }
+    return hydrateSquads(parsedIds.map((row, i) => ({ characters: row, circuitBuffId: buffs[i] || null })))
+  } catch {
+    return null
+  }
+}
+
+/** 버전별 파티 목록 로드. 최초 실행 시 기존(버전 없는) 저장 파티를 라이브 버전으로 이관한다 */
+const loadSquadsByVersion = (): Record<string, SquadRowData[]> => {
+  const saved = localStorage.getItem(SQUADS_BY_VERSION_KEY)
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const result: Record<string, SquadRowData[]> = {}
+        for (const [version, rows] of Object.entries(parsed)) {
+          if (Array.isArray(rows) && rows.length > 0) result[version] = hydrateSquads(rows as StoredSquadRow[])
+        }
+        return result
+      }
+    } catch {
+      // empty
+    }
+  }
+  const legacy = loadLegacySquads()
+  return legacy ? { [LIVE_VERSION]: legacy } : {}
+}
+
+/** 저장된 선택 버전 (유출 OFF인데 유출 버전이 저장돼 있으면 라이브 버전) */
+const getInitialVersion = (): string => {
+  const saved = localStorage.getItem(SELECTED_VERSION_KEY)
+  const leakOn = localStorage.getItem('show-leak-info') === 'true'
+  return saved && getSelectableVersions(leakOn).includes(saved) ? saved : LIVE_VERSION
+}
+
 export function useSquadState() {
-  // 단일 통합 스쿼드 상태 (characters, circuitBuffId, 고유 ID 원자적 관리)
-  const [squadsList, setSquadsList] = useState<SquadRowData[]>(() => {
-    // 1) 통합 포맷 우선 로드
-    const savedData = localStorage.getItem('wuwa-squads-data')
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((item, i) => ({
-            id: item.id || `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
-            characters: (item.characters || [null, null, null]).map((id: string | null) =>
-              id ? MOCK_CHARACTERS.find(c => c.id === id) || null : null
-            ),
-            circuitBuffId: item.circuitBuffId || null
-          }))
-        }
-      } catch {
-        // empty
-      }
-    }
-
-    // 2) 이전 버전 데이터 마이그레이션 fallback
-    const savedSquads = localStorage.getItem('wuwa-squads')
-    const savedCircuitBuffs = localStorage.getItem('wuwa-squad-circuit-buffs')
-    let initialSquads: (Character | null)[][] = [
-      [null, null, null],
-      [null, null, null],
-      [null, null, null]
-    ]
-    let initialBuffs: (string | null)[] = [null, null, null]
-
-    if (savedSquads) {
-      try {
-        const parsedIds = JSON.parse(savedSquads) as (string | null)[][]
-        if (Array.isArray(parsedIds) && parsedIds.length > 0) {
-          initialSquads = parsedIds.map(row =>
-            row.map(id => (id ? MOCK_CHARACTERS.find(c => c.id === id) || null : null))
-          )
-        }
-      } catch {
-        // empty
-      }
-    }
-
-    if (savedCircuitBuffs) {
-      try {
-        const parsedBuffs = JSON.parse(savedCircuitBuffs)
-        if (Array.isArray(parsedBuffs)) {
-          initialBuffs = parsedBuffs
-        }
-      } catch {
-        // empty
-      }
-    }
-
-    return initialSquads.map((row, i) => ({
-      id: `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
-      characters: row,
-      circuitBuffId: initialBuffs[i] || null
-    }))
+  const [showLeakInfo, setShowLeakInfo] = useState<boolean>(() => {
+    const saved = localStorage.getItem('show-leak-info')
+    return saved === 'true'
   })
 
-  // squadsList 상태 변경 시 localStorage 영구 보존
-  useEffect(() => {
-    const dataToSave = squadsList.map(s => ({
-      id: s.id,
-      characters: s.characters.map(c => (c ? c.id : null)),
-      circuitBuffId: s.circuitBuffId
-    }))
-    localStorage.setItem('wuwa-squads-data', JSON.stringify(dataToSave))
+  const selectableVersions = getSelectableVersions(showLeakInfo)
 
-    // 하위 호환성 유지
-    const legacySquads = squadsList.map(s => s.characters.map(c => (c ? c.id : null)))
-    localStorage.setItem('wuwa-squads', JSON.stringify(legacySquads))
-    const legacyBuffs = squadsList.map(s => s.circuitBuffId)
-    localStorage.setItem('wuwa-squad-circuit-buffs', JSON.stringify(legacyBuffs))
-  }, [squadsList])
+  // 현재 선택된 게임 버전 (파티 목록 · 도감 · 시즌 버프 · 회로 버프 기준)
+  const [currentVersion, setCurrentVersion] = useState<string>(getInitialVersion)
+
+  // 버전별 파티 목록 (characters, circuitBuffId, 고유 ID 원자적 관리)
+  const [squadsByVersion, setSquadsByVersion] = useState<Record<string, SquadRowData[]>>(() => {
+    const loaded = loadSquadsByVersion()
+    const initialVersion = getInitialVersion()
+    return loaded[initialVersion] ? loaded : { ...loaded, [initialVersion]: createEmptySquads() }
+  })
+
+  const squadsList: SquadRowData[] = squadsByVersion[currentVersion] ?? []
+
+  // 현재 버전의 파티 목록만 갱신하는 setter (기존 setSquadsList 호출부와 동일한 인터페이스)
+  const setSquadsList = (updater: SquadRowData[] | ((prev: SquadRowData[]) => SquadRowData[])) => {
+    setSquadsByVersion(prev => {
+      const current = prev[currentVersion] ?? createEmptySquads()
+      const next = typeof updater === 'function' ? updater(current) : updater
+      return { ...prev, [currentVersion]: next }
+    })
+  }
+
+  // 버전별 파티 목록 영구 보존
+  useEffect(() => {
+    const dataToSave = Object.fromEntries(
+      Object.entries(squadsByVersion).map(([version, rows]) => [
+        version,
+        rows.map(s => ({
+          id: s.id,
+          characters: s.characters.map(c => (c ? c.id : null)),
+          circuitBuffId: s.circuitBuffId
+        }))
+      ])
+    )
+    localStorage.setItem(SQUADS_BY_VERSION_KEY, JSON.stringify(dataToSave))
+  }, [squadsByVersion])
+
+  const handleSetVersion = (version: string) => {
+    setSquadsByVersion(prev => (prev[version] ? prev : { ...prev, [version]: createEmptySquads() }))
+    setCurrentVersion(version)
+    localStorage.setItem(SELECTED_VERSION_KEY, version)
+  }
+
+  const handleSetShowLeakInfo = (val: boolean) => {
+    setShowLeakInfo(val)
+    localStorage.setItem('show-leak-info', String(val))
+    // 유출 정보 OFF 시 유출 버전 보드를 보고 있었다면 라이브 버전으로 전환
+    if (!val && !getSelectableVersions(false).includes(currentVersion)) {
+      handleSetVersion(LIVE_VERSION)
+    }
+  }
 
   // 파생 상태 (기존 컴포넌트 인터페이스와 100% 호환)
   const squads = squadsList.map(s => s.characters)
@@ -118,16 +178,6 @@ export function useSquadState() {
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false)
   const [imageExportModalOpen, setImageExportModalOpen] = useState<boolean>(false)
 
-  const [showLeakInfo, setShowLeakInfo] = useState<boolean>(() => {
-    const saved = localStorage.getItem('show-leak-info')
-    return saved === 'true'
-  })
-
-  const handleSetShowLeakInfo = (val: boolean) => {
-    setShowLeakInfo(val)
-    localStorage.setItem('show-leak-info', String(val))
-  }
-
   const [hideMaxedOut, setHideMaxedOut] = useState<boolean>(() => {
     const saved = localStorage.getItem('hide-maxed-out')
     return saved === 'true'
@@ -139,8 +189,8 @@ export function useSquadState() {
   }
 
   // 훅 내부 간소화 헬퍼 정의
-  const limitOf = (charId: string) => getMaxDeployment(charId, showLeakInfo)
-  const isMaxed = (charId: string) => checkCharacterMaxedOut(charId, squads, showLeakInfo)
+  const limitOf = (charId: string) => getMaxDeployment(charId, currentVersion)
+  const isMaxed = (charId: string) => checkCharacterMaxedOut(charId, squads, currentVersion)
 
   // 제거 확인 모달 상태
   const [confirmModalOpen, setConfirmModalOpen] = useState<boolean>(false)
@@ -458,7 +508,7 @@ export function useSquadState() {
 
   // 필터링 및 도감 관련 헬퍼 계산
   const elements = ['All', 'Spectro', 'Aero', 'Electro', 'Fusion', 'Glacio', 'Havoc']
-  const filteredCharacters = getSortedCharacters(showLeakInfo).filter(c => {
+  const filteredCharacters = getSortedCharacters(currentVersion).filter(c => {
     if (selectedElement !== 'All' && c.element !== selectedElement) return false
     if (showOnlyOwned && !ownedResonatorIds.includes(c.id)) return false
     if (hideMaxedOut && isMaxed(c.id)) return false
@@ -467,28 +517,12 @@ export function useSquadState() {
 
   const handleResetSquads = () => {
     requestRemoveConfirm(
-      '모든 파티 편성을 초기화하시겠습니까?',
+      `${currentVersion} 버전의 모든 파티 편성을 초기화하시겠습니까?`,
       () => {
-        setSquadsList([
-          {
-            id: `squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`,
-            characters: [null, null, null],
-            circuitBuffId: null
-          },
-          {
-            id: `squad-row-${Date.now()}-1-${Math.random().toString(36).substring(2, 7)}`,
-            characters: [null, null, null],
-            circuitBuffId: null
-          },
-          {
-            id: `squad-row-${Date.now()}-2-${Math.random().toString(36).substring(2, 7)}`,
-            characters: [null, null, null],
-            circuitBuffId: null
-          }
-        ])
+        setSquadsList(createEmptySquads())
         showToast('모든 파티 편성이 초기화되었습니다.')
       },
-      '모든 파티 슬롯이 즉시 비워지며 되돌릴 수 없습니다.',
+      '이 버전의 모든 파티 슬롯이 즉시 비워지며 되돌릴 수 없습니다. (다른 버전 파티는 유지)',
       '초기화하기'
     )
   }
@@ -616,6 +650,9 @@ export function useSquadState() {
     activeDragChar,
     showLeakInfo,
     setShowLeakInfo: handleSetShowLeakInfo,
+    currentVersion,
+    setCurrentVersion: handleSetVersion,
+    selectableVersions,
     hideMaxedOut,
     setHideMaxedOut: handleSetHideMaxedOut
   }

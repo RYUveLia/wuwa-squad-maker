@@ -1,6 +1,7 @@
 import characterData from '../data/characters.json'
 import type { Character } from '../types'
 import { DOUBLE_DEPLOYMENT_CHARACTERS } from '../constants'
+import { LEAK_VERSIONS, SEASON_BUFF_CHARACTER_BY_VERSION, versionToNumber } from '../constants/versions'
 
 const baseCharacters = characterData as Character[]
 const filteredBase = baseCharacters.filter(c => c.id !== 'rover')
@@ -49,7 +50,7 @@ const roverElectro: Character = {
   img: '/characters/rover.png'
 }
 
-// 차기(3.8) 유출 캐릭터 ID 목록
+// 차기(3.8) 유출 캐릭터 ID 목록 (출시 버전이 미정(9.9)이어도 유출 버전 보드에서는 노출)
 export const LEAK_CHARACTER_IDS: string[] = ['lily']
 
 const rawCharacters: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro]
@@ -67,47 +68,37 @@ export const ALL_CHARACTERS: Character[] = [...rawCharacters].sort((a, b) => {
   return a.enName.localeCompare(b.enName)
 })
 
-/** 공명자 리스트 정렬 헬퍼 (showLeakInfo가 true일 때만 차기 유출 캐릭터를 최신순 맨 앞으로 배치, false일 때는 목록에서 완전히 제외) */
-export const getSortedCharacters = (showLeakInfo: boolean = false): Character[] => {
-  return ALL_CHARACTERS.filter(c => {
-    if (!showLeakInfo && (LEAK_CHARACTER_IDS.includes(c.id) || c.releaseVersion > 3.79)) {
-      return false
-    }
-    return true
-  })
+/** 해당 버전 보드에서 편성 가능한(출시된) 공명자인지 여부 */
+export const isAvailableInVersion = (char: Character, version: string): boolean => {
+  if (versionToNumber(char.releaseVersion) <= versionToNumber(version)) return true
+  // 출시 버전 미정 유출 캐릭터는 유출 버전 보드에서만 노출
+  return LEAK_CHARACTER_IDS.includes(char.id) && LEAK_VERSIONS.includes(version)
+}
+
+/** 선택된 버전까지 출시된 공명자 목록 (등급 → 최신순 정렬 유지) */
+export const getSortedCharacters = (version: string): Character[] => {
+  return ALL_CHARACTERS.filter(c => isAvailableInVersion(c, version))
 }
 
 // 전체 공명자 리스트 (어디서든 ID로 캐릭터를 찾을 수 있도록 ALL_CHARACTERS 유지)
 export const MOCK_CHARACTERS: Character[] = ALL_CHARACTERS
-
-// 유출 정보 설정에 의존하는 중복 편성 가능 캐릭터 목록 (추후 신규 캐릭터 등장 시 이곳에 ID 추가)
-export const LEAK_DOUBLE_DEPLOYMENT_CHARACTERS: string[] = []
 
 export interface SeasonBuffInfo {
   version: string
   character: Character | null
 }
 
-/** 현재 활성화된 시즌 버프 정보 반환 (미정인 경우 character: null) */
-export const getSeasonBuffInfo = (showLeakInfo: boolean = false): SeasonBuffInfo => {
-  if (showLeakInfo) {
-    // 3.8 시즌 버프 대상 캐릭터 (루실라)
-    const char = MOCK_CHARACTERS.find(c => c.id === 'lucilla') || null
-    return { version: '3.8', character: char }
-  }
-  // 3.7 시즌 버프 대상 캐릭터 (린네)
-  const char = MOCK_CHARACTERS.find(c => c.id === 'lynae') || null
-  return { version: '3.7', character: char }
+/** 버전별 2회 출전 시즌 버프 정보 반환 (미정인 경우 character: null) */
+export const getSeasonBuffInfo = (version: string): SeasonBuffInfo => {
+  const charId = SEASON_BUFF_CHARACTER_BY_VERSION[version] ?? null
+  const character = charId ? MOCK_CHARACTERS.find(c => c.id === charId) || null : null
+  return { version, character }
 }
 
-export const getMaxDeployment = (charId: string, showLeakInfo: boolean = false): number => {
-  const seasonBuff = getSeasonBuffInfo(showLeakInfo)
+export const getMaxDeployment = (charId: string, version: string): number => {
+  const seasonBuff = getSeasonBuffInfo(version)
   if (seasonBuff.character && seasonBuff.character.id === charId) {
     return 2
-  }
-
-  if (LEAK_DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) {
-    return showLeakInfo ? 2 : 1
   }
   if (DOUBLE_DEPLOYMENT_CHARACTERS.includes(charId)) return 2
   return 1
@@ -125,7 +116,7 @@ export function getAssignedSquadIndices(charId: string, squads: (Character | nul
 }
 
 /** 특정 공명자가 출전 횟수 한도에 다다랐는지 검증 (방랑자 상호 잠금 규칙 포함) */
-export function checkCharacterMaxedOut(charId: string, squads: (Character | null)[][], showLeakInfo: boolean = false): boolean {
+export function checkCharacterMaxedOut(charId: string, squads: (Character | null)[][], version: string): boolean {
   const ROVER_IDS = ['rover-spectro', 'rover-havoc', 'rover-aero', 'rover-electro']
   const isRover = ROVER_IDS.includes(charId)
   
@@ -138,23 +129,18 @@ export function checkCharacterMaxedOut(charId: string, squads: (Character | null
     getAssignedSquadIndices(c.id, squads).length > 0
   )
   
-  const maxAllowed = getMaxDeployment(charId, showLeakInfo)
+  const maxAllowed = getMaxDeployment(charId, version)
   return isRover 
     ? (isThisRoverDeployed || isAnyOtherRoverDeployed)
     : (assignedIndices.length >= maxAllowed)
 }
 
-/** 유출 설정에 따라 중복 편성이 허용되는 공명자들의 한글 이름 목록 괄호 포맷 텍스트 반환 */
-export function getDoubleDeploymentNamesText(showLeakInfo: boolean): string {
-  const allowedIds = [
-    ...DOUBLE_DEPLOYMENT_CHARACTERS,
-    ...(showLeakInfo ? LEAK_DOUBLE_DEPLOYMENT_CHARACTERS : [])
-  ].filter(id => showLeakInfo || !LEAK_CHARACTER_IDS.includes(id))
-  
-  const names = allowedIds.map(id => {
-    const char = MOCK_CHARACTERS.find(c => c.id === id)
-    return char ? char.name : ''
-  }).filter(Boolean)
-  
+/** 해당 버전에서 기본 2회 출전이 가능한 순수 힐러들의 한글 이름 목록 괄호 포맷 텍스트 반환 */
+export function getDoubleDeploymentNamesText(version: string): string {
+  const names = DOUBLE_DEPLOYMENT_CHARACTERS
+    .map(id => MOCK_CHARACTERS.find(c => c.id === id))
+    .filter((char): char is Character => !!char && isAvailableInVersion(char, version))
+    .map(char => char.name)
+
   return `(${names.join(', ')})`
 }
