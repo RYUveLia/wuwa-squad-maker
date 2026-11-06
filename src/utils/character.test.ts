@@ -11,8 +11,8 @@ import { char } from '../test/fixtures'
 
 describe('isAvailableInVersion', () => {
   it('출시 버전 이하 보드에서만 편성 가능하다', () => {
-    expect(isAvailableInVersion(char('jingran'), '3.5')).toBe(false) // 3.62
-    expect(isAvailableInVersion(char('jingran'), '3.6')).toBe(true)
+    expect(isAvailableInVersion(char('qingxiao'), '3.5')).toBe(false) // 청초 3.61
+    expect(isAvailableInVersion(char('qingxiao'), '3.6')).toBe(true)
     expect(isAvailableInVersion(char('lynae'), '3.5')).toBe(true) // 3.01
   })
 
@@ -26,7 +26,7 @@ describe('getSortedCharacters', () => {
   it('버전이 올라갈수록 도감 공명자 수가 늘어난다', () => {
     const counts = ['3.5', '3.6', '3.7', '3.8'].map(v => getSortedCharacters(v).length)
     expect(counts).toEqual([...counts].sort((a, b) => a - b))
-    expect(getSortedCharacters('3.5').some(c => c.id === 'jingran')).toBe(false)
+    expect(getSortedCharacters('3.5').some(c => c.id === 'qingxiao')).toBe(false)
   })
 })
 

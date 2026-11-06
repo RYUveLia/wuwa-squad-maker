@@ -175,7 +175,7 @@ node scripts/check-nanoka-season-buff.js 3.7.1
    - 사용자 승인 후 `feat/version-X-X-live` 브랜치 푸시 및 PR 생성
 
 > [!TIP]
-> 본 프로젝트에는 이 워크플로우를 자동화/표준화한 **[wuwa-version-update 스킬](file:///c:/Users/ryul3/Documents/git/wuwa-squad-maker/.agents/skills/wuwa-version-update/SKILL.md)**이 구비되어 있어 AI 에이전트가 "버전 업데이트" 또는 "유출 정보 기본 반영" 요청 시 선제적으로 활용합니다.
+> 단계별 체크리스트와 검증 절차는 [`version_update` 스킬](../.agents/skills/version_update/SKILL.md)에 정리되어 있습니다. AI 에이전트는 "버전 업데이트", "유출 정보 반영", "라이브 전환" 요청 시 이 스킬을 따릅니다.
 
 ---
 

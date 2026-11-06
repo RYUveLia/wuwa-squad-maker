@@ -10,6 +10,7 @@ import {
   saveSquadsByVersion
 } from './squadStorage'
 import { row, summarize } from '../test/fixtures'
+import { LIVE_VERSION } from '../constants/versions'
 
 /** Map 기반 localStorage 대역 */
 function installMemoryStorage() {
@@ -58,11 +59,11 @@ describe('버전별 보드 저장/로드', () => {
   })
 
   it('선택 버전: 지원하지 않는 값이면 라이브 버전', () => {
-    expect(loadSelectedVersion()).toBe('3.7')
+    expect(loadSelectedVersion()).toBe(LIVE_VERSION)
     localStorage.setItem(STORAGE_KEYS.selectedVersion, '3.5')
     expect(loadSelectedVersion()).toBe('3.5')
     localStorage.setItem(STORAGE_KEYS.selectedVersion, '9.9')
-    expect(loadSelectedVersion()).toBe('3.7')
+    expect(loadSelectedVersion()).toBe(LIVE_VERSION)
   })
 })
 
@@ -118,7 +119,7 @@ describe('사용자 설정', () => {
       getItem: () => { throw new Error('blocked') },
       setItem: () => { throw new Error('blocked') }
     })
-    expect(loadSelectedVersion()).toBe('3.7')
+    expect(loadSelectedVersion()).toBe(LIVE_VERSION)
     expect(loadSquadsByVersion()).toEqual({})
     expect(() => saveSquadsByVersion({})).not.toThrow()
   })

@@ -82,6 +82,10 @@
 
 ## 스킬 (`.agents/skills/`)
 
+### `version_update` — 새 버전(유출) 추가 / 라이브 전환
+- 상세 절차: [`.agents/skills/version_update/SKILL.md`](skills/version_update/SKILL.md)
+- 수정 지점(versions.ts·circuitBuffs.ts·characters.json 등), nanoka.cc 데이터 확인, 테스트·검증, 커밋 규칙
+
 ### `fetch_fandom_wiki_characters` — Fandom Wiki 캐릭터 일괄 수집
 - 상세 절차: [`.agents/skills/fetch_fandom_wiki_characters/SKILL.md`](skills/fetch_fandom_wiki_characters/SKILL.md)
 - 실행: `node scripts/fetch-characters.js <저장한 HTML 파일 경로>` (repo의 `scripts/` 버전이 실사용본)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CIRCUIT_BUFFS_BY_VERSION, resolveCircuitBuff, toCircuitBuffKey } from './circuitBuffs'
-import { GAME_VERSIONS } from './versions'
+import { GAME_VERSIONS, LIVE_VERSION } from './versions'
 
 describe('회로 버프 데이터', () => {
   it('지원하는 모든 버전에 회로 4개씩', () => {
@@ -22,7 +22,8 @@ describe('resolveCircuitBuff', () => {
   })
 
   it('버전 없는 레거시 ID: 라이브 → 이전 버전 → 유출 버전 순', () => {
-    expect(resolveCircuitBuff('T_Iconpropertyredcrit_UI')?.version).toBe('3.7')
+    // 모든 버전에 있는 아이콘 → 라이브 버전
+    expect(resolveCircuitBuff('T_Iconpropertyredcrit_UI')?.version).toBe(LIVE_VERSION)
     expect(resolveCircuitBuff('T_Iconpropertyredice_UI')?.version).toBe('3.6')
     expect(resolveCircuitBuff('T_IconpropertyLuokekeBuff1_UI')?.version).toBe('3.6')
     expect(resolveCircuitBuff('T_Iconpropertyreddark_UI')?.version).toBe('3.5')

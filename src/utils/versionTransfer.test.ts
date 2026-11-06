@@ -10,10 +10,12 @@ import {
   toVersionedCircuitKey
 } from './versionTransfer'
 import { char, row, summarize } from '../test/fixtures'
+import { GAME_VERSIONS, LIVE_VERSION } from '../constants/versions'
 
 describe('버전 후보 계산', () => {
   it('공명자가 모두 출시된 버전', () => {
-    expect(getAllowedVersions([char('jingran'), char('verina'), null])).toEqual(['3.6', '3.7', '3.8'])
+    // 청초는 3.6 출시 → 3.6 이상 모든 버전
+    expect(getAllowedVersions([char('qingxiao'), char('verina'), null])).toEqual(GAME_VERSIONS.filter(v => v >= '3.6'))
   })
 
   it('회로 아이콘이 존재하는 버전', () => {
@@ -30,13 +32,13 @@ describe('버전 후보 계산', () => {
   })
 
   it('회로 없는 파티는 최신 라이브 버전 추천', () => {
-    expect(suggestVersion(row(['verina'])).version).toBe('3.7')
+    expect(suggestVersion(row(['verina'])).version).toBe(LIVE_VERSION)
   })
 })
 
 describe('sanitizeSquadsForVersion', () => {
   it('미출시 공명자 제외 + 회로 초기화', () => {
-    const r = sanitizeSquadsForVersion([row(['verina', 'jingran'], '3.6:T_Iconpropertyredcrit_UI')], '3.5', { resetCircuits: true })
+    const r = sanitizeSquadsForVersion([row(['verina', 'qingxiao'], '3.6:T_Iconpropertyredcrit_UI')], '3.5', { resetCircuits: true })
     expect(summarize(r.rows)).toEqual(['verina|-'])
     expect(r.removedUnavailable).toBe(1)
   })
@@ -96,7 +98,7 @@ describe('inferSetVersion (세트 단위 추천)', () => {
   })
 
   it('후보가 여럿이면 라이브 버전 우선', () => {
-    expect(inferSetVersion([row(['verina'], 'T_Iconpropertyredcrit_UI')])?.version).toBe('3.7')
+    expect(inferSetVersion([row(['verina'], 'T_Iconpropertyredcrit_UI')])?.version).toBe(LIVE_VERSION)
   })
 
   it('빈 세트는 null', () => {
