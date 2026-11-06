@@ -84,7 +84,6 @@ function App() {
     isVersionBoardEmpty,
     getVersionPartyCount,
     handleDismissMigration,
-    loadSources,
     handleLoadFromVersion
   } = useSquadState()
 
@@ -242,25 +241,6 @@ function App() {
                 </button>
               </div>
             </div>
-
-            {/* Load from adjacent version boards (circuits are reset) */}
-            {(loadSources.prev || loadSources.next) && (
-              <div className={SQUAD_LIST_STYLES.loadBar}>
-                <span className={SQUAD_LIST_STYLES.loadLabel}>다른 버전 파티 불러오기 <span className="text-zinc-600">(회로 초기화)</span></span>
-                <div className="flex gap-1.5">
-                  {loadSources.prev && (
-                    <button type="button" onClick={() => handleLoadFromVersion(loadSources.prev!)} className={SQUAD_LIST_STYLES.loadBtn}>
-                      ← {loadSources.prev}에서
-                    </button>
-                  )}
-                  {loadSources.next && (
-                    <button type="button" onClick={() => handleLoadFromVersion(loadSources.next!)} className={SQUAD_LIST_STYLES.loadBtn}>
-                      {loadSources.next}에서 →
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Scrollable Container */}
             <div 
@@ -485,9 +465,6 @@ const RESONATOR_POOL_STYLES = {
 }
 
 const SQUAD_LIST_STYLES = {
-  loadBar: 'flex flex-wrap items-center justify-between gap-2 px-3 py-2 mb-2 rounded-xl border border-dashed border-[#262630] bg-[#0e0e13]',
-  loadLabel: 'text-[10.5px] sm:text-xs font-bold text-zinc-400',
-  loadBtn: 'px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-950/20 hover:bg-amber-950/40 border border-amber-800/40 rounded-lg cursor-pointer transition-colors whitespace-nowrap',
   toolbar: 'flex items-center justify-between bg-[#14141a]/70 border border-[#262630] p-2 sm:p-3 rounded-2xl select-none flex-shrink-0 gap-1.5 sm:gap-2',
   toolbarTitle: 'text-[11px] sm:text-xs md:text-sm font-bold text-zinc-300 px-1 whitespace-nowrap flex-shrink-0',
   toolbarBtnArea: 'flex gap-1 sm:gap-2',

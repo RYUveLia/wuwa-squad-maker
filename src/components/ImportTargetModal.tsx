@@ -12,12 +12,13 @@ interface ImportTargetModalProps {
   onCancel: () => void
 }
 
-/** 정리 후 빠지는 공명자 이름 목록 */
+/** 정리 후 빠지는 공명자 이름 목록 (빈 파티가 삭제되어 순서가 바뀌므로 파티 id로 비교) */
 function getRemovedNames(before: SquadRowData[], after: SquadRowData[]): string[] {
+  const afterById = new Map(after.map(row => [row.id, row]))
   const names: string[] = []
-  before.forEach((row, r) =>
+  before.forEach(row =>
     row.characters.forEach((char, slot) => {
-      if (char && !after[r]?.characters[slot]) names.push(char.name)
+      if (char && !afterById.get(row.id)?.characters[slot]) names.push(char.name)
     })
   )
   return names
@@ -54,6 +55,7 @@ export function ImportTargetModal({
       notes: [
         `코드가 만들어진 ${codeVersion} 보드로 이동해 그대로 불러옵니다.`,
         removedToCode.length > 0 ? `제외: ${removedToCode.join(', ')}` : '',
+        toCode.droppedRows > 0 ? `공명자가 모두 빠지는 파티 ${toCode.droppedRows}개는 삭제됩니다.` : '',
         !isVersionBoardEmpty(codeVersion) ? `${codeVersion} 보드의 기존 파티는 대체됩니다.` : ''
       ]
     },
@@ -66,6 +68,7 @@ export function ImportTargetModal({
         removedToCurrent.length > 0
           ? `제외: ${removedToCurrent.join(', ')} (${currentVersion} 미출시 또는 출전 한도 초과)`
           : `${currentVersion} 규칙에 맞지 않는 공명자는 없습니다.`,
+        toCurrent.droppedRows > 0 ? `공명자가 모두 빠지는 파티 ${toCurrent.droppedRows}개는 삭제됩니다.` : '',
         !isVersionBoardEmpty(currentVersion) ? `${currentVersion} 보드의 기존 파티는 대체됩니다.` : ''
       ]
     }

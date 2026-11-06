@@ -93,6 +93,8 @@ export interface SanitizeResult {
   removedOverLimit: number
   /** 대상 버전에 없는 회로라 초기화된 파티 수 (resetCircuits: false일 때) */
   clearedCircuits: number
+  /** 공명자가 모두 제외되어 정리(삭제)된 파티 수 */
+  droppedRows: number
 }
 
 /**
@@ -100,6 +102,7 @@ export interface SanitizeResult {
  * - 대상 버전에 출시되지 않은 공명자 제외
  * - 대상 버전 출전 한도(시즌 버프/순수 힐러) 초과분, 방랑자 중복 제외 (앞쪽 파티 우선)
  * - resetCircuits: true면 회로 초기화, false면 대상 버전에 있는 회로만 유지
+ * - 공명자가 있었는데 모두 제외된 파티는 삭제 (회로만 남은 빈 파티 방지), 전부 삭제되면 빈 파티 1개 유지
  */
 export function sanitizeSquadsForVersion(
   rows: TransferSquadRow[],
@@ -140,7 +143,18 @@ export function sanitizeSquadsForVersion(
     return { ...row, characters, circuitBuffId }
   })
 
-  return { rows: sanitized, removedUnavailable, removedOverLimit, clearedCircuits }
+  const kept = sanitized.filter((row, i) => {
+    const hadMembers = rows[i].characters.some(Boolean)
+    const hasMembers = row.characters.some(Boolean)
+    if (hadMembers) return hasMembers
+    return hasMembers || !!row.circuitBuffId
+  })
+  const droppedRows = sanitized.length - kept.length
+  const result = kept.length > 0
+    ? kept
+    : [{ id: `squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`, characters: [null, null, null], circuitBuffId: null }]
+
+  return { rows: result, removedUnavailable, removedOverLimit, clearedCircuits, droppedRows }
 }
 
 /** 파티 목록이 비어 있는지 (공명자/회로 모두 없음) */

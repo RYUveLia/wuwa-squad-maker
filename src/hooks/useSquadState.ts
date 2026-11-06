@@ -171,11 +171,13 @@ export function useSquadState() {
     })
 
     let removed = 0
+    let dropped = 0
     const next = { ...squadsByVersion }
     byVersion.forEach((rows, version) => {
       const base = isBoardEmpty(squadsByVersion[version]) ? [] : squadsByVersion[version]
       const result = sanitizeSquadsForVersion([...base, ...rows], version, { resetCircuits: false })
       removed += result.removedUnavailable + result.removedOverLimit
+      dropped += result.droppedRows
       next[version] = result.rows
     })
     setSquadsByVersion(next)
@@ -186,7 +188,11 @@ export function useSquadState() {
     if (assignments.length > 0) {
       const firstVersion = assignments[0].version
       handleSetVersion(firstVersion)
-      showToast(`기존 파티를 옮겼습니다 (${summary})${removed > 0 ? ` · 출전 규칙에 맞지 않는 ${removed}명 제외` : ''}`)
+      const notes = [
+        removed > 0 ? `출전 규칙에 맞지 않는 ${removed}명 제외` : '',
+        dropped > 0 ? `빈 파티 ${dropped}개 정리` : ''
+      ].filter(Boolean)
+      showToast(`기존 파티를 옮겼습니다 (${summary})${notes.length ? ` · ${notes.join(' · ')}` : ''}`)
     } else {
       showToast('기존 파티를 옮기지 않고 정리했습니다.')
     }
@@ -406,7 +412,8 @@ export function useSquadState() {
     const notes = [
       resetCircuits ? '회로 초기화' : '',
       removed > 0 ? `규칙에 맞지 않는 공명자 ${removed}명 제외` : '',
-      result.clearedCircuits > 0 ? `${targetVersion}에 없는 회로 ${result.clearedCircuits}개 초기화` : ''
+      result.clearedCircuits > 0 ? `${targetVersion}에 없는 회로 ${result.clearedCircuits}개 초기화` : '',
+      result.droppedRows > 0 ? `빈 파티 ${result.droppedRows}개 정리` : ''
     ].filter(Boolean)
     showToast(`${targetVersion} 보드로 불러왔습니다${notes.length ? ` · ${notes.join(' · ')}` : ''}`)
   }
@@ -620,20 +627,6 @@ export function useSquadState() {
     )
   }
 
-  // 현재 보드 기준 가장 가까운 이전/이후 버전 중 파티가 있는 버전 (불러오기 후보)
-  const findLoadSource = (direction: -1 | 1): string | null => {
-    const idx = selectableVersions.indexOf(currentVersion)
-    for (let i = idx + direction; i >= 0 && i < selectableVersions.length; i += direction) {
-      const v = selectableVersions[i]
-      if (!isBoardEmpty(squadsByVersion[v])) return v
-    }
-    return null
-  }
-  const loadSources = {
-    prev: findLoadSource(-1),
-    next: findLoadSource(1)
-  }
-
   /** 다른 버전 보드의 파티를 현재 보드로 불러오기 (회로는 초기화, 현재 버전 규칙에 맞지 않는 공명자 제외) */
   const handleLoadFromVersion = (sourceVersion: string) => {
     const sourceRows = squadsByVersion[sourceVersion]
@@ -645,9 +638,11 @@ export function useSquadState() {
       const result = sanitizeSquadsForVersion(copied, currentVersion, { resetCircuits: true })
       setSquadsList(result.rows)
       const removed = result.removedUnavailable + result.removedOverLimit
-      showToast(
-        `${sourceVersion} 파티를 불러왔습니다 (회로 초기화)${removed > 0 ? ` · ${currentVersion} 규칙에 맞지 않는 ${removed}명 제외` : ''}`
-      )
+      const notes = [
+        removed > 0 ? `${currentVersion} 규칙에 맞지 않는 ${removed}명 제외` : '',
+        result.droppedRows > 0 ? `빈 파티 ${result.droppedRows}개 정리` : ''
+      ].filter(Boolean)
+      showToast(`${sourceVersion} 파티를 불러왔습니다 (회로 초기화)${notes.length ? ` · ${notes.join(' · ')}` : ''}`)
     }
 
     if (isBoardEmpty(squadsList)) {
@@ -795,7 +790,6 @@ export function useSquadState() {
     getVersionPartyCount: (version: string) =>
       (squadsByVersion[version] ?? []).filter(r => r.characters.some(Boolean) || r.circuitBuffId).length,
     handleDismissMigration,
-    loadSources,
     handleLoadFromVersion,
     hideMaxedOut,
     setHideMaxedOut: handleSetHideMaxedOut
