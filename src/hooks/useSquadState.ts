@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 
 import type { Character } from '../types'
 import { MOCK_CHARACTERS, getSortedCharacters, getMaxDeployment, getAssignedSquadIndices, checkCharacterMaxedOut } from '../utils/character'
 import { generateExportText, parseImportText } from '../utils/squadCode'
-import { LIVE_VERSION, getSelectableVersions } from '../constants/versions'
+import { GAME_VERSIONS, LIVE_VERSION } from '../constants/versions'
+import { isBoardEmpty, sanitizeSquadsForVersion } from '../utils/versionTransfer'
 
 export interface SquadRowData {
   id: string
@@ -15,6 +16,7 @@ export interface SquadRowData {
 
 const SQUADS_BY_VERSION_KEY = 'wuwa-squads-by-version'
 const SELECTED_VERSION_KEY = 'selected-version'
+const VERSION_MIGRATED_KEY = 'squads-version-migrated'
 
 const createSquadRowId = (i: number) => `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`
 
@@ -64,7 +66,7 @@ const loadLegacySquads = (): SquadRowData[] | null => {
   }
 }
 
-/** 버전별 파티 목록 로드. 최초 실행 시 기존(버전 없는) 저장 파티를 라이브 버전으로 이관한다 */
+/** 버전별 파티 목록 로드 (기존 버전 없는 저장 파티는 마이그레이션 모달에서 사용자가 버전을 골라 이관) */
 const loadSquadsByVersion = (): Record<string, SquadRowData[]> => {
   const saved = localStorage.getItem(SQUADS_BY_VERSION_KEY)
   if (saved) {
@@ -81,24 +83,39 @@ const loadSquadsByVersion = (): Record<string, SquadRowData[]> => {
       // empty
     }
   }
-  const legacy = loadLegacySquads()
-  return legacy ? { [LIVE_VERSION]: legacy } : {}
+  return {}
 }
 
-/** 저장된 선택 버전 (유출 OFF인데 유출 버전이 저장돼 있으면 라이브 버전) */
+/** 아직 버전으로 이관하지 않은 기존 저장 파티 (없거나 이미 이관했으면 null) */
+const loadPendingMigration = (): SquadRowData[] | null => {
+  if (localStorage.getItem(VERSION_MIGRATED_KEY) === 'true') return null
+  const legacy = loadLegacySquads()
+  if (!legacy || isBoardEmpty(legacy)) return null
+  // 빈 파티 행은 이관 대상에서 제외
+  return legacy.filter(row => row.characters.some(Boolean) || row.circuitBuffId)
+}
+
+export interface MigrationAssignment {
+  row: SquadRowData
+  version: string
+  /** true: 회로 삭제 후 원하는 버전에 넣기 / false: 회로 버전에 넣기(회로 유지) */
+  resetCircuit: boolean
+}
+
+/** 현재 보드와 다른 버전의 편성 코드를 붙여넣었을 때 사용자 선택 대기 상태 */
+export interface PendingImport {
+  codeVersion: string
+  rows: SquadRowData[]
+}
+
+/** 저장된 선택 버전 (없거나 지원하지 않는 버전이면 라이브 버전) */
 const getInitialVersion = (): string => {
   const saved = localStorage.getItem(SELECTED_VERSION_KEY)
-  const leakOn = localStorage.getItem('show-leak-info') === 'true'
-  return saved && getSelectableVersions(leakOn).includes(saved) ? saved : LIVE_VERSION
+  return saved && GAME_VERSIONS.includes(saved) ? saved : LIVE_VERSION
 }
 
 export function useSquadState() {
-  const [showLeakInfo, setShowLeakInfo] = useState<boolean>(() => {
-    const saved = localStorage.getItem('show-leak-info')
-    return saved === 'true'
-  })
-
-  const selectableVersions = getSelectableVersions(showLeakInfo)
+  const selectableVersions = GAME_VERSIONS
 
   // 현재 선택된 게임 버전 (파티 목록 · 도감 · 시즌 버프 · 회로 버프 기준)
   const [currentVersion, setCurrentVersion] = useState<string>(getInitialVersion)
@@ -142,14 +159,41 @@ export function useSquadState() {
     localStorage.setItem(SELECTED_VERSION_KEY, version)
   }
 
-  const handleSetShowLeakInfo = (val: boolean) => {
-    setShowLeakInfo(val)
-    localStorage.setItem('show-leak-info', String(val))
-    // 유출 정보 OFF 시 유출 버전 보드를 보고 있었다면 라이브 버전으로 전환
-    if (!val && !getSelectableVersions(false).includes(currentVersion)) {
-      handleSetVersion(LIVE_VERSION)
+  // 기존(버전 없는) 저장 파티 이관 대기 목록
+  const [pendingMigration, setPendingMigration] = useState<SquadRowData[] | null>(loadPendingMigration)
+
+  /** 선택한 버전으로 기존 파티 이관 (대상 보드가 비어 있으면 대체, 아니면 뒤에 추가) */
+  const handleConfirmMigration = (assignments: MigrationAssignment[]) => {
+    const byVersion = new Map<string, SquadRowData[]>()
+    assignments.forEach(({ row, version, resetCircuit }) => {
+      const moved = resetCircuit ? { ...row, circuitBuffId: null } : row
+      byVersion.set(version, [...(byVersion.get(version) ?? []), moved])
+    })
+
+    let removed = 0
+    const next = { ...squadsByVersion }
+    byVersion.forEach((rows, version) => {
+      const base = isBoardEmpty(squadsByVersion[version]) ? [] : squadsByVersion[version]
+      const result = sanitizeSquadsForVersion([...base, ...rows], version, { resetCircuits: false })
+      removed += result.removedUnavailable + result.removedOverLimit
+      next[version] = result.rows
+    })
+    setSquadsByVersion(next)
+
+    localStorage.setItem(VERSION_MIGRATED_KEY, 'true')
+    setPendingMigration(null)
+    const summary = [...byVersion.entries()].map(([v, rows]) => `${v}: ${rows.length}개`).join(', ')
+    if (assignments.length > 0) {
+      const firstVersion = assignments[0].version
+      handleSetVersion(firstVersion)
+      showToast(`기존 파티를 옮겼습니다 (${summary})${removed > 0 ? ` · 출전 규칙에 맞지 않는 ${removed}명 제외` : ''}`)
+    } else {
+      showToast('기존 파티를 옮기지 않고 정리했습니다.')
     }
   }
+
+  /** 이번 방문에서는 이관을 미룸 (다음 방문 시 다시 안내) */
+  const handleDismissMigration = () => setPendingMigration(null)
 
   // 파생 상태 (기존 컴포넌트 인터페이스와 100% 호환)
   const squads = squadsList.map(s => s.characters)
@@ -225,10 +269,12 @@ export function useSquadState() {
   })
   const sensors = useSensors(mouseSensor, touchSensor)
 
-  // 토스트 메시지 출력 유틸
+  // 토스트 메시지 출력 유틸 (연속 호출 시 이전 타이머가 새 토스트를 일찍 지우지 않도록 재설정)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const showToast = (msg: string) => {
     setToast(msg)
-    setTimeout(() => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => {
       setToast(null)
     }, 2500)
   }
@@ -338,35 +384,82 @@ export function useSquadState() {
   // 파티 데이터 내보내기 (Export) — 하스스톤 스타일 Base64 코드
   const handleExport = () => {
     try {
-      const code = generateExportText(squadsList)
+      const code = generateExportText(squadsList, currentVersion)
       navigator.clipboard.writeText(code)
-      showToast('편성 코드가 클립보드에 복사되었습니다!')
+      showToast(`${currentVersion} 편성 코드가 클립보드에 복사되었습니다!`)
     } catch {
       showToast('코드 복사에 실패했습니다.')
     }
   }
 
+  // 다른 버전 코드 붙여넣기 시 선택 대기
+  const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
+
+  /** 편성 코드 파티를 대상 버전 보드에 적용하고 그 보드로 이동 */
+  const applyImport = (rows: SquadRowData[], targetVersion: string, resetCircuits: boolean) => {
+    const result = sanitizeSquadsForVersion(rows, targetVersion, { resetCircuits })
+    setSquadsByVersion(prev => ({ ...prev, [targetVersion]: result.rows }))
+    setCurrentVersion(targetVersion)
+    localStorage.setItem(SELECTED_VERSION_KEY, targetVersion)
+    setImportModalOpen(false)
+    const removed = result.removedUnavailable + result.removedOverLimit
+    const notes = [
+      resetCircuits ? '회로 초기화' : '',
+      removed > 0 ? `규칙에 맞지 않는 공명자 ${removed}명 제외` : '',
+      result.clearedCircuits > 0 ? `${targetVersion}에 없는 회로 ${result.clearedCircuits}개 초기화` : ''
+    ].filter(Boolean)
+    showToast(`${targetVersion} 보드로 불러왔습니다${notes.length ? ` · ${notes.join(' · ')}` : ''}`)
+  }
+
   // 파티 데이터 불러오기 (Import)
+  // - 현재 보드와 같은 버전 코드: 현재 보드에 적용 (비어 있지 않으면 덮어쓰기 확인)
+  // - 다른 버전 코드(v3): ① 코드 버전 보드에 넣기(회로 유지) ② 현재 보드에 넣기(회로 삭제) 중 선택
+  // - 버전 정보가 없는 이전 코드: 현재 보드에 적용 (현재 버전에 없는 회로는 초기화)
   const handleImport = (code: string) => {
+    let parsed
     try {
-      const parsedSquads = parseImportText(code)
-      if (!parsedSquads || parsedSquads.length === 0) {
-        showToast('올바르지 않은 코드 형식입니다.')
-        return
-      }
-
-      const importedSquadsList: SquadRowData[] = parsedSquads.map((item, i) => ({
-        id: `squad-row-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
-        characters: item.characters,
-        circuitBuffId: item.circuitBuffId
-      }))
-
-      setSquadsList(importedSquadsList)
-      setImportModalOpen(false)
-      showToast('파티 편성을 성공적으로 불러왔습니다!')
+      parsed = parseImportText(code)
     } catch {
-      showToast('파티 코드를 파싱하는 도중 오류가 발생했습니다.')
+      parsed = null
     }
+    if (!parsed || parsed.squads.length === 0) {
+      showToast('올바르지 않은 코드 형식입니다.')
+      return
+    }
+
+    const rows: SquadRowData[] = parsed.squads.map((item, i) => ({
+      id: createSquadRowId(i),
+      characters: item.characters,
+      circuitBuffId: item.circuitBuffId
+    }))
+    const codeVersion = parsed.version && GAME_VERSIONS.includes(parsed.version) ? parsed.version : null
+
+    if (codeVersion && codeVersion !== currentVersion) {
+      setImportModalOpen(false)
+      setPendingImport({ codeVersion, rows })
+      return
+    }
+
+    if (isBoardEmpty(squadsList)) {
+      applyImport(rows, currentVersion, false)
+      return
+    }
+    requestRemoveConfirm(
+      `편성 코드로 현재 ${currentVersion} 파티를 덮어쓰시겠습니까?`,
+      () => applyImport(rows, currentVersion, false),
+      codeVersion
+        ? `현재 ${currentVersion} 보드의 기존 파티가 대체됩니다.`
+        : `버전 정보가 없는 이전 코드라 현재 ${currentVersion} 보드에 적용되며, ${currentVersion}에 없는 회로는 초기화됩니다.`,
+      '불러오기'
+    )
+  }
+
+  /** 다른 버전 코드 붙여넣기 선택 처리 */
+  const handleResolveImport = (target: 'code' | 'current') => {
+    if (!pendingImport) return
+    if (target === 'code') applyImport(pendingImport.rows, pendingImport.codeVersion, false)
+    else applyImport(pendingImport.rows, currentVersion, true)
+    setPendingImport(null)
   }
 
   // 파티 배치도 이미지 캡처 모달 열기
@@ -527,6 +620,48 @@ export function useSquadState() {
     )
   }
 
+  // 현재 보드 기준 가장 가까운 이전/이후 버전 중 파티가 있는 버전 (불러오기 후보)
+  const findLoadSource = (direction: -1 | 1): string | null => {
+    const idx = selectableVersions.indexOf(currentVersion)
+    for (let i = idx + direction; i >= 0 && i < selectableVersions.length; i += direction) {
+      const v = selectableVersions[i]
+      if (!isBoardEmpty(squadsByVersion[v])) return v
+    }
+    return null
+  }
+  const loadSources = {
+    prev: findLoadSource(-1),
+    next: findLoadSource(1)
+  }
+
+  /** 다른 버전 보드의 파티를 현재 보드로 불러오기 (회로는 초기화, 현재 버전 규칙에 맞지 않는 공명자 제외) */
+  const handleLoadFromVersion = (sourceVersion: string) => {
+    const sourceRows = squadsByVersion[sourceVersion]
+    if (isBoardEmpty(sourceRows)) return
+
+    const apply = () => {
+      setImportModalOpen(false)
+      const copied = sourceRows.map((row, i) => ({ ...row, id: createSquadRowId(i), characters: [...row.characters] }))
+      const result = sanitizeSquadsForVersion(copied, currentVersion, { resetCircuits: true })
+      setSquadsList(result.rows)
+      const removed = result.removedUnavailable + result.removedOverLimit
+      showToast(
+        `${sourceVersion} 파티를 불러왔습니다 (회로 초기화)${removed > 0 ? ` · ${currentVersion} 규칙에 맞지 않는 ${removed}명 제외` : ''}`
+      )
+    }
+
+    if (isBoardEmpty(squadsList)) {
+      apply()
+      return
+    }
+    requestRemoveConfirm(
+      `${sourceVersion} 파티로 현재 ${currentVersion} 파티를 덮어쓰시겠습니까?`,
+      apply,
+      `현재 ${currentVersion} 보드의 파티는 사라지고, 불러온 파티의 회로는 초기화됩니다.`,
+      '불러오기'
+    )
+  }
+
   const handleSelectCircuitBuff = (squadIdx: number, buffId: string | null) => {
     setSquadsList(prev =>
       prev.map((s, idx) => (idx === squadIdx ? { ...s, circuitBuffId: buffId } : s))
@@ -648,11 +783,20 @@ export function useSquadState() {
     setConfirmModalOpen,
     confirmAction,
     activeDragChar,
-    showLeakInfo,
-    setShowLeakInfo: handleSetShowLeakInfo,
     currentVersion,
     setCurrentVersion: handleSetVersion,
     selectableVersions,
+    pendingMigration,
+    handleConfirmMigration,
+    pendingImport,
+    handleResolveImport,
+    cancelPendingImport: () => setPendingImport(null),
+    isVersionBoardEmpty: (version: string) => isBoardEmpty(squadsByVersion[version]),
+    getVersionPartyCount: (version: string) =>
+      (squadsByVersion[version] ?? []).filter(r => r.characters.some(Boolean) || r.circuitBuffId).length,
+    handleDismissMigration,
+    loadSources,
+    handleLoadFromVersion,
     hideMaxedOut,
     setHideMaxedOut: handleSetHideMaxedOut
   }

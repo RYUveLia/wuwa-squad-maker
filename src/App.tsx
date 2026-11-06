@@ -18,6 +18,8 @@ import { TurnstileGate } from './components/TurnstileGate'
 import { ConfirmModal } from './components/ConfirmModal'
 import { ImageExportModal } from './components/ImageExportModal'
 import { CircuitBuffSelectModal } from './components/CircuitBuffSelectModal'
+import { VersionMigrationModal } from './components/VersionMigrationModal'
+import { ImportTargetModal } from './components/ImportTargetModal'
 
 // 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
@@ -69,13 +71,21 @@ function App() {
     setConfirmModalOpen,
     confirmAction,
     activeDragChar,
-    showLeakInfo,
-    setShowLeakInfo,
     hideMaxedOut,
     setHideMaxedOut,
     currentVersion,
     setCurrentVersion,
-    selectableVersions
+    selectableVersions,
+    pendingMigration,
+    handleConfirmMigration,
+    pendingImport,
+    handleResolveImport,
+    cancelPendingImport,
+    isVersionBoardEmpty,
+    getVersionPartyCount,
+    handleDismissMigration,
+    loadSources,
+    handleLoadFromVersion
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
@@ -173,26 +183,6 @@ function App() {
                     배치 완료 숨기기
                   </label>
 
-                  {/* Leak Filter Toggle Button */}
-                  <div className="flex items-center gap-2 border-l border-zinc-800 pl-3.5">
-                    <span className="text-[10px] sm:text-xs font-semibold text-zinc-400 select-none">유출 정보</span>
-                    <button
-                      role="switch"
-                      aria-checked={showLeakInfo}
-                      onClick={() => setShowLeakInfo(!showLeakInfo)}
-                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-zinc-700/60 ${
-                        showLeakInfo 
-                          ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
-                          : 'bg-zinc-800'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition-all duration-200 ease-in-out ${
-                          showLeakInfo ? 'translate-x-5 bg-zinc-950' : 'translate-x-0.5 bg-zinc-400'
-                        }`}
-                      />
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -253,6 +243,25 @@ function App() {
               </div>
             </div>
 
+            {/* Load from adjacent version boards (circuits are reset) */}
+            {(loadSources.prev || loadSources.next) && (
+              <div className={SQUAD_LIST_STYLES.loadBar}>
+                <span className={SQUAD_LIST_STYLES.loadLabel}>다른 버전 파티 불러오기 <span className="text-zinc-600">(회로 초기화)</span></span>
+                <div className="flex gap-1.5">
+                  {loadSources.prev && (
+                    <button type="button" onClick={() => handleLoadFromVersion(loadSources.prev!)} className={SQUAD_LIST_STYLES.loadBtn}>
+                      ← {loadSources.prev}에서
+                    </button>
+                  )}
+                  {loadSources.next && (
+                    <button type="button" onClick={() => handleLoadFromVersion(loadSources.next!)} className={SQUAD_LIST_STYLES.loadBtn}>
+                      {loadSources.next}에서 →
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Scrollable Container */}
             <div 
               id="squads-container" 
@@ -297,6 +306,27 @@ function App() {
           
         </div>
 
+        {/* Different-version share code: choose target board */}
+        {pendingImport && (
+          <ImportTargetModal
+            codeVersion={pendingImport.codeVersion}
+            currentVersion={currentVersion}
+            rows={pendingImport.rows}
+            isVersionBoardEmpty={isVersionBoardEmpty}
+            onSelect={handleResolveImport}
+            onCancel={cancelPendingImport}
+          />
+        )}
+
+        {/* Legacy (unversioned) squads migration */}
+        {pendingMigration && pendingMigration.length > 0 && (
+          <VersionMigrationModal
+            rows={pendingMigration}
+            onConfirm={handleConfirmMigration}
+            onDismiss={handleDismissMigration}
+          />
+        )}
+
         {/* Toast Popup Notification */}
         {toast && <Toast message={toast} />}
 
@@ -304,6 +334,10 @@ function App() {
         {importModalOpen && (
           <ImportModal
             onImport={handleImport}
+            currentVersion={currentVersion}
+            versions={selectableVersions}
+            getVersionPartyCount={getVersionPartyCount}
+            onLoadFromVersion={handleLoadFromVersion}
             onClose={() => setImportModalOpen(false)}
           />
         )}
@@ -337,9 +371,7 @@ function App() {
             currentSquad={squads[activeSquadIdxForMobile]}
             onRemoveSlot={(slotIdx) => handleRemoveCharacter(activeSquadIdxForMobile, slotIdx)}
             onOpenOwnedSettings={() => setOwnedModalOpen(true)}
-            showLeakInfo={showLeakInfo}
             version={currentVersion}
-            setShowLeakInfo={setShowLeakInfo}
             hideMaxedOut={hideMaxedOut}
             setHideMaxedOut={setHideMaxedOut}
           />
@@ -453,6 +485,9 @@ const RESONATOR_POOL_STYLES = {
 }
 
 const SQUAD_LIST_STYLES = {
+  loadBar: 'flex flex-wrap items-center justify-between gap-2 px-3 py-2 mb-2 rounded-xl border border-dashed border-[#262630] bg-[#0e0e13]',
+  loadLabel: 'text-[10.5px] sm:text-xs font-bold text-zinc-400',
+  loadBtn: 'px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-950/20 hover:bg-amber-950/40 border border-amber-800/40 rounded-lg cursor-pointer transition-colors whitespace-nowrap',
   toolbar: 'flex items-center justify-between bg-[#14141a]/70 border border-[#262630] p-2 sm:p-3 rounded-2xl select-none flex-shrink-0 gap-1.5 sm:gap-2',
   toolbarTitle: 'text-[11px] sm:text-xs md:text-sm font-bold text-zinc-300 px-1 whitespace-nowrap flex-shrink-0',
   toolbarBtnArea: 'flex gap-1 sm:gap-2',

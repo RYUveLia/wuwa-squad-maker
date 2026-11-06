@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
 import type { Character } from '../types'
 import { resolveCircuitBuff } from '../constants/circuitBuffs'
+import { LEAK_VERSIONS } from '../constants/versions'
 
 interface ImageExportModalProps {
   isOpen: boolean
@@ -107,7 +108,7 @@ export function ImageExportModal({
       })
 
       const link = document.createElement('a')
-      link.download = `wuwa-matrix-squad-${new Date().toISOString().slice(0, 10)}.png`
+      link.download = `wuwa-matrix-squad-v${version}-${new Date().toISOString().slice(0, 10)}.png`
       link.href = dataUrl
       link.click()
       showToast('파티 배치도가 이미지(PNG)로 저장되었습니다!')
@@ -214,11 +215,16 @@ export function ImageExportModal({
                       WuWa Matrix Squad Maker
                     </h1>
                     <p className={MODAL_STYLES.boardSubtitle}>
-                      명조: 워더링 웨이브 종말 매트릭스 파티 편성표
+                      명조: 워더링 웨이브 종말 매트릭스 v{version} 파티 편성표
                     </p>
                   </div>
-                  <div className={MODAL_STYLES.boardDateBadge}>
-                    {version} · {currentDateStr}
+                  <div className="flex items-center gap-2">
+                    <div className={MODAL_STYLES.boardVersionBadge}>
+                      v{version}{LEAK_VERSIONS.includes(version) ? ' (유출)' : ''}
+                    </div>
+                    <div className={MODAL_STYLES.boardDateBadge}>
+                      {currentDateStr}
+                    </div>
                   </div>
                 </div>
 
@@ -286,7 +292,7 @@ export function ImageExportModal({
                                     />
                                   </div>
                                   <span className={MODAL_STYLES.circuitNameText}>
-                                    {resolvedBuff && resolvedBuff.version !== version ? `${resolvedBuff.version} ` : ''}{buff.name.replace(' 강화', '')}
+                                    {resolvedBuff && resolvedBuff.version !== version ? `v${resolvedBuff.version} ` : ''}{buff.name.replace(' 강화', '')}
                                   </span>
                                 </>
                               ) : (
@@ -360,6 +366,7 @@ const MODAL_STYLES = {
   boardHeader: 'flex items-center justify-between border-b border-[#262630] pb-3',
   boardTitle: 'text-lg sm:text-xl font-extrabold text-white tracking-tight',
   boardSubtitle: 'text-xs text-zinc-400 font-semibold mt-0.5',
+  boardVersionBadge: 'text-xs font-extrabold text-zinc-950 bg-amber-400 px-2.5 py-1 rounded-md',
   boardDateBadge: 'text-xs font-mono font-bold text-amber-400 bg-[#14141a] border border-[#262630] px-2.5 py-1 rounded-md',
   
   squadsGrid: 'grid grid-cols-2 gap-3.5',
