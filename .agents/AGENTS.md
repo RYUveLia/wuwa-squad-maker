@@ -85,12 +85,6 @@
 ### `version_update` — 새 버전(유출) 추가 / 라이브 전환
 - 상세 절차: [`.agents/skills/version_update/SKILL.md`](skills/version_update/SKILL.md)
 - 수정 지점(versions.ts·circuitBuffs.ts·characters.json 등), nanoka.cc 데이터 확인, 테스트·검증, 커밋 규칙
-- 커뮤니티 공지는 포함하지 않음
-
-### `community_announcement` — 커뮤니티 업데이트 공지 (선택)
-- 상세 절차: [`.agents/skills/community_announcement/SKILL.md`](skills/community_announcement/SKILL.md)
-- 펨코·아카 제목/HTML 템플릿, 원글 형식(글씨 크기·이미지 너비) 규칙, 스크린샷 캡처 스크립트, 게시 이력
-- **사용자가 요청할 때만** 진행 (사용자가 직접 올릴 수도 있음). 버전 업데이트 작업에 자동으로 붙이지 않는다
 
 ### `fetch_fandom_wiki_characters` — Fandom Wiki 캐릭터 일괄 수집
 - 상세 절차: [`.agents/skills/fetch_fandom_wiki_characters/SKILL.md`](skills/fetch_fandom_wiki_characters/SKILL.md)

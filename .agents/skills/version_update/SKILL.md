@@ -6,7 +6,6 @@ description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이
 # 버전 업데이트 (유출 추가 / 라이브 전환)
 
 데이터 구조 설명은 [`docs/version-and-leak-guide.md`](../../../docs/version-and-leak-guide.md), 코드 구조는 [`AGENTS.md`](../../AGENTS.md)의 "코드 구조" 참고.
-커뮤니티 공지는 이 작업에 포함하지 않는다 (필요하면 별도로 [`community_announcement`](../community_announcement/SKILL.md)).
 
 ## 수정 지점 한눈에
 
