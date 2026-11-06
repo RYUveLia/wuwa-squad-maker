@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 
-const HTML_FILE_PATH = '/Users/er.hyun/.gemini/antigravity-ide/brain/43542a7d-5b78-4f97-bf63-0eda2ec7491a/.system_generated/steps/92/content.md';
+// 사용법: node scripts/fetch-characters.js <Fandom Wiki Resonator/List 페이지 HTML 파일 경로>
+const HTML_FILE_PATH = process.argv[2];
 const OUTPUT_JSON_PATH = path.join(process.cwd(), 'src/data/characters.json');
 const IMAGE_DIR = path.join(process.cwd(), 'public/characters');
 
@@ -91,6 +92,10 @@ function downloadImage(url, dest) {
 }
 
 async function main() {
+  if (!HTML_FILE_PATH) {
+    console.error('Usage: node scripts/fetch-characters.js <html-file-path>');
+    process.exit(1);
+  }
   console.log('Reading HTML file...');
   const html = fs.readFileSync(HTML_FILE_PATH, 'utf-8');
 
