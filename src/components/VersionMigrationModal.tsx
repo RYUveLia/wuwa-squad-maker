@@ -3,7 +3,7 @@ import { COMMON_STYLES } from '../styles/theme'
 import { GAME_VERSIONS, LEAK_VERSIONS } from '../constants/versions'
 import { resolveCircuitBuff } from '../constants/circuitBuffs'
 import type { SquadRow } from '../types'
-import type { MigrationAssignment } from '../hooks/useSquadState'
+import type { MigrationAssignment } from '../hooks/useSquadTransfer'
 import {
   getAllowedVersions,
   getRequiredVersionLabel,
