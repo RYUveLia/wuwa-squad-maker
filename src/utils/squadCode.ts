@@ -11,6 +11,12 @@ export interface DecodedSquadResult {
   circuitBuffId: string | null
 }
 
+/** 디코딩 결과: version은 v3 코드에만 존재 (이전 코드는 null) */
+export interface DecodedSquadsWithVersion {
+  version: string | null
+  squads: DecodedSquadResult[]
+}
+
 const EMPTY_SLOT = 0xFF
 const CODE_VERSION = 1
 
@@ -49,8 +55,8 @@ function decodeSquadsLegacy(code: string): (Character | null)[][] | null {
   }
 }
 
-/** 파티 배열 (공명자 + 회로 버프) → Base64 코드 문자열 */
-export function encodeSquads(squads: SquadExportInput[] | (Character | null)[][]): string {
+/** 파티 배열 (공명자 + 회로 버프) → Base64 코드 문자열 (v3: 보드 버전 포함) */
+export function encodeSquads(squads: SquadExportInput[] | (Character | null)[][], version?: string): string {
   const normalized = squads
     .map(item => {
       if (Array.isArray(item)) {
@@ -66,10 +72,7 @@ export function encodeSquads(squads: SquadExportInput[] | (Character | null)[][]
     })
     .filter(item => item.c.some(id => id !== null) || item.b !== null)
 
-  const payload = {
-    v: 2,
-    s: normalized
-  }
+  const payload = version ? { v: 3, ver: version, s: normalized } : { v: 2, s: normalized }
   return btoa(JSON.stringify(payload))
 }
 
@@ -89,7 +92,7 @@ export function decodeSquads(code: string): DecodedSquadResult[] | null {
       idToChar.set(c.id, c)
     })
 
-    // v2 형식: { v: 2, s: [ { c: [...], b: '...' } ] }
+    // v3 형식: { v: 3, ver: '3.7', s: [...] } / v2 형식: { v: 2, s: [ { c: [...], b: '...' } ] }
     if (parsed && typeof parsed === 'object' && Array.isArray(parsed.s)) {
       return parsed.s.map((item: { c: (string | null)[]; b?: string | null }) => {
         const chars: (Character | null)[] = Array.isArray(item.c)
@@ -131,18 +134,31 @@ export function decodeSquads(code: string): DecodedSquadResult[] | null {
   }
 }
 
+/** 코드에 담긴 보드 버전 추출 (v3 코드만, 그 외 null) */
+function decodeVersion(code: string): string | null {
+  try {
+    const parsed = JSON.parse(atob(code))
+    return parsed && typeof parsed === 'object' && typeof parsed.ver === 'string' ? parsed.ver : null
+  } catch {
+    return null
+  }
+}
+
 /** 전체 내보내기 텍스트 생성 (순수 Base64 코드만 반환) */
-export function generateExportText(squads: SquadExportInput[] | (Character | null)[][]): string {
-  return encodeSquads(squads)
+export function generateExportText(squads: SquadExportInput[] | (Character | null)[][], version?: string): string {
+  return encodeSquads(squads, version)
 }
 
 /** 불러오기 텍스트에서 Base64 코드만 추출하여 디코딩 */
-export function parseImportText(text: string): DecodedSquadResult[] | null {
+export function parseImportText(text: string): DecodedSquadsWithVersion | null {
   const lines = text.trim().split('\n')
   const codeLine = lines.find(line => {
     const trimmed = line.trim()
     return trimmed.length > 0 && !trimmed.startsWith('#')
   })
   if (!codeLine) return null
-  return decodeSquads(codeLine.trim())
+  const code = codeLine.trim()
+  const squads = decodeSquads(code)
+  if (!squads) return null
+  return { version: decodeVersion(code), squads }
 }

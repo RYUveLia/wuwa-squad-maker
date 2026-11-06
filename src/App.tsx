@@ -18,10 +18,13 @@ import { TurnstileGate } from './components/TurnstileGate'
 import { ConfirmModal } from './components/ConfirmModal'
 import { ImageExportModal } from './components/ImageExportModal'
 import { CircuitBuffSelectModal } from './components/CircuitBuffSelectModal'
+import { VersionMigrationModal } from './components/VersionMigrationModal'
+import { ImportTargetModal } from './components/ImportTargetModal'
 
 // 커스텀 훅 및 유틸리티 가져오기
 import { useSquadState } from './hooks/useSquadState'
 import { getDoubleDeploymentNamesText, getSeasonBuffInfo } from './utils/character'
+import { LEAK_VERSIONS } from './constants/versions'
 
 function App() {
   const {
@@ -68,14 +71,25 @@ function App() {
     setConfirmModalOpen,
     confirmAction,
     activeDragChar,
-    showLeakInfo,
-    setShowLeakInfo,
     hideMaxedOut,
-    setHideMaxedOut
+    setHideMaxedOut,
+    currentVersion,
+    setCurrentVersion,
+    selectableVersions,
+    pendingMigration,
+    handleConfirmMigration,
+    pendingImport,
+    handleResolveImport,
+    cancelPendingImport,
+    isVersionBoardEmpty,
+    getVersionPartyCount,
+    canLoadFromVersion,
+    handleDismissMigration,
+    handleLoadFromVersion
   } = useSquadState()
 
   const [isVerified, setIsVerified] = useState<boolean>(false)
-  const seasonBuffInfo = getSeasonBuffInfo(showLeakInfo)
+  const seasonBuffInfo = getSeasonBuffInfo(currentVersion)
 
   if (!isVerified) {
     return <TurnstileGate onVerify={() => setIsVerified(true)} />
@@ -92,7 +106,7 @@ function App() {
           </h1>
           <p className={HEADER_STYLES.description}>
             명조: 워더링 웨이브 종말 매트릭스 다중 파티 구성 시뮬레이터 <br className="hidden sm:inline" />
-            일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(showLeakInfo)}</span>
+            일부 공명자<span className="text-amber-400 font-semibold">{getDoubleDeploymentNamesText(currentVersion)}</span>
             {seasonBuffInfo.character ? (
               <> 및 <span className="text-amber-400 font-bold">{seasonBuffInfo.version} 시즌 버프 대상인 {seasonBuffInfo.character.name}</span>는</>
             ) : (
@@ -100,6 +114,28 @@ function App() {
             )} <br className="hidden sm:inline" />
             최대 2회까지 중복 편성이 허용됩니다.
           </p>
+
+          {/* Version Selector: 버전별로 파티 목록 · 도감 · 시즌 버프 · 회로 버프가 분리됨 */}
+          <div role="tablist" aria-label="게임 버전 선택" className={HEADER_STYLES.versionBar}>
+            {selectableVersions.map((version) => {
+              const isActive = version === currentVersion
+              return (
+                <button
+                  key={version}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setCurrentVersion(version)}
+                  className={HEADER_STYLES.versionBtn(isActive)}
+                >
+                  {version}
+                  {LEAK_VERSIONS.includes(version) && (
+                    <span className={HEADER_STYLES.versionLeakTag(isActive)}>유출</span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </header>
 
         {/* 2-Column Split Layout */}
@@ -147,26 +183,6 @@ function App() {
                     배치 완료 숨기기
                   </label>
 
-                  {/* Leak Filter Toggle Button */}
-                  <div className="flex items-center gap-2 border-l border-zinc-800 pl-3.5">
-                    <span className="text-[10px] sm:text-xs font-semibold text-zinc-400 select-none">유출 정보</span>
-                    <button
-                      role="switch"
-                      aria-checked={showLeakInfo}
-                      onClick={() => setShowLeakInfo(!showLeakInfo)}
-                      className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-zinc-700/60 ${
-                        showLeakInfo 
-                          ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
-                          : 'bg-zinc-800'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition-all duration-200 ease-in-out ${
-                          showLeakInfo ? 'translate-x-5 bg-zinc-950' : 'translate-x-0.5 bg-zinc-400'
-                        }`}
-                      />
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -198,7 +214,7 @@ function App() {
             
             {/* Top Toolbar */}
             <div className={SQUAD_LIST_STYLES.toolbar}>
-              <span className={SQUAD_LIST_STYLES.toolbarTitle}>파티 편성 현황</span>
+              <span className={SQUAD_LIST_STYLES.toolbarTitle}>{currentVersion} 파티 편성 현황</span>
               <div className={SQUAD_LIST_STYLES.toolbarBtnArea}>
                 <button
                   onClick={handleResetSquads}
@@ -240,7 +256,7 @@ function App() {
                     squadIdx={squadIdx}
                     squad={squad}
                     circuitBuffId={circuitBuffs[squadIdx]}
-                    showLeakInfo={showLeakInfo}
+                    version={currentVersion}
                     handleRemoveCharacter={handleRemoveCharacter}
                     handleDeleteSquad={handleDeleteSquad}
                     onSlotClick={(sIdx, _slotIdx) => {
@@ -271,6 +287,28 @@ function App() {
           
         </div>
 
+        {/* Different-version share code: choose target board */}
+        {pendingImport && (
+          <ImportTargetModal
+            codeVersion={pendingImport.codeVersion}
+            assumedVersion={pendingImport.assumedVersion}
+            currentVersion={currentVersion}
+            rows={pendingImport.rows}
+            isVersionBoardEmpty={isVersionBoardEmpty}
+            onSelect={handleResolveImport}
+            onCancel={cancelPendingImport}
+          />
+        )}
+
+        {/* Legacy (unversioned) squads migration */}
+        {pendingMigration && pendingMigration.length > 0 && (
+          <VersionMigrationModal
+            rows={pendingMigration}
+            onConfirm={handleConfirmMigration}
+            onDismiss={handleDismissMigration}
+          />
+        )}
+
         {/* Toast Popup Notification */}
         {toast && <Toast message={toast} />}
 
@@ -278,6 +316,11 @@ function App() {
         {importModalOpen && (
           <ImportModal
             onImport={handleImport}
+            currentVersion={currentVersion}
+            versions={selectableVersions}
+            getVersionPartyCount={getVersionPartyCount}
+            canLoadFromVersion={canLoadFromVersion}
+            onLoadFromVersion={handleLoadFromVersion}
             onClose={() => setImportModalOpen(false)}
           />
         )}
@@ -311,8 +354,7 @@ function App() {
             currentSquad={squads[activeSquadIdxForMobile]}
             onRemoveSlot={(slotIdx) => handleRemoveCharacter(activeSquadIdxForMobile, slotIdx)}
             onOpenOwnedSettings={() => setOwnedModalOpen(true)}
-            showLeakInfo={showLeakInfo}
-            setShowLeakInfo={setShowLeakInfo}
+            version={currentVersion}
             hideMaxedOut={hideMaxedOut}
             setHideMaxedOut={setHideMaxedOut}
           />
@@ -323,7 +365,7 @@ function App() {
           <CircuitBuffSelectModal
             squadIdx={activeCircuitModalSquadIdx}
             selectedBuffId={circuitBuffs[activeCircuitModalSquadIdx] || null}
-            showLeakInfo={showLeakInfo}
+            version={currentVersion}
             onSelectBuff={handleSelectCircuitBuff}
             onClose={() => setActiveCircuitModalSquadIdx(null)}
           />
@@ -338,7 +380,7 @@ function App() {
             onSave={handleSaveOwnedResonators}
             showOnlyOwned={showOnlyOwned}
             setShowOnlyOwned={setShowOnlyOwned}
-            showLeakInfo={showLeakInfo}
+            version={selectableVersions[selectableVersions.length - 1]}
           />
         )}
         
@@ -363,7 +405,7 @@ function App() {
             isOpen={imageExportModalOpen}
             squads={squads}
             circuitBuffs={circuitBuffs}
-            showLeakInfo={showLeakInfo}
+            version={currentVersion}
             onClose={() => setImageExportModalOpen(false)}
             showToast={showToast}
           />
@@ -396,6 +438,15 @@ const LAYOUT_STYLES = {
 }
 
 const HEADER_STYLES = {
+  versionBar: 'mt-3 flex flex-wrap items-center justify-center gap-1.5',
+  versionBtn: (active: boolean) =>
+    `px-3 py-1 rounded-lg text-xs sm:text-sm font-bold border transition-colors cursor-pointer select-none ${
+      active
+        ? 'bg-amber-400 text-zinc-950 border-amber-400 shadow-[0_0_10px_rgba(251,189,35,0.3)]'
+        : 'bg-[#14141a] text-zinc-400 border-[#262630] hover:text-zinc-200 hover:border-zinc-600'
+    }`,
+  versionLeakTag: (active: boolean) =>
+    `ml-1 text-[9px] sm:text-[10px] font-extrabold ${active ? 'text-zinc-800' : 'text-amber-500/80'}`,
   container: 'text-center mb-8 max-w-4xl select-none mx-auto px-2',
   title: 'text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm',
   description: 'text-zinc-400 mt-2 text-sm md:text-base leading-relaxed break-keep'

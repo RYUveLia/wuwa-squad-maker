@@ -10,7 +10,7 @@ interface OwnedResonatorModalProps {
   onSave: (ids: string[]) => void
   showOnlyOwned: boolean
   setShowOnlyOwned: (val: boolean) => void
-  showLeakInfo?: boolean
+  version: string
 }
 
 export function OwnedResonatorModal({
@@ -20,10 +20,10 @@ export function OwnedResonatorModal({
   onSave,
   showOnlyOwned,
   setShowOnlyOwned,
-  showLeakInfo = false
+  version
 }: OwnedResonatorModalProps) {
   const [tempOwnedIds, setTempOwnedIds] = useState<string[]>(ownedIds)
-  const displayCharacters = getSortedCharacters(showLeakInfo)
+  const displayCharacters = getSortedCharacters(version)
 
   if (!isOpen) return null
 

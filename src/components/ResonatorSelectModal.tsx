@@ -24,8 +24,7 @@ interface ResonatorSelectModalProps {
   onOpenOwnedSettings: () => void
 
   // Leak Info states
-  showLeakInfo: boolean
-  setShowLeakInfo: (val: boolean) => void
+  version: string
 
   // Hide Maxed Out states
   hideMaxedOut: boolean
@@ -46,8 +45,7 @@ export function ResonatorSelectModal({
   currentSquad,
   onRemoveSlot,
   onOpenOwnedSettings,
-  showLeakInfo,
-  setShowLeakInfo,
+  version,
   hideMaxedOut,
   setHideMaxedOut
 }: ResonatorSelectModalProps) {
@@ -130,26 +128,6 @@ export function ResonatorSelectModal({
               완료 숨기기
             </label>
 
-            {/* Leak Filter Toggle Button */}
-            <div className="flex items-center gap-1.5 border-l border-slate-800/80 pl-2.5">
-              <span className="text-[10px] font-semibold text-slate-400 select-none">유출</span>
-              <button
-                role="switch"
-                aria-checked={showLeakInfo}
-                onClick={() => setShowLeakInfo(!showLeakInfo)}
-                className={`relative inline-flex h-5 w-8.5 shrink-0 cursor-pointer rounded-full items-center transition-colors duration-200 ease-in-out focus:outline-none select-none border border-zinc-700/60 ${
-                  showLeakInfo 
-                    ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' 
-                    : 'bg-zinc-800'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full shadow ring-0 transition-all duration-200 ease-in-out ${
-                    showLeakInfo ? 'translate-x-4 bg-zinc-950' : 'translate-x-0.5 bg-zinc-400'
-                  }`}
-                />
-              </button>
-            </div>
           </div>
         </div>
 
@@ -169,7 +147,7 @@ export function ResonatorSelectModal({
                 maxAllowed={maxAllowed}
                 onClick={() => onSelect(char)}
                 isDraggable={false}
-                isSeasonBuff={getSeasonBuffInfo(showLeakInfo).character?.id === char.id}
+                isSeasonBuff={getSeasonBuffInfo(version).character?.id === char.id}
               />
             )
           })}

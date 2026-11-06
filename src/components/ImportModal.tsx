@@ -1,12 +1,27 @@
 import { useState } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
+import { LIVE_VERSION } from '../constants/versions'
 
 interface ImportModalProps {
   onImport: (code: string) => void
   onClose: () => void
+  currentVersion: string
+  versions: string[]
+  getVersionPartyCount: (version: string) => number
+  canLoadFromVersion: (version: string) => boolean
+  onLoadFromVersion: (version: string) => void
 }
 
-export function ImportModal({ onImport, onClose }: ImportModalProps) {
+export function ImportModal({
+  onImport,
+  onClose,
+  currentVersion,
+  versions,
+  getVersionPartyCount,
+  canLoadFromVersion,
+  onLoadFromVersion
+}: ImportModalProps) {
+  const otherVersions = versions.filter(v => v !== currentVersion)
   const [code, setCode] = useState('')
 
   return (
@@ -18,7 +33,9 @@ export function ImportModal({ onImport, onClose }: ImportModalProps) {
         <h3 className={IMPORT_STYLES.title}>편성 코드 불러오기</h3>
         <p className={IMPORT_STYLES.subMessage}>
           내보내기로 복사한 편성 코드(Base64)를 붙여넣어 주세요.<br />
-          <span className="text-amber-400">이전 버전의 형식(주석 포함)</span>도 그대로 지원합니다.
+          현재 <span className="text-amber-400">{currentVersion}</span> 보드와 다른 버전의 코드면 어느 보드에 넣을지 고를 수 있습니다.
+          (버전 정보가 없는 이전 코드는 회로·공명자로 버전을 추정하고, 추정할 수 없으면 <span className="text-amber-400">{LIVE_VERSION}</span> 코드로 봅니다)<br />
+          해당 버전에 없는 공명자·회로는 제외됩니다.
         </p>
         <textarea
           value={code}
@@ -27,6 +44,32 @@ export function ImportModal({ onImport, onClose }: ImportModalProps) {
           className={IMPORT_STYLES.textarea}
           autoFocus
         />
+        {/* Load from another version board */}
+        <div className="mt-4 pt-3 border-t border-[#262630]">
+          <p className="text-xs font-bold text-zinc-200">다른 버전 보드에서 불러오기</p>
+          <p className="text-[11px] text-zinc-500 mt-0.5 break-keep">
+            회로는 초기화되고, {currentVersion}에 없는 공명자·출전 한도 초과분은 제외됩니다.
+          </p>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {otherVersions.map(v => {
+              const count = getVersionPartyCount(v)
+              const loadable = count > 0 && canLoadFromVersion(v)
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  disabled={!loadable}
+                  title={count > 0 && !loadable ? `${currentVersion}에서 편성 가능한 공명자가 없습니다` : undefined}
+                  onClick={() => onLoadFromVersion(v)}
+                  className={IMPORT_STYLES.versionBtn}
+                >
+                  {v} <span className="text-zinc-500 font-semibold">({count === 0 ? '비어 있음' : loadable ? `${count}개 파티` : '불러올 공명자 없음'})</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         <div className={IMPORT_STYLES.footer}>
           <button
             onClick={onClose}
@@ -53,6 +96,7 @@ const IMPORT_STYLES = {
   subMessage: 'text-xs text-zinc-400 mb-4',
   textarea: 'w-full h-28 bg-[#09090d] border border-[#262630] rounded-lg p-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 resize-none font-mono',
   footer: 'flex gap-2 mt-4 justify-end',
+  versionBtn: 'px-2.5 py-1 text-[11px] sm:text-xs font-bold text-amber-400 bg-amber-950/20 hover:bg-amber-950/40 border border-amber-800/40 rounded-lg cursor-pointer transition-colors disabled:text-zinc-600 disabled:bg-transparent disabled:border-[#262630] disabled:cursor-not-allowed',
   cancelBtn: COMMON_STYLES.cancelBtn,
   confirmBtn: COMMON_STYLES.confirmBtn
 }
