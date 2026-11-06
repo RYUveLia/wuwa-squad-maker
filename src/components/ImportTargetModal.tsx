@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { COMMON_STYLES } from '../styles/theme'
-import type { SquadRowData } from '../hooks/useSquadState'
+import type { SquadRow } from '../types'
 import { hasAnyMember, sanitizeSquadsForVersion } from '../utils/versionTransfer'
 
 interface ImportTargetModalProps {
@@ -8,14 +8,14 @@ interface ImportTargetModalProps {
   /** 버전 없는 이전 코드일 때 codeVersion을 정한 방식 ('inferred': 추정, 'live': 라이브 가정) */
   assumedVersion?: 'inferred' | 'live' | null
   currentVersion: string
-  rows: SquadRowData[]
+  rows: SquadRow[]
   isVersionBoardEmpty: (version: string) => boolean
   onSelect: (target: 'code' | 'current') => void
   onCancel: () => void
 }
 
 /** 정리 후 빠지는 공명자 이름 목록 (빈 파티가 삭제되어 순서가 바뀌므로 파티 id로 비교) */
-function getRemovedNames(before: SquadRowData[], after: SquadRowData[]): string[] {
+function getRemovedNames(before: SquadRow[], after: SquadRow[]): string[] {
   const afterById = new Map(after.map(row => [row.id, row]))
   const names: string[] = []
   before.forEach(row =>

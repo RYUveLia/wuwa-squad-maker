@@ -2,18 +2,13 @@
 // - 기존(버전 없는) 저장 파티 마이그레이션 시 버전 추천
 // - 다른 버전 보드에서 파티 불러오기 시 대상 버전 규칙에 맞게 정리
 
-import type { Character } from '../types'
+import type { Character, SquadRow } from '../types'
+import { ROVER_IDS } from '../constants'
+import { createEmptySquadRow } from './squadRow'
 import { CIRCUIT_BUFFS_BY_VERSION, toCircuitBuffKey } from '../constants/circuitBuffs'
 import { GAME_VERSIONS, LEAK_VERSIONS, LIVE_VERSION, versionToNumber } from '../constants/versions'
 import { LEAK_CHARACTER_IDS, getMaxDeployment, isAvailableInVersion } from './character'
 
-export interface TransferSquadRow {
-  id: string
-  characters: (Character | null)[]
-  circuitBuffId: string | null
-}
-
-const ROVER_IDS = ['rover-spectro', 'rover-havoc', 'rover-aero', 'rover-electro']
 
 /** 파티의 공명자가 모두 출시된 버전 목록 */
 export function getAllowedVersions(characters: (Character | null)[]): string[] {
@@ -57,7 +52,7 @@ export interface VersionSuggestion {
 }
 
 /** 기존 파티를 보낼 버전 추천 (1. 회로가 존재하는 버전 2. 공명자가 모두 출시된 버전 기준) */
-export function suggestVersion(row: TransferSquadRow): VersionSuggestion {
+export function suggestVersion(row: SquadRow): VersionSuggestion {
   const allowed = getAllowedVersions(row.characters)
   const fallback = allowed.length > 0 ? allowed : [GAME_VERSIONS[GAME_VERSIONS.length - 1]]
 
@@ -88,7 +83,7 @@ export function getRequiredVersionLabel(characters: (Character | null)[]): strin
 }
 
 export interface SanitizeResult {
-  rows: TransferSquadRow[]
+  rows: SquadRow[]
   removedUnavailable: number
   removedOverLimit: number
   /** 대상 버전에 없는 회로라 초기화된 파티 수 (resetCircuits: false일 때) */
@@ -105,7 +100,7 @@ export interface SanitizeResult {
  * - 공명자가 있었는데 모두 제외된 파티는 삭제 (회로만 남은 빈 파티 방지), 전부 삭제되면 빈 파티 1개 유지
  */
 export function sanitizeSquadsForVersion(
-  rows: TransferSquadRow[],
+  rows: SquadRow[],
   version: string,
   { resetCircuits }: { resetCircuits: boolean }
 ): SanitizeResult {
@@ -152,7 +147,7 @@ export function sanitizeSquadsForVersion(
   const droppedRows = sanitized.length - kept.length
   const result = kept.length > 0
     ? kept
-    : [{ id: `squad-row-${Date.now()}-0-${Math.random().toString(36).substring(2, 7)}`, characters: [null, null, null], circuitBuffId: null }]
+    : [createEmptySquadRow()]
 
   return { rows: result, removedUnavailable, removedOverLimit, clearedCircuits, droppedRows }
 }
@@ -168,7 +163,7 @@ export interface SetVersionSuggestion {
  * 버전별로 규칙 정리를 돌려 아무것도 빠지지 않는(미출시 공명자·출전 한도 초과·회로 초기화가 없는) 버전만 후보로 삼는다.
  * (예: 3.6 전용 회로 + 데니아 2회 출전이 섞인 세트 → 3.6)
  */
-export function inferSetVersion(rows: TransferSquadRow[]): SetVersionSuggestion | null {
+export function inferSetVersion(rows: SquadRow[]): SetVersionSuggestion | null {
   const meaningful = rows.filter(r => r.characters.some(Boolean) || r.circuitBuffId)
   if (meaningful.length === 0) return null
   const candidates = GAME_VERSIONS.filter(v => {
@@ -180,11 +175,11 @@ export function inferSetVersion(rows: TransferSquadRow[]): SetVersionSuggestion 
 }
 
 /** 정리 결과에 편성된 공명자가 한 명이라도 남는지 (없으면 불러오기/붙여넣기를 막는다) */
-export function hasAnyMember(rows: TransferSquadRow[]): boolean {
+export function hasAnyMember(rows: SquadRow[]): boolean {
   return rows.some(r => r.characters.some(Boolean))
 }
 
 /** 파티 목록이 비어 있는지 (공명자/회로 모두 없음) */
-export function isBoardEmpty(rows: TransferSquadRow[] | undefined): boolean {
+export function isBoardEmpty(rows: SquadRow[] | undefined): boolean {
   return !rows || rows.every(r => r.characters.every(c => !c) && !r.circuitBuffId)
 }

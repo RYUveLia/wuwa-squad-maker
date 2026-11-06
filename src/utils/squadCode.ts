@@ -1,4 +1,4 @@
-import { MOCK_CHARACTERS } from './character'
+import { ALL_CHARACTERS, getCharacterById } from './character'
 import type { Character } from '../types'
 
 export interface SquadExportInput {
@@ -41,10 +41,10 @@ function decodeSquadsLegacy(code: string): (Character | null)[][] | null {
       const squad: (Character | null)[] = []
       for (let i = 0; i < 3; i++) {
         const idx = bytes[offset++]
-        if (idx === EMPTY_SLOT || idx >= MOCK_CHARACTERS.length) {
+        if (idx === EMPTY_SLOT || idx >= ALL_CHARACTERS.length) {
           squad.push(null)
         } else {
-          squad.push(MOCK_CHARACTERS[idx])
+          squad.push(ALL_CHARACTERS[idx])
         }
       }
       squads.push(squad)
@@ -87,16 +87,12 @@ export function decodeSquads(code: string): DecodedSquadResult[] | null {
     }
 
     const parsed = JSON.parse(jsonStr)
-    const idToChar = new Map<string, Character>()
-    MOCK_CHARACTERS.forEach(c => {
-      idToChar.set(c.id, c)
-    })
 
     // v3 형식: { v: 3, ver: '3.7', s: [...] } / v2 형식: { v: 2, s: [ { c: [...], b: '...' } ] }
     if (parsed && typeof parsed === 'object' && Array.isArray(parsed.s)) {
       return parsed.s.map((item: { c: (string | null)[]; b?: string | null }) => {
         const chars: (Character | null)[] = Array.isArray(item.c)
-          ? item.c.map(id => (id ? idToChar.get(id) || null : null))
+          ? item.c.map(id => getCharacterById(id))
           : [null, null, null]
         while (chars.length < 3) chars.push(null)
         if (chars.length > 3) chars.length = 3
@@ -112,10 +108,7 @@ export function decodeSquads(code: string): DecodedSquadResult[] | null {
       const results: DecodedSquadResult[] = []
       for (const squad of parsed) {
         if (!Array.isArray(squad)) return null
-        const restoredSquad = squad.map(id => {
-          if (!id) return null
-          return idToChar.get(id) || null
-        })
+        const restoredSquad = squad.map(id => getCharacterById(id))
         while (restoredSquad.length < 3) restoredSquad.push(null)
         if (restoredSquad.length > 3) restoredSquad.length = 3
         results.push({
