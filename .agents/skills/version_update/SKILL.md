@@ -1,6 +1,6 @@
 ---
 name: version_update
-description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이브 전환을 한다. 버전·시즌 버프·회로 버프·공명자 데이터를 바꾸는 체크리스트와 검증 절차. "3.9 유출 반영", "3.8 라이브 전환", "회로 버프 업데이트" 같은 요청에 사용.
+description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이브 전환을 한다. 버전·시즌 버프·회로 버프·공명자 데이터를 바꾸는 체크리스트와 검증 절차. "4.0 유출 반영", "3.8 라이브 전환", "회로 버프 업데이트" 같은 요청에 사용.
 ---
 
 # 버전 업데이트 (유출 추가 / 라이브 전환)
@@ -21,22 +21,22 @@ description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이
 
 > 버전 선택 탭·도감 필터·시즌 버프 안내·회로 모달·이미지 저장 배지는 모두 위 상수를 따라가므로 **화면 코드는 고치지 않는다.**
 
-## A. 새 유출 버전 추가 (예: 3.9)
+## A. 새 유출 버전 추가 (예: 4.0)
 
 1. **데이터 확인 (nanoka.cc)**
    - `npm run check:buff` → 최신 데이터 버전과 최신 특이점 확장 타워의 시즌 버프(추가 피로도) 공명자, 회로 4종 출력
-   - 타워 ↔ 버전: `https://static.nanoka.cc/ww/<데이터버전>/newtower.json`의 `season`(start/end_version_id), `cycle`로 판단. S2는 3.5=12, 3.6=14, 3.7=16, 3.8=18 (특이점 확장은 짝수 ID). **새 시즌이 시작되면 규칙이 바뀔 수 있으니 반드시 확인**
+   - 타워 ↔ 버전: `https://static.nanoka.cc/ww/<데이터버전>/newtower.json`의 `season`(start/end_version_id), `cycle`로 판단. S2는 3.5=12, 3.6=14, 3.7=16, 3.8=18 (특이점 확장은 짝수 ID). **S2 시즌은 3.5~3.8이라 4.0부터는 새 시즌일 가능성이 높음 → 타워 ID·회로 구성을 반드시 `newtower.json`에서 확인**
    - 과거 버전 시즌 버프는 해당 버전 스냅샷에서 확인 (최신 스냅샷은 모든 타워 `roles`가 최신 값으로 덮여 있음)
    - 회로 상세: `https://static.nanoka.cc/ww/<데이터버전>/ko/newtower/<towerId>.json`의 `buffs` (`desc`의 `{0}` 등을 `param`으로 치환), 영문은 `/en/`
 2. **`versions.ts`**
    ```ts
-   export const GAME_VERSIONS = ['3.5', '3.6', '3.7', '3.8', '3.9']
-   export const LEAK_VERSIONS = ['3.9']            // 3.8이 아직 미출시면 ['3.8', '3.9']
-   export const SEASON_BUFF_CHARACTER_BY_VERSION = { ..., '3.9': '<공명자 id>' /* 미정이면 null */ }
+   export const GAME_VERSIONS = ['3.5', '3.6', '3.7', '3.8', '4.0']
+   export const LEAK_VERSIONS = ['4.0']            // 3.8이 아직 미출시면 ['3.8', '4.0']
+   export const SEASON_BUFF_CHARACTER_BY_VERSION = { ..., '4.0': '<공명자 id>' /* 미정이면 null */ }
    ```
-3. **`circuitBuffs.ts`**: `CIRCUIT_BUFFS_3_9` (회로 4개, `id`는 아이콘 파일명 `T_Iconproperty..._UI`) 작성 후 `CIRCUIT_BUFFS_BY_VERSION`에 `'3.9'` 등록
+3. **`circuitBuffs.ts`**: `CIRCUIT_BUFFS_4_0` (회로 4개, `id`는 아이콘 파일명 `T_Iconproperty..._UI`) 작성 후 `CIRCUIT_BUFFS_BY_VERSION`에 `'4.0'` 등록
 4. **회로 아이콘**: 새 아이콘만 `https://static.nanoka.cc/assets/ww/UIResources/Common/Image/IconAttribute/<아이콘명>.webp` → `public/circuits/<아이콘명>.webp`
-5. **신규 공명자**: `characters.json`에 추가 (`releaseVersion` 예: 3.9 전반 `3.91`, 미정 `9.9`), 초상화 `public/characters/<id>.png`. 미정(9.9)이면 `LEAK_CHARACTER_IDS`에 추가. 순수 힐러면 `DOUBLE_DEPLOYMENT_CHARACTERS`에 추가
+5. **신규 공명자**: `characters.json`에 추가 (`releaseVersion` 예: 4.0 전반 `4.01`, 후반 `4.02`, 미정 `9.9`), 초상화 `public/characters/<id>.png`. 미정(9.9)이면 `LEAK_CHARACTER_IDS`에 추가. 순수 힐러면 `DOUBLE_DEPLOYMENT_CHARACTERS`에 추가
    - 대량 수집은 [`fetch_fandom_wiki_characters`](../fetch_fandom_wiki_characters/SKILL.md) (characters.json을 통째로 덮어쓰므로 diff 확인 필수)
 6. **README.md** 시즌 버프 대상 목록에 새 버전 추가
 
@@ -65,5 +65,5 @@ npm run build
 
 ## D. 커밋 / PR
 
-- [`AGENTS.md`](../../AGENTS.md) 규칙: 새 브랜치(`feat/version-3-9-leak`, `feat/version-3-8-live` 등) → **사용자 승인 후** 커밋·푸시 → PR. main 머지 = Vercel 즉시 배포
+- [`AGENTS.md`](../../AGENTS.md) 규칙: 새 브랜치(`feat/version-4-0-leak`, `feat/version-3-8-live` 등) → **사용자 승인 후** 커밋·푸시 → PR. main 머지 = Vercel 즉시 배포
 - 커밋 전 개인 계정 확인: `git config user.email`(ryul3024@gmail.com), `git config commit.gpgsign`(false), `git remote -v`(github.com-personal)
