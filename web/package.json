@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "check:buff": "node scripts/check-nanoka-season-buff.js",
+    "check:buff": "node ../tools/data/check-nanoka-season-buff.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

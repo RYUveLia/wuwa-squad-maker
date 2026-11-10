@@ -15,22 +15,22 @@ description: Parse Fandom Wiki character list tables to extract names, rarity, e
 * **저장 위치:** 프로젝트의 임시 경로 또는 에이전트 캐시 경로에 저장합니다.
 
 ### 2단계: 스크립트 작성 및 실행
-프로젝트 루트 또는 `scripts/` 디렉토리에 파싱 및 다운로드 스크립트를 생성합니다.
+프로젝트 루트 또는 `tools/data/` 디렉토리에 파싱 및 다운로드 스크립트를 생성합니다.
 
-#### 스크립트 예시: `scripts/fetch-characters.js`
+#### 스크립트 예시: `tools/data/fetch-characters.js`
 이 스크립트는 HTML 파일 내 `<tr>...</tr>` 행 중 캐릭터 이미지(`alt="Resonator ..."`)가 들어간 요소들을 탐색하여 다음과 같은 속성을 추출합니다:
 * **이름 (한글/영어):** 한국어 이름 매핑 사전(`KR_NAME_MAP`)을 활용하여 한글로 자동 번역합니다.
 * **등급:** `<span title="(\d) Stars">` 매칭을 통해 수집합니다.
 * **속성 & 무기:** 각각의 고유 속성 및 무기 키워드 매칭을 통해 정확히 매핑합니다.
-* **이미지:** `/revision/latest/scale-to-width-down/50...` 형식의 thumbnail URL을 고화질 원본 이미지 URL(`/revision/latest?cb=...`)로 가공한 뒤 `https` 모듈을 사용하여 로컬 드라이브 `public/characters/[character-id].png` 에 다운로드합니다.
+* **이미지:** `/revision/latest/scale-to-width-down/50...` 형식의 thumbnail URL을 고화질 원본 이미지 URL(`/revision/latest?cb=...`)로 가공한 뒤 `https` 모듈을 사용하여 로컬 드라이브 `web/public/characters/[character-id].png` 에 다운로드합니다.
 
 #### 실행 명령어
 ```bash
-node scripts/fetch-characters.js <1단계에서 저장한 HTML 파일 경로>
+node tools/data/fetch-characters.js <1단계에서 저장한 HTML 파일 경로>
 ```
 
 ### 3단계: 추출 결과 데이터 형식 (JSON)
-추출이 완료되면 [src/data/characters.json](../../../src/data/characters.json) 파일에 다음과 같은 형식으로 저장됩니다.
+추출이 완료되면 [web/src/data/characters.json](../../../web/src/data/characters.json) 파일에 다음과 같은 형식으로 저장됩니다.
 
 ```json
 [
@@ -48,4 +48,4 @@ node scripts/fetch-characters.js <1단계에서 저장한 HTML 파일 경로>
 
 ## ⚙️ 유의 사항
 * **정규식 매칭:** Fandom Wiki의 HTML 마크업이 변경될 경우 정규식 매칭 패턴(`/<img alt="Resonator ([^"]+)"[^>]*?data-src="([^"]+)"/`)이 깨질 수 있으므로, HTML 구조의 변경 여부를 사전에 모니터링해야 합니다.
-* **핫링크 방지 우회:** Fandom Wiki의 원본 이미지는 외부 웹사이트에서 직접 연결할 때 차단될 위험이 있으므로, 본 스크립트처럼 로컬 `public/` 디렉토리에 다운로드하여 사용하는 방식이 가장 안전합니다.
+* **핫링크 방지 우회:** Fandom Wiki의 원본 이미지는 외부 웹사이트에서 직접 연결할 때 차단될 위험이 있으므로, 본 스크립트처럼 로컬 `web/public/` 디렉토리에 다운로드하여 사용하는 방식이 가장 안전합니다.
