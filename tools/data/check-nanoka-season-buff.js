@@ -5,12 +5,15 @@
  * 시즌 버프(추가 피로도 / 2코스트 공명자) 및 회로 버프 목록을 확인하는 스크립트.
  *
  * 사용법:
- *   node scripts/check-nanoka-season-buff.js [버전, 기본값: 자동 감지 또는 3.7.1]
- *   npm run check:buff
+ *   node tools/data/check-nanoka-season-buff.js [버전, 기본값: 자동 감지 또는 3.7.1]
+ *   cd web && npm run check:buff
  */
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const WEB_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web');
 
 const DEFAULT_FALLBACK_VERSION = '3.7.1';
 const HEADERS = {
@@ -167,7 +170,7 @@ async function main() {
   // 6. 현재 프로젝트 소스코드(character.ts)와 비교 점검
   try {
     // 버전별 시즌 버프 맵(SEASON_BUFF_CHARACTER_BY_VERSION)에서 가장 최신 버전 항목과 비교
-    const versionsTsPath = path.join(process.cwd(), 'src/constants/versions.ts');
+    const versionsTsPath = path.join(WEB_DIR, 'src/constants/versions.ts');
     const versionsTsContent = fs.readFileSync(versionsTsPath, 'utf8');
     const mapBlock = versionsTsContent.match(/SEASON_BUFF_CHARACTER_BY_VERSION[^{]*\{([\s\S]*?)\}/);
     const entries = mapBlock ? [...mapBlock[1].matchAll(/'(\d+\.\d+)':\s*'([^']+)'/g)] : [];
@@ -177,7 +180,7 @@ async function main() {
     console.log('\n========================================');
     console.log('📋 프로젝트 코드 반영 상태 체크');
     console.log('========================================');
-    console.log(`   • src/constants/versions.ts 최신 버전(${latestEntry ? latestEntry[1] : '?'}) 시즌 버프 설정: '${configuredChar}'`);
+    console.log(`   • web/src/constants/versions.ts 최신 버전(${latestEntry ? latestEntry[1] : '?'}) 시즌 버프 설정: '${configuredChar}'`);
 
     const matchesConfig = fatigueResonators.some(r => r.nameEn.toLowerCase() === configuredChar.toLowerCase());
     if (matchesConfig) {

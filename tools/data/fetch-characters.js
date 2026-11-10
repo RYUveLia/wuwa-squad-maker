@@ -1,11 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import { fileURLToPath } from 'url';
 
-// 사용법: node scripts/fetch-characters.js <Fandom Wiki Resonator/List 페이지 HTML 파일 경로>
+// 사용법: node tools/data/fetch-characters.js <Fandom Wiki Resonator/List 페이지 HTML 파일 경로>
 const HTML_FILE_PATH = process.argv[2];
-const OUTPUT_JSON_PATH = path.join(process.cwd(), 'src/data/characters.json');
-const IMAGE_DIR = path.join(process.cwd(), 'public/characters');
+const WEB_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web');
+const OUTPUT_JSON_PATH = path.join(WEB_DIR, 'src/data/characters.json');
+const IMAGE_DIR = path.join(WEB_DIR, 'public/characters');
 
 const KR_NAME_MAP = {
   // 플레이어블 및 주요 캐릭터 번역
@@ -93,7 +95,7 @@ function downloadImage(url, dest) {
 
 async function main() {
   if (!HTML_FILE_PATH) {
-    console.error('Usage: node scripts/fetch-characters.js <html-file-path>');
+    console.error('Usage: node tools/data/fetch-characters.js <html-file-path>');
     process.exit(1);
   }
   console.log('Reading HTML file...');

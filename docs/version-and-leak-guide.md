@@ -6,7 +6,7 @@
 
 ## 0. 버전별 편성 보드 구조
 
-- **파일**: [`src/constants/versions.ts`](../src/constants/versions.ts)
+- **파일**: [`web/src/constants/versions.ts`](../web/src/constants/versions.ts)
 - 화면 상단의 버전 선택(3.5~3.8)에 따라 **파티 목록이 버전별로 분리 저장**됩니다. (3.5에서 만든 파티는 3.6 보드에 보이지 않음)
 - 선택된 버전이 결정하는 것:
   - 파티 목록 (localStorage `wuwa-squads-by-version`, 선택 버전은 `selected-version`)
@@ -24,7 +24,7 @@
   - 대상 버전 출전 한도를 넘는 공명자는 제외됩니다. 완료 시 `squads-version-migrated=true`가 저장되며, "나중에"를 누르면 다음 방문 때 다시 안내합니다.
 - **다른 버전에서 불러오기**: 불러오기 창의 "다른 버전 보드에서 불러오기"로 다른 버전 파티를 현재 보드로 복사합니다. 회로는 초기화되고, 현재 버전에 출시되지 않은 공명자와 출전 한도 초과분은 제외됩니다. 현재 보드에 파티가 있으면 덮어쓰기 확인을 거칩니다.
 - 이관·불러오기 공통: 공명자가 있었는데 규칙 정리로 모두 빠진 파티는 삭제되며(회로만 남은 빈 파티 방지), 전부 삭제되면 빈 파티 1개를 남깁니다.
-- 관련 로직: [`src/utils/versionTransfer.ts`](../src/utils/versionTransfer.ts)
+- 관련 로직: [`web/src/utils/versionTransfer.ts`](../web/src/utils/versionTransfer.ts)
 - 공유 코드 불러오기는 현재 선택된 버전 보드에 적용됩니다.
 
 ```ts
@@ -41,7 +41,7 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
 ## 1. 공명자(캐릭터) 데이터 관리
 
 ### 1.1 캐릭터 기본 정보 등록 및 속성 수정
-- **파일**: [`src/data/characters.json`](../src/data/characters.json)
+- **파일**: [`web/src/data/characters.json`](../web/src/data/characters.json)
 - **필드 구성**:
   ```json
   {
@@ -62,7 +62,7 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
   - 아직 버전이 완전히 불명인 경우 `9.9`로 지정합니다.
 
 ### 1.2 유출 캐릭터 및 버전별 노출
-- **파일**: [`src/utils/character.ts`](../src/utils/character.ts)
+- **파일**: [`web/src/utils/character.ts`](../web/src/utils/character.ts)
   ```ts
   export const LEAK_CHARACTER_IDS: string[] = ['lily'] // 3.8 유출 캐릭터 ID 목록
   ```
@@ -70,12 +70,12 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
   - `LEAK_CHARACTER_IDS`에 등록된 캐릭터는 출시 버전이 미정(`9.9`)이어도 유출 버전 보드에서 노출됩니다.
 
 ### 1.3 시즌 버프 (임시 2회 출전 공명자) 설정
-- **파일**: [`src/constants/versions.ts`](../src/constants/versions.ts)의 `SEASON_BUFF_CHARACTER_BY_VERSION`
+- **파일**: [`web/src/constants/versions.ts`](../web/src/constants/versions.ts)의 `SEASON_BUFF_CHARACTER_BY_VERSION`
   - 버전별로 대상 공명자 ID를 지정합니다. 미정이면 `null`.
   - `getSeasonBuffInfo(version)`을 통해 상단 안내 문구, 도감의 `2회 (시즌)` 뱃지, 최대 2회 출전 한도 로직에 자동 연동됩니다.
 
 ### 1.4 순수 힐러(기본 2회 출전) 공명자 관리
-- **파일**: [`src/constants/index.ts`](../src/constants/index.ts)의 `DOUBLE_DEPLOYMENT_CHARACTERS`
+- **파일**: [`web/src/constants/index.ts`](../web/src/constants/index.ts)의 `DOUBLE_DEPLOYMENT_CHARACTERS`
   ```ts
   // 최대 2회 출전이 가능한 순수 힐러 공명자 리스트 (설지, 복링, 벨리나, 파수인, 모니에, 수수, 릴리)
   export const DOUBLE_DEPLOYMENT_CHARACTERS = ['baizhi', 'buling', 'verina', 'shorekeeper', 'mornye', 'suisui', 'lily']
@@ -88,7 +88,7 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
 
 ## 2. 특이점 확장 회로 버프 데이터 관리
 
-- **파일**: [`src/constants/circuitBuffs.ts`](../src/constants/circuitBuffs.ts)
+- **파일**: [`web/src/constants/circuitBuffs.ts`](../web/src/constants/circuitBuffs.ts)
 
 ### 2.1 버전별 버프 정의
 버전별로 버프 목록(`CIRCUIT_BUFFS_3_5` ~ `CIRCUIT_BUFFS_3_8`)이 분리되어 있고, `CIRCUIT_BUFFS_BY_VERSION`에 버전 키로 등록합니다. 회로 모달은 현재 보드 버전의 목록만 노출합니다.
@@ -116,7 +116,7 @@ export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
 ```
 
 ### 2.2 이미지/아이콘 추가
-- 신규 회로 버프 이미지는 [`public/circuits/`](../public/circuits/) 경로에 추가하고, `iconUrl`에 `'/circuits/파일명.webp'` 형태로 경로를 지정합니다.
+- 신규 회로 버프 이미지는 [`web/public/circuits/`](../web/public/circuits/) 경로에 추가하고, `iconUrl`에 `'/circuits/파일명.webp'` 형태로 경로를 지정합니다.
 - 아이콘 원본: `https://static.nanoka.cc/assets/ww/UIResources/Common/Image/IconAttribute/<아이콘명>.webp` (`newtower/<id>.json`의 `buffs[].icon` 경로 끝 파일명)
 
 ### 2.3 동작 및 하위 호환 구조
@@ -134,11 +134,11 @@ export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
 반복 작업 시 리소스 낭비를 줄이기 위해 자동 검증 스크립트가 구비되어 있습니다.
 
 ```bash
-# 최신 버전 데이터 자동 감지 및 검증
-npm run check:buff
+# 최신 버전 데이터 자동 감지 및 검증 (web/에서)
+cd web && npm run check:buff
 
 # 특정 버전 직접 지정 검증 (예: 3.7.1)
-node scripts/check-nanoka-season-buff.js 3.7.1
+node tools/data/check-nanoka-season-buff.js 3.7.1
 ```
 
 **스크립트 동작 내용**:
@@ -146,7 +146,7 @@ node scripts/check-nanoka-season-buff.js 3.7.1
 2. `newtower.json`에서 최신 **특이점 확장(Singularity Expansion)** 타워 탐색 (예: `ID 16`)
 3. `ko/newtower/<id>.json`의 `roles` 항목에서 **"추가 피로도"** 버프를 보유한 공명자(2코스트 대상) 자동 파싱
 4. 특이점 확장 단계별 회로 버프 목록 및 수치 파라미터 출력
-5. 현재 프로젝트 코드([`src/constants/versions.ts`](../src/constants/versions.ts)의 최신 버전 시즌 버프)와의 설정 일치 여부 즉시 판별
+5. 현재 프로젝트 코드([`web/src/constants/versions.ts`](../web/src/constants/versions.ts)의 최신 버전 시즌 버프)와의 설정 일치 여부 즉시 판별
 6. 과거 버전 시즌 버프는 해당 버전 스냅샷(`/ww/<version>/`)에서 확인해야 합니다. (최신 스냅샷은 모든 타워의 `roles`가 최신 값으로 덮여 있음)
 
 ### 3.2 nanoka.cc 주요 엔드포인트 규칙
@@ -161,11 +161,11 @@ node scripts/check-nanoka-season-buff.js 3.7.1
 
 새로운 버전이 오픈되어 유출 버전으로 등록되어 있던 정보를 기본(Live) 데이터로 전환할 때는 다음 파일들을 순서대로 반영합니다:
 
-1. **[`src/constants/versions.ts`](../src/constants/versions.ts)**:
+1. **[`web/src/constants/versions.ts`](../web/src/constants/versions.ts)**:
    - `LIVE_VERSION`: 오픈된 버전으로 갱신
    - `LEAK_VERSIONS`: 오픈된 버전 제거, 차기 유출 버전이 있으면 추가 (`GAME_VERSIONS`에도 추가)
    - `SEASON_BUFF_CHARACTER_BY_VERSION`: 차기 버전 항목 추가 (미정이면 `null`)
-2. **[`src/constants/circuitBuffs.ts`](../src/constants/circuitBuffs.ts)** / **[`src/utils/character.ts`](../src/utils/character.ts)**:
+2. **[`web/src/constants/circuitBuffs.ts`](../web/src/constants/circuitBuffs.ts)** / **[`web/src/utils/character.ts`](../web/src/utils/character.ts)**:
    - 차기 버전 회로 배열 추가 후 `CIRCUIT_BUFFS_BY_VERSION` 등록
    - `LEAK_CHARACTER_IDS`: 출시된 캐릭터 ID 제거
 3. **[`README.md`](../README.md)**:
@@ -183,12 +183,11 @@ node scripts/check-nanoka-season-buff.js 3.7.1
 
 1. **데이터 정합성 확인**:
    ```bash
-   npm run check:buff
+   cd web && npm run check:buff
    ```
 2. **빌드 및 린트 검증**:
    ```bash
-   npm run build
-   npm run lint
+   cd web && npm run build && npm run lint
    ```
 3. **개인 계정 커밋 수칙 확인**:
    - `git config user.email` → `ryul3024@gmail.com`

@@ -48,6 +48,17 @@
 
 ---
 
+## 🗂️ 저장소 구성
+
+| 폴더 | 내용 |
+|---|---|
+| [`web/`](web/) | 웹페이지 (React + Vite). 개발: `cd web && npm install && npm run dev` |
+| [`tools/data/`](tools/data/) | 캐릭터 데이터 수집·시즌 버프 대조 스크립트 (Node) |
+| [`tools/portrait/`](tools/portrait/) | 공식 아이콘이 나오기 전 임시 초상화 누끼 도구 (Python) |
+| [`docs/`](docs/) | 버전·유출 데이터 관리 가이드 |
+
+---
+
 ## 💡 자주 묻는 질문 (FAQ) & 팁
 
 * **Q. 열심히 짠 파티가 새로고침해도 유지되나요?**
