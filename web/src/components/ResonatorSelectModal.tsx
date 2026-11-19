@@ -23,7 +23,7 @@ interface ResonatorSelectModalProps {
   // Ownership states
   onOpenOwnedSettings: () => void
 
-  // Leak Info states
+  // Board version
   version: string
 
   // Hide Maxed Out states
@@ -108,7 +108,7 @@ export function ResonatorSelectModal({
           ))}
         </div>
 
-        {/* Owned & Leak Toggle inside Modal */}
+        {/* Owned filter inside Modal */}
         <div className={SELECT_MODAL_STYLES.ownedFilterArea}>
           <button
             onClick={onOpenOwnedSettings}

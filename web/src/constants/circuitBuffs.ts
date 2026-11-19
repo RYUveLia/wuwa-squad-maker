@@ -139,7 +139,7 @@ export const CIRCUIT_BUFFS_3_8: CircuitBuff[] = [
     id: 'T_Iconpropertyredcrit_UI',
     name: '조화도 파괴 강화',
     nameEn: 'Enhancement: Tune Break',
-    description: '캐릭터가 조화도 · 이탈 추가 시, 파티 내 모든 캐릭터의 피해가 최종적으로 25% 증가되고, 30초간 지속된다.\n캐릭터가 조화 파동 피해를 입힌 후, 입히는 피해가 최종적으로 30% 증가되고, 30초간 지속된다',
+    description: '캐릭터가 조화도 · 이탈 상태 추가 시, 파티 내 모든 캐릭터의 피해가 최종적으로 25% 증가되고, 30초간 지속된다.\n캐릭터가 조화 파동 피해를 입힌 후, 입히는 피해가 최종적으로 30% 증가되고, 30초간 지속된다',
     descriptionEn: 'Inflicting Tunability - Shifting increases the total DMG dealt by all Resonators in the team by 25% for 30s.\nDealing Tune Rupture DMG increases the total DMG dealt by the Resonator by 30% for 30s.',
     iconUrl: '/circuits/T_Iconpropertyredcrit_UI.webp'
   },
@@ -147,7 +147,7 @@ export const CIRCUIT_BUFFS_3_8: CircuitBuff[] = [
     id: 'T_Iconpropertyredattack_UI',
     name: '공용 강화',
     nameEn: 'General Enhancement',
-    description: '적군이 받는 피해를 최종적으로 20% 증가되고, 받는 공명 해방 피해가 최종적으로 20% 증가된다',
+    description: '적군이 받는 피해가 최종적으로 20% 증가되고, 받는 공명 해방 피해가 최종적으로 20% 증가된다',
     descriptionEn: 'Enemies take 20% more total DMG. Enemies take 20% more total Resonance Liberation DMG.',
     iconUrl: '/circuits/T_Iconpropertyredattack_UI.webp'
   }
