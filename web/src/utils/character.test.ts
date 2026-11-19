@@ -16,7 +16,7 @@ describe('isAvailableInVersion', () => {
     expect(isAvailableInVersion(char('lynae'), '3.5')).toBe(true) // 3.01
   })
 
-  it('유출 캐릭터는 유출 버전 보드에서만 노출된다', () => {
+  it('신규 공명자는 출시 버전 보드부터 노출된다', () => {
     expect(isAvailableInVersion(char('lily'), '3.7')).toBe(false)
     expect(isAvailableInVersion(char('lily'), '3.8')).toBe(true)
   })

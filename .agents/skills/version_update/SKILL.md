@@ -31,7 +31,7 @@ description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이
 2. **`versions.ts`**
    ```ts
    export const GAME_VERSIONS = ['3.5', '3.6', '3.7', '3.8', '4.0']
-   export const LEAK_VERSIONS = ['4.0']            // 3.8이 아직 미출시면 ['3.8', '4.0']
+   export const LEAK_VERSIONS = ['4.0']
    export const SEASON_BUFF_CHARACTER_BY_VERSION = { ..., '4.0': '<공명자 id>' /* 미정이면 null */ }
    ```
 3. **`circuitBuffs.ts`**: `CIRCUIT_BUFFS_4_0` (회로 4개, `id`는 아이콘 파일명 `T_Iconproperty..._UI`) 작성 후 `CIRCUIT_BUFFS_BY_VERSION`에 `'4.0'` 등록
@@ -62,7 +62,7 @@ description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이
   - 파일명은 `<id>.png` 유지. 내용은 WebP여도 됨 (기존 대부분이 확장자 `.png`인 WebP, 브라우저가 내용으로 판별)
 - 교체 후 도감 카드·파티 슬롯·이미지 저장 결과에서 잘림·배경 확인
 
-## B. 유출 버전 → 라이브 전환 (예: 3.8 출시)
+## B. 유출 버전 → 라이브 전환 (예: 3.8 출시, 2026-11 완료)
 
 1. `versions.ts`: `LIVE_VERSION = '3.8'`, `LEAK_VERSIONS`에서 `'3.8'` 제거
 2. `character.ts`: 출시된 캐릭터를 `LEAK_CHARACTER_IDS`에서 제거하고 `characters.json`의 `releaseVersion`을 실제 값으로

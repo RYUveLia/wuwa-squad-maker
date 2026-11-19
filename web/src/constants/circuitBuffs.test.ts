@@ -21,10 +21,13 @@ describe('resolveCircuitBuff', () => {
     expect(resolveCircuitBuff(null)).toBeNull()
   })
 
-  it('버전 없는 레거시 ID: 라이브 → 이전 버전 → 유출 버전 순', () => {
+  it('버전 없는 레거시 ID: 라이브 → 이전 버전(최신순) → 이후 버전 순', () => {
     // 모든 버전에 있는 아이콘 → 라이브 버전
     expect(resolveCircuitBuff('T_Iconpropertyredcrit_UI')?.version).toBe(LIVE_VERSION)
-    expect(resolveCircuitBuff('T_Iconpropertyredice_UI')?.version).toBe('3.6')
+    // 3.6·3.8에 있는 아이콘 → 라이브(3.8)
+    expect(resolveCircuitBuff('T_Iconpropertyredice_UI')?.version).toBe('3.8')
+    // 라이브에 없는 아이콘 → 가장 가까운 이전 버전
+    expect(resolveCircuitBuff('T_Iconpropertyredmine_UI')?.version).toBe('3.7')
     expect(resolveCircuitBuff('T_IconpropertyLuokekeBuff1_UI')?.version).toBe('3.6')
     expect(resolveCircuitBuff('T_Iconpropertyreddark_UI')?.version).toBe('3.5')
   })

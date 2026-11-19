@@ -29,8 +29,8 @@
 
 ```ts
 export const GAME_VERSIONS: string[] = ['3.5', '3.6', '3.7', '3.8']
-export const LIVE_VERSION = '3.7'
-export const LEAK_VERSIONS: string[] = ['3.8']
+export const LIVE_VERSION = '3.8'
+export const LEAK_VERSIONS: string[] = [] // 유출 버전이 생기면 추가 (예: ['4.0'])
 export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
   '3.5': 'chisa', '3.6': 'denia', '3.7': 'lynae', '3.8': 'lucilla'
 }
@@ -64,7 +64,7 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
 ### 1.2 유출 캐릭터 및 버전별 노출
 - **파일**: [`web/src/utils/character.ts`](../web/src/utils/character.ts)
   ```ts
-  export const LEAK_CHARACTER_IDS: string[] = ['lily'] // 3.8 유출 캐릭터 ID 목록
+  export const LEAK_CHARACTER_IDS: string[] = [] // 출시 버전 미정 유출 캐릭터 ID (3.8 유출 당시 ['lily'], 출시 후 비움)
   ```
   - `getSortedCharacters(version)`은 `releaseVersion`이 선택 버전 이하인 공명자만 반환합니다.
   - `LEAK_CHARACTER_IDS`에 등록된 캐릭터는 출시 버전이 미정(`9.9`)이어도 유출 버전 보드에서 노출됩니다.
@@ -101,7 +101,7 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
 | 3.8 | 18 | S2 단계4 |
 
 ```ts
-// 3.7 유출/신규 버전 특이점 확장 회로 버프 목록
+// 신규(유출 포함) 버전 특이점 확장 회로 버프 목록
 export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
   {
     id: '신규_또는_기존_ID',
