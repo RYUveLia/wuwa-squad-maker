@@ -7,38 +7,48 @@ description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이
 
 데이터 구조 설명은 [`docs/version-and-leak-guide.md`](../../../docs/version-and-leak-guide.md), 코드 구조는 [`AGENTS.md`](../../AGENTS.md)의 "코드 구조" 참고.
 
-## 수정 지점 한눈에
+## 한눈에
+
+| 요청 | 할 일 (`web/`에서) |
+|---|---|
+| 새 버전(유출) 추가 | `npm run version:add -- 4.0` → 출력의 "직접 확인할 것" 처리 → C. 검증 |
+| 라이브 전환 | `versions.ts`의 `LIVE_VERSION` 한 줄 변경 → `npm run check:buff` → C. 검증 |
+
+스크립트가 고치는 파일 (nanoka에 데이터가 없어 손으로 넣을 때도 같은 곳)
 
 | 파일 | 무엇 |
 |---|---|
-| `web/src/constants/versions.ts` | `GAME_VERSIONS`, `LIVE_VERSION`, `LEAK_VERSIONS`, `SEASON_BUFF_CHARACTER_BY_VERSION` |
+| `web/src/constants/versions.ts` | `GAME_VERSIONS`, `SEASON_BUFF_CHARACTER_BY_VERSION`. `LIVE_VERSION`은 라이브 전환 때만. (`LEAK_VERSIONS`는 `LIVE_VERSION`에서 자동 계산 — 직접 고치지 않음) |
 | `web/src/constants/circuitBuffs.ts` | `CIRCUIT_BUFFS_X_Y` 배열 + `CIRCUIT_BUFFS_BY_VERSION` 등록 |
 | `web/public/circuits/` | 회로 아이콘 `.webp` |
-| `web/src/data/characters.json` + `web/public/characters/` | 신규 공명자 (`releaseVersion` 정확히) + 초상화 |
-| `web/src/utils/character.ts` | `LEAK_CHARACTER_IDS` (출시 버전 미정 `9.9` 유출 캐릭터만 의미 있음) |
-| `web/src/constants/index.ts` | `DOUBLE_DEPLOYMENT_CHARACTERS` (순수 힐러 = 영구 2회) |
-| `README.md` | 시즌 버프 대상 문구 |
+| `web/src/data/characters.json` + `web/public/characters/` | 신규 공명자 (`releaseVersion` 정확히, 미정이면 `9.9` → 유출 버전 보드에만 자동 노출) + 초상화 |
+| `web/src/constants/index.ts` | `DOUBLE_DEPLOYMENT_CHARACTERS` (순수 힐러 = 영구 2회) — **스크립트는 후보만 알려 주고 고치지 않는다** |
 
-> 버전 선택 탭·도감 필터·시즌 버프 안내·회로 모달·이미지 저장 배지는 모두 위 상수를 따라가므로 **화면 코드는 고치지 않는다.**
+> 버전 선택 탭·도감 필터·시즌 버프 안내·회로 모달·이미지 저장 배지는 모두 위 상수를 따라가므로 **화면 코드는 고치지 않는다.** README·문서에는 버전별 값을 적어 두지 않으므로 문서도 고칠 것이 없다.
 
 ## A. 새 유출 버전 추가 (예: 4.0)
 
-1. **데이터 확인 (nanoka.cc)**
-   - `npm run check:buff` → 최신 데이터 버전과 최신 특이점 확장 타워의 시즌 버프(추가 피로도) 공명자, 회로 4종 출력
-   - 타워 ↔ 버전: `https://static.nanoka.cc/ww/<데이터버전>/newtower.json`의 `season`(start/end_version_id), `cycle`로 판단. S2는 3.5=12, 3.6=14, 3.7=16, 3.8=18 (특이점 확장은 짝수 ID). **S2 시즌은 3.5~3.8이라 4.0부터는 새 시즌일 가능성이 높음 → 타워 ID·회로 구성을 반드시 `newtower.json`에서 확인**
-   - 과거 버전 시즌 버프는 해당 버전 스냅샷에서 확인 (최신 스냅샷은 모든 타워 `roles`가 최신 값으로 덮여 있음)
-   - 회로 상세: `https://static.nanoka.cc/ww/<데이터버전>/ko/newtower/<towerId>.json`의 `buffs` (`desc`의 `{0}` 등을 `param`으로 치환), 영문은 `/en/`
-2. **`versions.ts`**
-   ```ts
-   export const GAME_VERSIONS = ['3.5', '3.6', '3.7', '3.8', '4.0']
-   export const LEAK_VERSIONS = ['4.0']
-   export const SEASON_BUFF_CHARACTER_BY_VERSION = { ..., '4.0': '<공명자 id>' /* 미정이면 null */ }
+1. **스크립트 실행** (`web/`에서. 먼저 `--dry-run`으로 무엇이 바뀌는지만 볼 수 있다)
+   ```bash
+   npm run version:add -- 4.0 --dry-run
+   npm run version:add -- 4.0
    ```
-3. **`circuitBuffs.ts`**: `CIRCUIT_BUFFS_4_0` (회로 4개, `id`는 아이콘 파일명 `T_Iconproperty..._UI`) 작성 후 `CIRCUIT_BUFFS_BY_VERSION`에 `'4.0'` 등록
-4. **회로 아이콘**: 새 아이콘만 `https://static.nanoka.cc/assets/ww/UIResources/Common/Image/IconAttribute/<아이콘명>.webp` → `web/public/circuits/<아이콘명>.webp`
-5. **신규 공명자**: `characters.json`에 추가 (`releaseVersion` 예: 4.0 전반 `4.01`, 후반 `4.02`, 미정 `9.9`), 초상화 `web/public/characters/<id>.png`. 미정(9.9)이면 `LEAK_CHARACTER_IDS`에 추가. 순수 힐러면 `DOUBLE_DEPLOYMENT_CHARACTERS`에 추가
-   - 대량 수집은 [`fetch_fandom_wiki_characters`](../fetch_fandom_wiki_characters/SKILL.md) (characters.json을 통째로 덮어쓰므로 diff 확인 필수)
-6. **README.md** 시즌 버프 대상 목록에 새 버전 추가
+   nanoka 데이터에서 아래를 한 번에 처리한다. 이미 있는 항목은 건너뛰므로 여러 번 실행해도 된다.
+   - `GAME_VERSIONS`에 버전 추가 (`LIVE_VERSION`보다 뒤라 자동으로 `유출` 표시), 시즌 버프(추가 피로도) 공명자 등록
+   - 최신 특이점 확장 타워의 회로 4종으로 `CIRCUIT_BUFFS_4_0` 생성 + 맵 등록, 새 회로 아이콘 내려받기
+   - 프로젝트에 없는 공명자를 `characters.json`에 추가 (`releaseVersion`은 전반 `4.01`로), 공식 초상화 내려받기 (없으면 투명 임시 이미지)
+2. **출력의 "직접 확인할 것" 처리** — 스크립트가 판단하지 않는 것들
+   - 신규 공명자 `releaseVersion`: 후반 출시면 `4.02`, 출시 버전을 모르면 `9.9`
+   - **순수 힐러 후보**: 역할 태그 '생존 치료' + '피해 부스트'를 모두 가진 공명자를 후보로 알려 준다 (3.8 기준 순수 힐러 7명과 정확히 일치했지만 게임이 명시한 규칙은 아님). 영구 2회 출전이 맞으면 `DOUBLE_DEPLOYMENT_CHARACTERS`에 추가
+   - 초상화가 임시 이미지로 들어갔으면 아래 "초상화가 아직 없을 때"
+3. **nanoka에 그 버전 데이터가 없을 때** — 스크립트가 "데이터 버전이 보드 버전과 다릅니다"로 멈춘다 (받을 수 있는 버전은 첫 줄에 표시)
+   - 사용자에게 시즌 버프 대상, 회로 4종(이름·설명 한/영·아이콘), 신규 공명자 정보를 받아 위 표의 파일을 직접 고친다
+   - 회로 `id`는 아이콘 파일명 `T_Iconproperty..._UI`, 아이콘은 `https://static.nanoka.cc/assets/ww/UIResources/Common/Image/IconAttribute/<아이콘명>.webp`
+   - 나중에 nanoka에 데이터가 올라오면 `npm run check:buff`로 대조해 고친다
+4. 참고
+   - 스크립트는 **최신 특이점 확장 타워**를 그 버전의 타워로 본다. 실행 결과 첫머리의 타워 ID·단계가 맞는지 확인 (S2는 3.5=12, 3.6=14, 3.7=16, 3.8=18. **4.0부터는 새 시즌일 가능성이 높다**)
+   - nanoka는 지난 버전 스냅샷을 지운다. 최신 스냅샷은 모든 타워 `roles`가 최신 값으로 덮여 있어 지난 버전 시즌 버프는 확인 불가
+   - 공명자를 대량으로 다시 수집할 때만 [`fetch_fandom_wiki_characters`](../fetch_fandom_wiki_characters/SKILL.md) (characters.json을 통째로 덮어쓰므로 diff 확인 필수)
 
 ### 초상화가 아직 없을 때 (유출 초기)
 유출 단계에서는 이미지가 늦게 나오는 경우가 많다. **파일이 아예 없으면 깨진 이미지 아이콘이 보이므로**(코드에 `onError` 대체 처리 없음) 임시 이미지를 넣는다.
@@ -62,24 +72,34 @@ description: 명조 새 버전(유출) 데이터 추가, 유출 버전의 라이
   - 파일명은 `<id>.png` 유지. 내용은 WebP여도 됨 (기존 대부분이 확장자 `.png`인 WebP, 브라우저가 내용으로 판별)
 - 교체 후 도감 카드·파티 슬롯·이미지 저장 결과에서 잘림·배경 확인
 
-## B. 유출 버전 → 라이브 전환 (예: 3.8 출시, 2026-11 완료)
+## B. 유출 버전 → 라이브 전환 (예: 4.0 출시)
 
-1. `versions.ts`: `LIVE_VERSION = '3.8'`, `LEAK_VERSIONS`에서 `'3.8'` 제거
-2. `character.ts`: 출시된 캐릭터를 `LEAK_CHARACTER_IDS`에서 제거하고 `characters.json`의 `releaseVersion`을 실제 값으로
-3. 실서버 데이터와 유출 데이터가 다르면 `CIRCUIT_BUFFS_3_8`·시즌 버프 수정 (`npm run check:buff`로 대조)
-4. 영향 (의도된 변화)
-   - 첫 접속 기본 보드가 3.8로 바뀜 (저장된 선택 버전이 있으면 유지)
-   - 버전 없는 레거시 회로 ID·이전 편성 코드 해석 시 3.8이 우선됨 (`resolveCircuitBuff`, `pickPreferred`)
-5. 테스트 중 버전 데이터 자체를 검증하는 항목은 결과가 바뀔 수 있음 → 의미를 확인하고 기대값 갱신
-   - `web/src/constants/circuitBuffs.test.ts` "레거시 ID 순서" (예: `redice`는 3.6·3.8 모두 존재 → 라이브가 3.8이면 3.8로 해석)
-   - 라이브 버전 기본값을 검증하는 테스트는 `LIVE_VERSION` 상수를 쓰므로 그대로 통과해야 정상
+세 단계. 모두 `web/`에서 실행한다.
+
+1. **`versions.ts`의 `LIVE_VERSION` 한 줄만 바꾼다**
+   ```ts
+   export const LIVE_VERSION = '4.0'
+   ```
+   `유출` 표시(버전 탭·이전 데이터 이관 창·이미지 저장), 첫 접속 기본 보드, 레거시 해석 순서가 모두 이 값에서 계산된다. 다른 상수·화면 코드·테스트는 고치지 않는다.
+   - 전환 시점은 사용자가 정한다 (게임 버전 출시와 매트릭스 오픈이 다를 수 있음). `check:buff`가 nanoka 라이브 버전과 다르면 ℹ️로 알려 준다
+2. **`npm run check:buff`** — 실서버(nanoka) 데이터와 시즌 버프 + 회로 4종(이름·설명 한/영)을 대조한다
+   - 전부 ✅면 끝. ⚠️가 나오면 출력된 `nanoka` 값을 그대로 붙여 넣는다 (시즌 버프는 `versions.ts`, 회로는 `circuitBuffs.ts`)
+   - 유출 때 받은 데이터와 실서버 문구가 조금 다른 경우가 있다 (3.8 전환 때 회로 한글 설명 2개가 달랐다)
+3. **`npm test && npm run lint && npm run build`** → D. 커밋 / PR
+   - 출시 버전 미정(`9.9`) 공명자가 남아 있으면 테스트가 실패한다 → `characters.json`의 `releaseVersion`을 실제 값으로
+
+영향 (의도된 변화, 사용자에게 알릴 것)
+- 첫 접속 기본 보드가 새 라이브 버전으로 바뀜 (저장된 선택 버전이 있으면 유지)
+- 버전 없는 레거시 회로 ID·이전 편성 코드 해석 시 새 라이브 버전이 우선됨 (`resolveCircuitBuff`, `pickPreferred`)
+
+차기 유출 버전을 같이 넣는다면 A를 따로 진행한다 (라이브 전환 PR과 분리하면 전환을 먼저 배포할 수 있다).
 
 ## C. 검증 (A·B 공통)
 
 ```bash
 cd web
-npm run check:buff   # nanoka.cc 최신 시즌 버프와 versions.ts 대조
-npm test             # 단위 테스트 (회로 4개씩, 레거시 해석 순서, 출시 버전 필터 등)
+npm run check:buff   # nanoka.cc 최신 시즌 버프·회로 4종과 대조 (다르면 붙여 넣을 값 출력, 종료 코드 1)
+npm test             # 단위 테스트 + 버전 데이터 점검 (버전별 시즌 버프·회로 4개 등록, 9.9 공명자 잔류 등)
 npm run lint
 npm run build
 ```

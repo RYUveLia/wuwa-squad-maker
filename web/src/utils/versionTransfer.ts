@@ -6,8 +6,8 @@ import type { Character, SquadRow } from '../types'
 import { ROVER_IDS } from '../constants'
 import { createEmptySquadRow } from './squadRow'
 import { CIRCUIT_BUFFS_BY_VERSION, toCircuitBuffKey } from '../constants/circuitBuffs'
-import { GAME_VERSIONS, LEAK_VERSIONS, LIVE_VERSION, versionToNumber } from '../constants/versions'
-import { LEAK_CHARACTER_IDS, getMaxDeployment, isAvailableInVersion } from './character'
+import { GAME_VERSIONS, LEAK_VERSIONS, LIVE_VERSION, isReleaseUndecided, versionToNumber } from '../constants/versions'
+import { getMaxDeployment, isAvailableInVersion } from './character'
 
 
 /** 파티의 공명자가 모두 출시된 버전 목록 */
@@ -76,8 +76,8 @@ export function suggestVersion(row: SquadRow): VersionSuggestion {
 export function getRequiredVersionLabel(characters: (Character | null)[]): string | null {
   const chars = characters.filter((c): c is Character => !!c)
   if (chars.length === 0) return null
-  const leakOnly = chars.some(c => LEAK_CHARACTER_IDS.includes(c.id) && versionToNumber(c.releaseVersion) >= 99)
-  if (leakOnly) return LEAK_VERSIONS[0] ?? null
+  // 출시 버전 미정 공명자가 있으면 가장 이른 유출 버전
+  if (chars.some(c => isReleaseUndecided(c.releaseVersion))) return LEAK_VERSIONS[0] ?? null
   const maxNum = Math.max(...chars.map(c => versionToNumber(c.releaseVersion)))
   return (maxNum / 10).toFixed(1)
 }

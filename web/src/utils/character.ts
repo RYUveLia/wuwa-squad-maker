@@ -1,7 +1,7 @@
 import characterData from '../data/characters.json'
 import type { Character } from '../types'
 import { DOUBLE_DEPLOYMENT_CHARACTERS, ROVER_IDS } from '../constants'
-import { LEAK_VERSIONS, SEASON_BUFF_CHARACTER_BY_VERSION, versionToNumber } from '../constants/versions'
+import { LEAK_VERSIONS, SEASON_BUFF_CHARACTER_BY_VERSION, isReleaseUndecided, versionToNumber } from '../constants/versions'
 
 const baseCharacters = characterData as Character[]
 const filteredBase = baseCharacters.filter(c => c.id !== 'rover')
@@ -50,9 +50,6 @@ const roverElectro: Character = {
   img: '/characters/rover.png'
 }
 
-// 유출 캐릭터 ID 목록 (출시 버전이 미정(9.9)이어도 유출 버전 보드에서는 노출). 지금은 없음
-export const LEAK_CHARACTER_IDS: string[] = []
-
 const rawCharacters: Character[] = [...filteredBase, roverSpectro, roverHavoc, roverAero, roverElectro]
 
 // 전체 등록된 공명자 마스터 리스트 (전체 캐릭터 ID 검색 및 기본 데이터용)
@@ -68,11 +65,14 @@ export const ALL_CHARACTERS: Character[] = [...rawCharacters].sort((a, b) => {
   return a.enName.localeCompare(b.enName)
 })
 
-/** 해당 버전 보드에서 편성 가능한(출시된) 공명자인지 여부 */
-export const isAvailableInVersion = (char: Character, version: string): boolean => {
+/**
+ * 해당 버전 보드에서 편성 가능한(출시된) 공명자인지 여부.
+ * 출시 버전 미정(releaseVersion 9.9) 공명자는 유출 버전 보드에서만 노출된다.
+ * (leakVersions는 테스트용 인자. 평소에는 LIVE_VERSION에서 계산된 값을 쓴다)
+ */
+export const isAvailableInVersion = (char: Character, version: string, leakVersions: string[] = LEAK_VERSIONS): boolean => {
   if (versionToNumber(char.releaseVersion) <= versionToNumber(version)) return true
-  // 출시 버전 미정 유출 캐릭터는 유출 버전 보드에서만 노출
-  return LEAK_CHARACTER_IDS.includes(char.id) && LEAK_VERSIONS.includes(version)
+  return isReleaseUndecided(char.releaseVersion) && leakVersions.includes(version)
 }
 
 /** 선택된 버전까지 출시된 공명자 목록 (등급 → 최신순 정렬 유지) */

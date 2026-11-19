@@ -7,13 +7,13 @@
 ## 0. 버전별 편성 보드 구조
 
 - **파일**: [`web/src/constants/versions.ts`](../web/src/constants/versions.ts)
-- 화면 상단의 버전 선택(3.5~3.8)에 따라 **파티 목록이 버전별로 분리 저장**됩니다. (3.5에서 만든 파티는 3.6 보드에 보이지 않음)
+- 화면 상단의 버전 선택(3.5부터 `GAME_VERSIONS`의 최신 버전까지)에 따라 **파티 목록이 버전별로 분리 저장**됩니다. (3.5에서 만든 파티는 3.6 보드에 보이지 않음)
 - 선택된 버전이 결정하는 것:
   - 파티 목록 (localStorage `wuwa-squads-by-version`, 선택 버전은 `selected-version`)
   - 공명자 도감: `releaseVersion`이 선택 버전 이하인 공명자만 노출 (`isAvailableInVersion`)
   - 2회 출전 시즌 버프 대상 (`SEASON_BUFF_CHARACTER_BY_VERSION`)
   - 회로 버프 목록 (`CIRCUIT_BUFFS_BY_VERSION`)
-- `LEAK_VERSIONS`에 포함된 버전은 버전 선택에 `유출` 표시가 붙습니다. (유출 정보 토글은 제거되어 모든 버전을 항상 선택 가능)
+- **유출 버전은 `LIVE_VERSION`에서 자동으로 정해집니다.** `GAME_VERSIONS`에서 `LIVE_VERSION`보다 뒤에 있는 버전이 유출 버전(`LEAK_VERSIONS`)이고, 버전 선택에 `유출` 표시가 붙습니다. 따로 목록을 관리하지 않습니다. (유출 정보 토글은 제거되어 모든 버전을 항상 선택 가능)
 - **편성 코드 내보내기/불러오기**: 내보내기 코드(v3)에 보드 버전(`ver`)이 포함됩니다. 현재 보드와 다른 버전의 코드를 붙여넣으면 **① 코드 버전 보드에 넣기(회로 유지)** / **② 현재 보드에 넣기(회로 삭제, 현재 버전에서 2회 출전이 안 되는 공명자 등 규칙 미충족분 제외)** 중 고르는 창이 뜹니다. 버전 정보가 없는 이전 코드(v1/v2)는 세트 추천과 같은 방식으로 버전을 추정해 같은 선택 창을 띄웁니다. 추정한 버전 보드에 넣으면 회로를 유지하고, 추정할 수 없어 라이브 버전(`LIVE_VERSION`)으로 가정한 경우에는 회로를 삭제합니다. 같은 버전 코드는 현재 보드에 바로 적용합니다(덮어쓰기 확인).
 - **이미지 저장**: 편성표 헤더에 `v3.7` 형식의 버전 배지와 부제가 표시되고, 파일명에 버전이 포함됩니다. (`wuwa-matrix-squad-v3.7-2026-11-06.png`)
 - **기존 파티 마이그레이션**: 버전 구분 도입 이전에 저장된 파티(`wuwa-squads-data` 등)가 있으면 첫 진입 시 `VersionMigrationModal`이 뜹니다.
@@ -27,14 +27,15 @@
 - 관련 로직: [`web/src/utils/versionTransfer.ts`](../web/src/utils/versionTransfer.ts)
 - 공유 코드 불러오기는 현재 선택된 버전 보드에 적용됩니다.
 
-```ts
-export const GAME_VERSIONS: string[] = ['3.5', '3.6', '3.7', '3.8']
-export const LIVE_VERSION = '3.8'
-export const LEAK_VERSIONS: string[] = [] // 유출 버전이 생기면 추가 (예: ['4.0'])
-export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
-  '3.5': 'chisa', '3.6': 'denia', '3.7': 'lynae', '3.8': 'lucilla'
-}
-```
+직접 고치는 값은 세 가지입니다. (현재 값은 [`versions.ts`](../web/src/constants/versions.ts) 참고)
+
+| 상수 | 의미 | 언제 고치나 |
+|---|---|---|
+| `GAME_VERSIONS` | 지원 버전 목록 (오래된 순) | 새 버전 추가 |
+| `LIVE_VERSION` | 현재 라이브 버전 | **라이브 전환 (이 값만 바꾸면 됨)** |
+| `SEASON_BUFF_CHARACTER_BY_VERSION` | 버전별 2회 출전 시즌 버프 대상 (미정이면 `null`) | 새 버전 추가, 실서버와 다를 때 |
+
+`LEAK_VERSIONS`는 위 값에서 계산되므로 직접 고치지 않습니다. (예: 지원 버전 `3.5~4.0`, 라이브 `3.8` → 유출 `['4.0']`)
 
 ---
 
@@ -62,12 +63,10 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
   - 아직 버전이 완전히 불명인 경우 `9.9`로 지정합니다.
 
 ### 1.2 유출 캐릭터 및 버전별 노출
-- **파일**: [`web/src/utils/character.ts`](../web/src/utils/character.ts)
-  ```ts
-  export const LEAK_CHARACTER_IDS: string[] = [] // 출시 버전 미정 유출 캐릭터 ID (3.8 유출 당시 ['lily'], 출시 후 비움)
-  ```
+- **파일**: [`web/src/utils/character.ts`](../web/src/utils/character.ts)의 `isAvailableInVersion`
   - `getSortedCharacters(version)`은 `releaseVersion`이 선택 버전 이하인 공명자만 반환합니다.
-  - `LEAK_CHARACTER_IDS`에 등록된 캐릭터는 출시 버전이 미정(`9.9`)이어도 유출 버전 보드에서 노출됩니다.
+  - **출시 버전이 미정(`9.9`)인 공명자는 유출 버전 보드에서만 자동으로 노출됩니다.** 따로 등록하는 목록은 없습니다.
+  - 출시 버전이 확정되면 `releaseVersion`을 실제 값으로 바꿉니다. 유출 버전이 하나도 없는데 `9.9` 공명자가 남아 있으면 `npm test`가 실패해서 알려 줍니다.
 
 ### 1.3 시즌 버프 (임시 2회 출전 공명자) 설정
 - **파일**: [`web/src/constants/versions.ts`](../web/src/constants/versions.ts)의 `SEASON_BUFF_CHARACTER_BY_VERSION`
@@ -76,12 +75,10 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
 
 ### 1.4 순수 힐러(기본 2회 출전) 공명자 관리
 - **파일**: [`web/src/constants/index.ts`](../web/src/constants/index.ts)의 `DOUBLE_DEPLOYMENT_CHARACTERS`
-  ```ts
-  // 최대 2회 출전이 가능한 순수 힐러 공명자 리스트 (설지, 복링, 벨리나, 파수인, 모니에, 수수, 릴리)
-  export const DOUBLE_DEPLOYMENT_CHARACTERS = ['baizhi', 'buling', 'verina', 'shorekeeper', 'mornye', 'suisui', 'lily']
-  ```
+  - 순수 힐러 공명자 id 목록입니다. (현재 값은 코드 참고)
   - **순수 힐러 영구 2회 규칙**: 명조 종말 매트릭스 시스템상 '순수 힐러' 공명자는 특정 버전의 한시적인 시즌 버프와 무관하게 **버전이 지나도 영구적으로 2회 출전이 가능**합니다.
   - 신규 공명자(유출 단계 포함)가 순수 힐러로 확인된 경우(예: 3.8 릴리), 한시적 예외가 아닌 순수 힐러 영구 목록인 `DOUBLE_DEPLOYMENT_CHARACTERS`에 바로 등록합니다.
+  - **후보 찾기**: `npm run check:buff`와 `npm run version:add`가 nanoka 역할 태그 '생존 치료' + '피해 부스트'를 모두 가진 공명자를 순수 힐러 후보로 알려 줍니다. 3.8 기준 65명에서 순수 힐러 7명과 정확히 일치했지만 게임이 명시한 규칙은 아니므로, 목록에 넣을지는 사람이 판단합니다.
   - 상단 안내 문구의 순수 힐러 명단은 선택 버전에 출시된 공명자만 표시합니다.
 
 ---
@@ -91,14 +88,11 @@ export const SEASON_BUFF_CHARACTER_BY_VERSION: Record<string, string | null> = {
 - **파일**: [`web/src/constants/circuitBuffs.ts`](../web/src/constants/circuitBuffs.ts)
 
 ### 2.1 버전별 버프 정의
-버전별로 버프 목록(`CIRCUIT_BUFFS_3_5` ~ `CIRCUIT_BUFFS_3_8`)이 분리되어 있고, `CIRCUIT_BUFFS_BY_VERSION`에 버전 키로 등록합니다. 회로 모달은 현재 보드 버전의 목록만 노출합니다.
+버전별로 버프 목록(`CIRCUIT_BUFFS_X_Y`, 예: `CIRCUIT_BUFFS_3_8`)이 분리되어 있고, `CIRCUIT_BUFFS_BY_VERSION`에 버전 키로 등록합니다. 회로 모달은 현재 보드 버전의 목록만 노출합니다.
 
-| 버전 | 특이점 확장 Tower (nanoka) | 시즌 단계 |
-|---|---|---|
-| 3.5 | 12 | S2 단계1 |
-| 3.6 | 14 | S2 단계2 |
-| 3.7 | 16 | S2 단계3 |
-| 3.8 | 18 | S2 단계4 |
+각 배열 위 주석에 그 버전의 nanoka 특이점 확장 Tower 번호와 시즌 단계가 적혀 있습니다. (예: `// 3.8 특이점 확장 회로 버프 목록 (Tower 18 / S2 단계4)`)
+
+새 버전의 배열은 손으로 쓰지 않고 `cd web && npm run version:add -- <버전>`으로 만듭니다. 아래는 배열의 모양입니다.
 
 ```ts
 // 신규(유출 포함) 버전 특이점 확장 회로 버프 목록
@@ -137,17 +131,18 @@ export const CIRCUIT_BUFFS_3_7: CircuitBuff[] = [
 # 최신 버전 데이터 자동 감지 및 검증 (web/에서)
 cd web && npm run check:buff
 
-# 특정 버전 직접 지정 검증 (예: 3.7.1)
-node tools/data/check-nanoka-season-buff.js 3.7.1
+# nanoka 데이터 버전·비교할 보드 버전 직접 지정 (예: 데이터 3.8, 보드 3.8)
+node tools/data/check-nanoka-season-buff.js 3.8 3.8
 ```
 
 **스크립트 동작 내용**:
-1. `ww.nanoka.cc`의 최신 데이터 버전(예: `3.7.1`) 탐지
-2. `newtower.json`에서 최신 **특이점 확장(Singularity Expansion)** 타워 탐색 (예: `ID 16`)
+1. `ww.nanoka.cc`의 최신 데이터 버전(예: `3.8`) 탐지
+2. `newtower.json`에서 최신 **특이점 확장(Singularity Expansion)** 타워 탐색 (예: `ID 18`)
 3. `ko/newtower/<id>.json`의 `roles` 항목에서 **"추가 피로도"** 버프를 보유한 공명자(2코스트 대상) 자동 파싱
-4. 특이점 확장 단계별 회로 버프 목록 및 수치 파라미터 출력
-5. 현재 프로젝트 코드([`web/src/constants/versions.ts`](../web/src/constants/versions.ts)의 최신 버전 시즌 버프)와의 설정 일치 여부 즉시 판별
-6. 과거 버전 시즌 버프는 해당 버전 스냅샷(`/ww/<version>/`)에서 확인해야 합니다. (최신 스냅샷은 모든 타워의 `roles`가 최신 값으로 덮여 있음)
+4. 특이점 확장 단계별 회로 버프 목록 및 수치 파라미터 출력 (한글·영문)
+5. 프로젝트 코드와 대조: **라이브 버전**(nanoka `manifest.json`의 `live` ↔ `LIVE_VERSION`, 다르면 안내만), **시즌 버프**([`versions.ts`](../web/src/constants/versions.ts))와 **회로 4종의 이름·설명 한글/영문**([`circuitBuffs.ts`](../web/src/constants/circuitBuffs.ts)). 기본 비교 대상은 프로젝트에 등록된 가장 최신 버전
+6. 다른 항목이 있으면 `지금` / `nanoka` 값을 나란히 출력하고 종료 코드 1로 끝납니다. `nanoka` 값은 그대로 붙여 넣을 수 있는 형태입니다. 파일은 수정하지 않습니다.
+7. nanoka는 지난 버전 스냅샷을 지웁니다. 받을 수 있는 데이터 버전은 스크립트 첫 줄(`받을 수 있는 버전`)에 나옵니다. 최신 스냅샷은 모든 타워의 `roles`가 최신 값으로 덮여 있어 **지난 버전의 시즌 버프는 확인할 수 없으므로, 해당 버전이 라이브일 때 대조해 둡니다.**
 
 ### 3.2 nanoka.cc 주요 엔드포인트 규칙
 - **기본 경로**: `https://static.nanoka.cc/ww/<version>/`
@@ -159,20 +154,16 @@ node tools/data/check-nanoka-season-buff.js 3.7.1
 
 ## 4. 신규 버전 오픈 시 승격(Leak → Live) 절차
 
-새로운 버전이 오픈되어 유출 버전으로 등록되어 있던 정보를 기본(Live) 데이터로 전환할 때는 다음 파일들을 순서대로 반영합니다:
+새 버전이 오픈되면 세 단계로 끝납니다. (모두 `web/`에서 실행)
 
-1. **[`web/src/constants/versions.ts`](../web/src/constants/versions.ts)**:
-   - `LIVE_VERSION`: 오픈된 버전으로 갱신
-   - `LEAK_VERSIONS`: 오픈된 버전 제거, 차기 유출 버전이 있으면 추가 (`GAME_VERSIONS`에도 추가)
-   - `SEASON_BUFF_CHARACTER_BY_VERSION`: 차기 버전 항목 추가 (미정이면 `null`)
-2. **[`web/src/constants/circuitBuffs.ts`](../web/src/constants/circuitBuffs.ts)** / **[`web/src/utils/character.ts`](../web/src/utils/character.ts)**:
-   - 차기 버전 회로 배열 추가 후 `CIRCUIT_BUFFS_BY_VERSION` 등록
-   - `LEAK_CHARACTER_IDS`: 출시된 캐릭터 ID 제거
-3. **[`README.md`](../README.md)**:
-   - 시즌 특별 규칙 안내 문구 최신화
-4. **검증 및 승인 후 PR**:
-   - `npm run lint` 및 `npm run build` 검증
-   - 사용자 승인 후 `feat/version-X-X-live` 브랜치 푸시 및 PR 생성
+1. **[`versions.ts`](../web/src/constants/versions.ts)의 `LIVE_VERSION` 한 줄을 오픈된 버전으로 바꿉니다.**
+   - 버전 탭·이전 데이터 이관 창·이미지 저장의 `유출` 표시, 첫 접속 기본 보드, 레거시 데이터 해석 순서가 모두 따라 바뀝니다.
+2. **`npm run check:buff`** 로 실서버 데이터와 대조하고, 다르다고 나온 항목만 고칩니다.
+   - 시즌 버프 대상이 다르면 `SEASON_BUFF_CHARACTER_BY_VERSION`, 회로 문구가 다르면 출력된 `nanoka` 값을 `circuitBuffs.ts`에 붙여 넣기
+3. **`npm test && npm run lint && npm run build`** 후 사용자 승인을 받아 `feat/version-X-Y-live` 브랜치로 PR
+   - 출시 버전 미정(`9.9`) 공명자가 남아 있으면 테스트가 실패합니다 → `characters.json`의 `releaseVersion`을 실제 값으로
+
+차기 유출 버전을 함께 추가하는 경우는 [`version_update` 스킬](../.agents/skills/version_update/SKILL.md)의 "A. 새 유출 버전 추가"를 따릅니다.
 
 > [!TIP]
 > 단계별 체크리스트와 검증 절차는 [`version_update` 스킬](../.agents/skills/version_update/SKILL.md)에 정리되어 있습니다. AI 에이전트는 "버전 업데이트", "유출 정보 반영", "라이브 전환" 요청 시 이 스킬을 따릅니다.

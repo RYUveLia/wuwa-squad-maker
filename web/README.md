@@ -22,7 +22,8 @@ npm test && npm run lint && npm run build
 |---|---|
 | `npm test` | vitest 단위 테스트 (`src/**/*.test.ts`). `npm run test:watch`로 감시 모드 |
 | `npm run lint` | oxlint (`.oxlintrc.json`) |
-| `npm run check:buff` | nanoka.cc 최신 시즌 버프와 `versions.ts` 대조 ([`../tools/data/`](../tools/data/)) |
+| `npm run check:buff` | nanoka.cc 실서버 데이터와 시즌 버프·회로 4종 대조, 다르면 붙여 넣을 값 출력 ([`../tools/data/`](../tools/data/)) |
+| `npm run version:add -- 4.0` | 새 버전(유출) 추가: 버전·시즌 버프·회로·신규 공명자·아이콘을 nanoka.cc에서 받아 반영 |
 
 ## 폴더 구조
 

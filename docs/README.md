@@ -10,6 +10,6 @@
 |---|---|
 | [`../README.md`](../README.md) | 사용자용 기능 설명·FAQ, 저장소 구성 |
 | [`../web/README.md`](../web/README.md) | 웹앱 실행·검증·폴더 구조·저장소 키 |
-| [`../tools/README.md`](../tools/README.md) | 데이터·초상화 도구 |
+| [`../tools/README.md`](../tools/README.md) | 새 버전 추가·데이터 대조·초상화 도구 |
 | [`../.agents/AGENTS.md`](../.agents/AGENTS.md) | 작업 규칙 (브랜치·커밋·배포 승인, 코드 구조) |
 | [`../.agents/skills/version_update/SKILL.md`](../.agents/skills/version_update/SKILL.md) | 새 버전 추가·라이브 전환 단계별 절차 |

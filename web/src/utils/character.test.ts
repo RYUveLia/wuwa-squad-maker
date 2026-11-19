@@ -20,6 +20,13 @@ describe('isAvailableInVersion', () => {
     expect(isAvailableInVersion(char('lily'), '3.7')).toBe(false)
     expect(isAvailableInVersion(char('lily'), '3.8')).toBe(true)
   })
+
+  it('출시 버전 미정(9.9) 공명자는 유출 버전 보드에서만 노출된다', () => {
+    const undecided = { ...char('lily'), releaseVersion: 9.9 }
+    expect(isAvailableInVersion(undecided, '3.8', ['4.0'])).toBe(false)
+    expect(isAvailableInVersion(undecided, '4.0', ['4.0'])).toBe(true)
+    expect(isAvailableInVersion(undecided, '4.0', [])).toBe(false)
+  })
 })
 
 describe('getSortedCharacters', () => {
