@@ -1,4 +1,4 @@
-import { GAME_VERSIONS, LIVE_VERSION } from './versions'
+import { GAME_VERSIONS, LIVE_VERSION, getLegacySearchOrder } from './versions'
 
 export interface CircuitBuff {
   id: string
@@ -188,13 +188,7 @@ export function resolveCircuitBuff(key: string | null | undefined): ResolvedCirc
     return buff ? { version, buff } : null
   }
 
-  const liveIdx = GAME_VERSIONS.indexOf(LIVE_VERSION)
-  const searchOrder = [
-    LIVE_VERSION,
-    ...GAME_VERSIONS.slice(0, liveIdx).reverse(),
-    ...GAME_VERSIONS.slice(liveIdx + 1)
-  ]
-  for (const version of searchOrder) {
+  for (const version of getLegacySearchOrder(GAME_VERSIONS, LIVE_VERSION)) {
     const buff = CIRCUIT_BUFFS_BY_VERSION[version]?.find(b => b.id === key)
     if (buff) return { version, buff }
   }
