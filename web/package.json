@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "check:buff": "node ../tools/data/check-nanoka-season-buff.js",
+    "version:add": "node ../tools/data/add-version.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -7,7 +7,7 @@
 ## 0. 버전별 편성 보드 구조
 
 - **파일**: [`web/src/constants/versions.ts`](../web/src/constants/versions.ts)
-- 화면 상단의 버전 선택(3.5~3.8)에 따라 **파티 목록이 버전별로 분리 저장**됩니다. (3.5에서 만든 파티는 3.6 보드에 보이지 않음)
+- 화면 상단의 버전 선택(3.5부터 `GAME_VERSIONS`의 최신 버전까지)에 따라 **파티 목록이 버전별로 분리 저장**됩니다. (3.5에서 만든 파티는 3.6 보드에 보이지 않음)
 - 선택된 버전이 결정하는 것:
   - 파티 목록 (localStorage `wuwa-squads-by-version`, 선택 버전은 `selected-version`)
   - 공명자 도감: `releaseVersion`이 선택 버전 이하인 공명자만 노출 (`isAvailableInVersion`)
@@ -75,12 +75,10 @@
 
 ### 1.4 순수 힐러(기본 2회 출전) 공명자 관리
 - **파일**: [`web/src/constants/index.ts`](../web/src/constants/index.ts)의 `DOUBLE_DEPLOYMENT_CHARACTERS`
-  ```ts
-  // 최대 2회 출전이 가능한 순수 힐러 공명자 리스트 (설지, 복링, 벨리나, 파수인, 모니에, 수수, 릴리)
-  export const DOUBLE_DEPLOYMENT_CHARACTERS = ['baizhi', 'buling', 'verina', 'shorekeeper', 'mornye', 'suisui', 'lily']
-  ```
+  - 순수 힐러 공명자 id 목록입니다. (현재 값은 코드 참고)
   - **순수 힐러 영구 2회 규칙**: 명조 종말 매트릭스 시스템상 '순수 힐러' 공명자는 특정 버전의 한시적인 시즌 버프와 무관하게 **버전이 지나도 영구적으로 2회 출전이 가능**합니다.
   - 신규 공명자(유출 단계 포함)가 순수 힐러로 확인된 경우(예: 3.8 릴리), 한시적 예외가 아닌 순수 힐러 영구 목록인 `DOUBLE_DEPLOYMENT_CHARACTERS`에 바로 등록합니다.
+  - **후보 찾기**: `npm run check:buff`와 `npm run version:add`가 nanoka 역할 태그 '생존 치료' + '피해 부스트'를 모두 가진 공명자를 순수 힐러 후보로 알려 줍니다. 3.8 기준 65명에서 순수 힐러 7명과 정확히 일치했지만 게임이 명시한 규칙은 아니므로, 목록에 넣을지는 사람이 판단합니다.
   - 상단 안내 문구의 순수 힐러 명단은 선택 버전에 출시된 공명자만 표시합니다.
 
 ---
@@ -90,14 +88,11 @@
 - **파일**: [`web/src/constants/circuitBuffs.ts`](../web/src/constants/circuitBuffs.ts)
 
 ### 2.1 버전별 버프 정의
-버전별로 버프 목록(`CIRCUIT_BUFFS_3_5` ~ `CIRCUIT_BUFFS_3_8`)이 분리되어 있고, `CIRCUIT_BUFFS_BY_VERSION`에 버전 키로 등록합니다. 회로 모달은 현재 보드 버전의 목록만 노출합니다.
+버전별로 버프 목록(`CIRCUIT_BUFFS_X_Y`, 예: `CIRCUIT_BUFFS_3_8`)이 분리되어 있고, `CIRCUIT_BUFFS_BY_VERSION`에 버전 키로 등록합니다. 회로 모달은 현재 보드 버전의 목록만 노출합니다.
 
-| 버전 | 특이점 확장 Tower (nanoka) | 시즌 단계 |
-|---|---|---|
-| 3.5 | 12 | S2 단계1 |
-| 3.6 | 14 | S2 단계2 |
-| 3.7 | 16 | S2 단계3 |
-| 3.8 | 18 | S2 단계4 |
+각 배열 위 주석에 그 버전의 nanoka 특이점 확장 Tower 번호와 시즌 단계가 적혀 있습니다. (예: `// 3.8 특이점 확장 회로 버프 목록 (Tower 18 / S2 단계4)`)
+
+새 버전의 배열은 손으로 쓰지 않고 `cd web && npm run version:add -- <버전>`으로 만듭니다. 아래는 배열의 모양입니다.
 
 ```ts
 // 신규(유출 포함) 버전 특이점 확장 회로 버프 목록
